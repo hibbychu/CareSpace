@@ -1,0 +1,9 @@
+{
+  "name": "carespace",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ]
+}

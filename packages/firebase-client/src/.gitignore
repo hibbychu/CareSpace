@@ -1,0 +1,10 @@
+# Dependencies
+node_modules/
+
+# Build outputs (if you compile TS to JS)
+dist/
+lib/
+
+# Env (if any for testing)
+.env
+.env.*

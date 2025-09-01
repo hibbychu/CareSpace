@@ -1,0 +1,11 @@
+# Dependencies
+node_modules/
+lib/
+
+# Logs
+npm-debug.log*
+firebase-debug.log*
+
+# Env
+.env
+.env.*
