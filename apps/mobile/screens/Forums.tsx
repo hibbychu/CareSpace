@@ -1,7 +1,8 @@
 // ForumScreen.tsx
-import React from "react";
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, TextInput } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Picker } from '@react-native-picker/picker';
 
 const posts = [
     {
@@ -27,13 +28,23 @@ const posts = [
     },
 ];
 
+const pickerOptions = [
+    { label: "Latest", value: "latest" },
+    { label: "Popular Today", value: "popular_today" },
+    { label: "Popular Week", value: "popular_week" },
+    { label: "Popular Month", value: "popular_month" },
+];
+
 const ForumScreen = () => {
+    const [selectedFilter, setSelectedFilter] = useState("latest");
+    const [selectedFilterLabel, setSelectedFilterLabel] = useState("Latest");
+    const [isSearchMode, setIsSearchMode] = useState(false);
+    const [searchText, setSearchText] = useState("");
+
     const renderPost = ({ item }: any) => (
         <View style={styles.postContainer}>
             {item.image && <Image source={{ uri: item.image }} style={styles.postImage} />}
-            <Text style={styles.postTitle} numberOfLines={1}>
-                {item.title}
-            </Text>
+            <Text style={styles.postTitle} numberOfLines={1}>{item.title}</Text>
             {item.body ? <Text style={styles.postBody}>{item.body}</Text> : null}
 
             <View style={styles.actionsRow}>
@@ -53,10 +64,48 @@ const ForumScreen = () => {
 
     return (
         <View style={styles.container}>
-            {/* Filter and search bar */}
-            <View style={styles.headerRight}>
-                <Text style={styles.dropdown}>Latest ▾</Text>
-                <Ionicons name="search" size={30} color="grey" style={{ marginLeft: 15 }} />
+            {/* Filter/Search Bar */}
+            <View style={styles.filterSearchBarBg}>
+                {!isSearchMode ? (
+                    <>
+                        <Picker
+                            selectedValue={selectedFilter}
+                            onValueChange={(itemValue) => {
+                                setSelectedFilter(itemValue);
+                                const label = pickerOptions.find(opt => opt.value === itemValue)?.label || "";
+                                setSelectedFilterLabel(label);
+                            }}
+                            style={styles.picker}
+                            dropdownIconColor="gray"
+                        >
+                            {pickerOptions.map(opt => (
+                                <Picker.Item key={opt.value} label={opt.label} value={opt.value} />
+                            ))}
+                        </Picker>
+
+                        {/* Spacer pushes search to the right */}
+                        <View style={{ flex: 1 }} />
+
+                        <TouchableOpacity onPress={() => setIsSearchMode(true)}>
+                            <Ionicons name="search" size={30} color="grey" style={{ marginLeft: 15 }} />
+                        </TouchableOpacity>
+                    </>
+                ) : (
+                    <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+                        <TextInput
+                            style={styles.searchInput}
+                            placeholder="Search posts..."
+                            value={searchText}
+                            onChangeText={setSearchText}
+                            autoFocus
+                        />
+                        <TouchableOpacity onPress={() => setIsSearchMode(false)}>
+                            <Ionicons name="close" size={30} color="grey" style={{ marginLeft: 10 }} />
+                        </TouchableOpacity>
+                    </View>
+                )}
+
+                <View style={styles.bottomBorder} />
             </View>
 
             {/* Post Feed */}
@@ -66,7 +115,6 @@ const ForumScreen = () => {
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={{ paddingBottom: 70 }}
             />
-
         </View>
     );
 };
@@ -75,8 +123,35 @@ export default ForumScreen;
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#fff" },
-    headerRight: { flexDirection: "row", alignItems: "center" },
-    dropdown: { color: "white", fontSize: 14 },
+    filterSearchBarBg: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        position: "relative",
+    },
+    bottomBorder: {
+        height: 1,
+        backgroundColor: "#ccc",
+        position: "absolute",
+        left: 10,
+        right: 10,
+        bottom: 0,
+    },
+    picker: {
+        width: 180,
+        height: 50,
+        fontSize: 14
+    },
+    searchInput: {
+        flex: 1,
+        height: 50,
+        fontSize: 16,
+        color: "black",
+        borderRadius: 6,
+        backgroundColor: "#f0f0f0",
+        paddingHorizontal: 10,
+    },
     postContainer: {
         borderBottomWidth: 1,
         borderBottomColor: "#eee",
@@ -96,14 +171,4 @@ const styles = StyleSheet.create({
         marginRight: 8,
     },
     actionText: { color: "white", marginLeft: 4, fontSize: 12 },
-    bottomNav: {
-        flexDirection: "row",
-        justifyContent: "space-around",
-        backgroundColor: "#7b2cbf",
-        paddingVertical: 12,
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
-    },
 });
