@@ -1,42 +1,42 @@
-import React, { useState } from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity, Text, ScrollView, Image } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
+import React, { useRef, useState } from "react";
+import { View, TextInput, StyleSheet, TouchableOpacity, Text, ScrollView, Image, Platform } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
+import * as ImagePicker from "expo-image-picker";
+import { RichEditor, RichToolbar, actions } from "react-native-pell-rich-editor";
 
-
-function CreatePostScreen() {
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
-  const [images, setImages] = useState<string[]>([]);
-  const [bold, setBold] = useState(false);
-  const [underline, setUnderline] = useState(false);
+export default function CreatePostScreen() {
   const route = useRoute();
   const { type } = route.params ?? {};
 
+  const [title, setTitle] = useState("");
+  const [images, setImages] = useState<string[]>([]);
+  const richText = useRef<RichEditor>(null);
+
   const handleAddImage = async () => {
-    // Request permission
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
-      alert('Permission to access media library is required!');
+      alert("Permission to access media library is required!");
       return;
     }
 
-    // Open image picker
     const pickerResult = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images, // use MediaTypeOptions if MediaType does not exist
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       quality: 1,
     });
 
     if (!pickerResult.canceled) {
-      setImages([...images, pickerResult.assets[0].uri]);
+      const uri = pickerResult.assets[0].uri;
+      richText.current?.insertImage(uri);
+      setImages([...images, uri]);
     }
   };
 
-  const handlePost = () => {
-    console.log({ title, body, images });
-    // implement your post logic
+  const handlePost = async () => {
+    const bodyHtml = await richText.current?.getContentHtml();
+    console.log({ title, bodyHtml, images, type });
+    // Implement post logic
   };
 
   return (
@@ -44,8 +44,12 @@ function CreatePostScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={{ flex: 1 }} />
-        <TouchableOpacity onPress={handlePost} style={styles.postButton}>
-          <Text style={styles.postButtonText}>Post</Text>
+        <TouchableOpacity onPress={handlePost} style={[
+          styles.postButton,
+          type === "anonymous" && { backgroundColor: "#e63946" },
+          type === "public" && { backgroundColor: "#7b2cbf" }, 
+        ]}>
+          <Text style={styles.postButtonText}>{type === "public" ? "Post Publicly" : "Make Anonymous Report"}</Text>
         </TouchableOpacity>
       </View>
 
@@ -58,33 +62,32 @@ function CreatePostScreen() {
           style={styles.titleInput}
         />
 
-        {/* Body input */}
-        <TextInput
-          placeholder="Write your post here..."
-          value={body}
-          onChangeText={setBody}
-          style={[
-            styles.bodyInput,
-            bold && { fontWeight: 'bold' },
-            underline && { textDecorationLine: 'underline' },
-          ]}
-          multiline
+        {/* Toolbar with auto state tracking */}
+        <RichToolbar
+          editor={richText}
+          actions={[actions.setBold, actions.setUnderline, actions.insertImage]}
+          iconMap={{
+            [actions.setBold]: () => <MaterialIcons name="format-bold" size={24} color="#555" />,
+            [actions.setUnderline]: () => <MaterialIcons name="format-underlined" size={24} color="#555" />,
+            [actions.insertImage]: () => <MaterialIcons name="image" size={24} color="#555" />,
+          }}
+          onPressAddImage={handleAddImage}
         />
 
-        {/* Formatting toolbar */}
-        <View style={styles.toolbar}>
-          <TouchableOpacity onPress={() => setBold(!bold)} style={styles.toolbarButton}>
-            <MaterialIcons name="format-bold" size={24} color={bold ? '#7b2cbf' : '#555'} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setUnderline(!underline)} style={styles.toolbarButton}>
-            <MaterialIcons name="format-underlined" size={24} color={underline ? '#7b2cbf' : '#555'} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleAddImage} style={styles.toolbarButton}>
-            <MaterialIcons name="image" size={24} color="#555" />
-          </TouchableOpacity>
-        </View>
+        {/* Rich Editor */}
+        <RichEditor
+          ref={richText}
+          placeholder="Write your post here..."
+          style={styles.richEditor}
+          editorStyle={{
+            backgroundColor: "#fff",
+            color: "#000",
+            placeholderColor: "#999",
+            contentCSSText: "font-size: 16px; min-height: 150px;",
+          }}
+        />
 
-        {/* Preview selected images */}
+        {/* Image previews */}
         <ScrollView horizontal style={{ marginTop: 10 }}>
           {images.map((uri, index) => (
             <Image key={index} source={{ uri }} style={styles.previewImage} />
@@ -96,61 +99,19 @@ function CreatePostScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    paddingHorizontal: 12,
-    paddingTop: 10,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  postButton: {
-    backgroundColor: '#7b2cbf', // purple
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-  },
-  postButtonText: {
-    color: '#fff', // white text
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  content: {
-    flex: 1,
-  },
+  container: { flex: 1, backgroundColor: "#fff", paddingHorizontal: 12, paddingTop: 10 },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  postButton: { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 10 },
+  postButtonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
+  content: { flex: 1, marginTop: 10 },
   titleInput: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    paddingVertical: 4,
+    borderBottomColor: "#ccc",
+    paddingVertical: Platform.OS === "ios" ? 8 : 4,
   },
-  bodyInput: {
-    fontSize: 16,
-    minHeight: 150,
-    textAlignVertical: 'top',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 10,
-  },
-  toolbar: {
-    flexDirection: 'row',
-    marginTop: 10,
-  },
-  toolbarButton: {
-    marginRight: 15,
-  },
-  previewImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    marginRight: 10,
-  },
+  richEditor: { borderWidth: 1, borderColor: "#ddd", borderRadius: 8, minHeight: 150, padding: 10 },
+  previewImage: { width: 80, height: 80, borderRadius: 8, marginRight: 10 },
 });
-
-export default CreatePostScreen;
