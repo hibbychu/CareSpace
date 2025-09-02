@@ -39,7 +39,11 @@ function EventsScreen() {
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Event 2</Text>
             <Text style={styles.cardDate}>Sep 12, 2025 | 5:00 PM</Text>
+<<<<<<< Updated upstream
             <TouchableOpacity style={styles.cardButton}>
+=======
+            <TouchableOpacity style={styles.cardButton} onPress={() => navigation.navigate("EventDetails")}>
+>>>>>>> Stashed changes
               <Text style={styles.cardButtonText}>More Details</Text>
             </TouchableOpacity>
           </View>
@@ -63,13 +67,13 @@ const styles = StyleSheet.create({
   filterButton: {
     backgroundColor: "#fff",
     borderWidth: 2,
-    borderColor: "#4f46e5",
+    borderColor: "#7b2cbf",
     borderRadius: 8,
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
   filterText: {
-    color: "#4f46e5",
+    color: "#7b2cbf",
     fontSize: 14,
   },
   cardsContainer: {
@@ -103,7 +107,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   cardButton: {
-    backgroundColor: "#4f46e5",
+    backgroundColor: "#7b2cbf",
     paddingVertical: 8,
     borderRadius: 8,
     alignItems: "center",

@@ -9,15 +9,20 @@ import {
 } from "react-native";
 import temp from "../assets/temp.png";
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 function HomeScreen() {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   return (
     <ScrollView style={{ flex: 1, padding: 20 }}>
       {/* Upcoming Events Section */}
       <View style={styles.titleRow}>
         <Text style={styles.name}>Upcoming Events</Text>
-        <TouchableOpacity style={styles.viewMoreButton} onPress={() => navigation.navigate('Events')}>
+        <TouchableOpacity
+          style={styles.viewMoreButton}
+          onPress={() => navigation.navigate("Events")}
+        >
           <Text style={styles.viewMoreText}>View More</Text>
         </TouchableOpacity>
       </View>
@@ -30,7 +35,10 @@ function HomeScreen() {
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Event 1</Text>
             <Text style={styles.cardDate}>Sep 5, 2025 | 2:00 PM</Text>
-            <TouchableOpacity style={styles.cardButton}>
+            <TouchableOpacity
+              style={styles.cardButton}
+              onPress={() => navigation.navigate("EventDetails")}
+            >
               <Text style={styles.cardButtonText}>More Details</Text>
             </TouchableOpacity>
           </View>
@@ -42,7 +50,10 @@ function HomeScreen() {
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Event 2</Text>
             <Text style={styles.cardDate}>Sep 12, 2025 | 5:00 PM</Text>
-            <TouchableOpacity style={styles.cardButton}>
+            <TouchableOpacity
+              style={styles.cardButton}
+              onPress={() => navigation.navigate("EventDetails")}
+            >
               <Text style={styles.cardButtonText}>More Details</Text>
             </TouchableOpacity>
           </View>
@@ -63,7 +74,9 @@ function HomeScreen() {
         <TouchableOpacity style={styles.card}>
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Article 1</Text>
-            <Text style={styles.cardDate}>Synopsis - no read more button, the entire card is clickable</Text>
+            <Text style={styles.cardDate}>
+              Synopsis - no read more button, the entire card is clickable
+            </Text>
           </View>
         </TouchableOpacity>
 
@@ -98,13 +111,13 @@ const styles = StyleSheet.create({
   viewMoreButton: {
     backgroundColor: "#fff",
     borderWidth: 2,
-    borderColor: "#4f46e5",
+    borderColor: "#7b2cbf",
     borderRadius: 8,
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
   viewMoreText: {
-    color: "#4f46e5",
+    color: "#7b2cbf",
     fontSize: 14,
   },
   cardsContainer: {
@@ -138,7 +151,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   cardButton: {
-    backgroundColor: "#4f46e5",
+    backgroundColor: "#7b2cbf",
     paddingVertical: 8,
     borderRadius: 8,
     alignItems: "center",
