@@ -69,7 +69,10 @@ function CreatePostButton() {
 
   const handleSelect = (type: "public" | "anonymous") => {
     closeSheet();
-    navigation.navigate("CreatePost", { screen: "CreatePost", params: { type } });
+    navigation.navigate("CreatePost" as never, {
+      screen: "CreatePost",
+      params: { type },
+    } as never);
   };
 
   return (
@@ -98,12 +101,16 @@ function CreatePostButton() {
           <Text style={styles.title}>Create Post</Text>
           <Button
             mode="contained"
-            style={{ marginBottom: 10 }}
-            onPress={() => handleSelect("public")}
-          >
+            style={{ marginBottom: 10, paddingVertical:6 }}
+            onPress={() => handleSelect("public")}>
             Public Post
           </Button>
-          <Button mode="contained-tonal" onPress={() => handleSelect("anonymous")}>
+          <Button
+            mode="contained-tonal"
+            style={{ backgroundColor: "#d32f2f", paddingVertical:6 }}
+            textColor="white"      // set text color here
+            onPress={() => handleSelect("anonymous")}
+          >
             Anonymous Safety Report
           </Button>
           <Button onPress={closeSheet} style={{ marginTop: 10 }}>
@@ -141,12 +148,15 @@ function CreatePostStack() {
       <CreatePostStackNav.Screen
         name="CreatePost"
         component={CreatePostScreen}
-        options={{
-          headerTitle: "Create a new Post",
-          headerStyle: { backgroundColor: "#7b2cbf" },
+        options={({ route }) => ({
+          headerTitle:
+            route.params?.type === "anonymous"
+              ? "Anonymous Safety Report"
+              : "Create a new Post",
+          headerStyle: { backgroundColor: route.params?.type === "anonymous" ? "#d32f2f" : "#7b2cbf" },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
-        }}
+        })}
       />
     </CreatePostStackNav.Navigator>
   );

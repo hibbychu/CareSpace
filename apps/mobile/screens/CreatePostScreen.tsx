@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity, Text, ScrollView, Image } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { useRoute } from "@react-navigation/native";
 
 
 function CreatePostScreen() {
@@ -10,6 +11,8 @@ function CreatePostScreen() {
   const [images, setImages] = useState<string[]>([]);
   const [bold, setBold] = useState(false);
   const [underline, setUnderline] = useState(false);
+  const route = useRoute();
+  const { type } = route.params ?? {};
 
   const handleAddImage = async () => {
     // Request permission
