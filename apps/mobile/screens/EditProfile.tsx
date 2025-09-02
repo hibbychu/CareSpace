@@ -34,9 +34,9 @@ const styles = StyleSheet.create({
   label: { fontSize: 17, fontWeight: '600', marginBottom: 5, marginTop: 11 },
   input: { backgroundColor: '#fff', borderRadius: 7, borderWidth: 1, borderColor: '#ccc', padding: 13, fontSize: 16, marginBottom: 6 },
   textarea: { minHeight: 80, textAlignVertical: 'top', marginBottom: 12 },
-  button: { backgroundColor: '#4f46e5', paddingVertical: 14, borderRadius: 9, marginTop: 16, alignItems: 'center' },
+  button: { backgroundColor: '#7b2cbf', paddingVertical: 14, borderRadius: 9, marginTop: 16, alignItems: 'center' },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  cancel: { backgroundColor: '#888', paddingVertical: 10, borderRadius: 7, alignItems: 'center', marginTop: 10 },
+  cancel: { backgroundColor: '#ef4444', paddingVertical: 10, borderRadius: 7, alignItems: 'center', marginTop: 10 },
 });
 
 export default EditProfile;

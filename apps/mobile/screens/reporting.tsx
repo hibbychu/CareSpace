@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
   },
   imageButton: {
     marginBottom: 10,
-    backgroundColor: '#2081e2',
+    backgroundColor: '#7b2cbf',
     padding: 12,
     borderRadius: 6,
     alignItems: 'center',
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
   submit: {
     marginTop: 15,
     padding: 14,
-    backgroundColor: '#2081e2',
+    backgroundColor: '#7b2cbf',
     borderRadius: 7,
     alignItems: 'center',
     marginBottom: 30,
@@ -194,20 +194,20 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: '#2081e2',
+    borderColor: '#7b2cbf',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
     backgroundColor: '#fff',
   },
   radioOuterSelected: {
-    borderColor: '#1557a3',
+    borderColor: '#7b2cbf',
   },
   radioInner: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#2081e2',
+    backgroundColor: '#7b2cbf',
   },
   radioLabel: {
     fontSize: 15,
