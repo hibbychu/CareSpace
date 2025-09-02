@@ -49,14 +49,14 @@ const ForumScreen = () => {
 
             <View style={styles.actionsRow}>
                 <TouchableOpacity style={styles.actionBtn}>
-                    <Ionicons name="heart" size={18} color="white" />
+                    <Ionicons name="heart" size={20} color="white" />
                     <Text style={styles.actionText}>{item.likes}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionBtn}>
-                    <MaterialIcons name="chat-bubble-outline" size={18} color="white" />
+                    <MaterialIcons name="chat-bubble-outline" size={20} color="white" />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionBtn}>
-                    <Ionicons name="share-social" size={18} color="white" />
+                    <Ionicons name="share-social" size={20} color="white" />
                 </TouchableOpacity>
             </View>
         </View>
@@ -160,14 +160,18 @@ const styles = StyleSheet.create({
     postTitle: { fontWeight: "bold", fontSize: 15, marginBottom: 4 },
     postBody: { color: "#555", fontSize: 13, marginBottom: 8 },
     postImage: { width: "100%", height: 180, borderRadius: 6, marginBottom: 8 },
-    actionsRow: { flexDirection: "row", marginTop: 4 },
+    actionsRow: {
+        flexDirection: "row",
+        marginTop: 4,
+        backgroundColor: "#9688B2",
+        borderRadius: 10,
+        alignSelf: "flex-start",
+    },
     actionBtn: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#7b2cbf",
-        paddingVertical: 4,
-        paddingHorizontal: 10,
-        borderRadius: 6,
+        paddingVertical: 7,
+        paddingHorizontal: 15,
         marginRight: 8,
     },
     actionText: { color: "white", marginLeft: 4, fontSize: 12 },
