@@ -63,7 +63,6 @@ const ForumScreen = ({ navigation }) => {
             default:
                 break;
         }
-
         return filteredPosts;
     };
 

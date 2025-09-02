@@ -1,9 +1,12 @@
-import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import React, { useState, useRef, useEffect } from "react";
+import { Menu, Provider as PaperProvider } from "react-native-paper";
+import { View, TouchableOpacity, Text, Animated, StyleSheet  } from "react-native";
+import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { MaterialIcons } from "@expo/vector-icons";
 import { ThemeProvider, ThemeContext } from "./ThemeContext";
+import { Portal, Modal, Button } from "react-native-paper";
 
 // Screens
 import HomeScreen from "./screens/HomeScreen";
@@ -12,6 +15,7 @@ import Profile from "./screens/Profile";
 import EventDetails from "./screens/EventDetails";
 import ForumScreen from "./screens/ForumScreen";
 import PostDetailScreen from "./screens/PostDetailScreen";
+import CreatePostScreen from "./screens/CreatePostScreen";
 
 // Bottom Tab Navigator
 const Tab = createBottomTabNavigator();
@@ -55,9 +59,64 @@ function HomeStack() {
 
   );
 }
+
+function CreatePostButton() {
+  const [visible, setVisible] = useState(false);
+
+  const openSheet = () => setVisible(true);
+  const closeSheet = () => setVisible(false);
+
+  const handleSelect = (type: "public" | "anonymous") => {
+    console.log("Selected type:", type);
+    closeSheet();
+    // navigate or run your logic
+  };
+
+  return (
+    <View>
+      {/* Button */}
+      <TouchableOpacity
+        style={{
+          justifyContent: "center",
+          alignItems: "center",
+          height: 50,
+          borderRadius: 30,
+        }}
+        onPress={openSheet}
+      >
+        <MaterialIcons name="add" size={28} color="white" />
+        <Text style={{ color: "white", fontSize: 12 }}>Create Post</Text>
+      </TouchableOpacity>
+
+      {/* Bottom Sheet */}
+      <Portal>
+        <Modal
+          visible={visible}
+          onDismiss={closeSheet}
+          contentContainerStyle={styles.bottomSheet}
+        >
+          <Text style={styles.title}>Create Post</Text>
+          <Button
+            mode="contained"
+            style={{ marginBottom: 10 }}
+            onPress={() => handleSelect("public")}
+          >
+            Public Post
+          </Button>
+          <Button mode="contained-tonal" onPress={() => handleSelect("anonymous")}>
+            Anonymous Safety Report
+          </Button>
+          <Button onPress={closeSheet} style={{ marginTop: 10 }}>
+            Cancel
+          </Button>
+        </Modal>
+      </Portal>
+    </View>
+  );
+}
+
+
 const ProfileStackNav = createNativeStackNavigator();
-
-
 function ProfileStack() {
   return (
     <ProfileStackNav.Navigator>
@@ -72,6 +131,25 @@ function ProfileStack() {
         }}
       />
     </ProfileStackNav.Navigator>
+  );
+}
+
+const CreatePostStackNav = createNativeStackNavigator();
+function CreatePostStack() {
+  return (
+    <CreatePostStackNav.Navigator>
+      <CreatePostStackNav.Screen
+        name="CreatePost"
+        component={CreatePostScreen}
+
+        options={{
+          headerTitle: "CareSpace",
+          headerStyle: { backgroundColor: "#7b2cbf" },
+          headerTintColor: "#fff",
+          headerTitleAlign: "center",
+        }}
+      />
+    </CreatePostStackNav.Navigator>
   );
 }
 
@@ -119,32 +197,62 @@ function ForumStack() {
 export default function App() {
   return (
     <ThemeProvider>
-      <NavigationContainer>
-        <Tab.Navigator
-          screenOptions={({ route }) => ({
-            tabBarStyle: {
-              backgroundColor: "#7b2cbf",
-            },
-            headerShown: false,
-            tabBarActiveTintColor: "white",
-            tabBarInactiveTintColor: "#CCCCCC",
-            tabBarLabelStyle: { fontSize: 12 },
-            tabBarIcon: ({ color, size }) => {
-              let iconName: string;
-              if (route.name === "Home") iconName = "home";
-              else if (route.name === "Forum") iconName = "forum";
-              else if (route.name === "Profile") iconName = "person";
-              else iconName = "circle"; // default
-              return <MaterialIcons name={iconName} size={size} color={color} />;
-            },
-          })}
-        >
-          <Tab.Screen name="Home" component={HomeStack} />
-          <Tab.Screen name="Forum" component={ForumStack} />
-          <Tab.Screen name="Profile" component={ProfileStack} />
-        </Tab.Navigator>
-      </NavigationContainer>
+      <PaperProvider>
+        <NavigationContainer>
+          <Tab.Navigator
+            screenOptions={({ route }) => ({
+              tabBarStyle: {
+                backgroundColor: "#7b2cbf",
+              },
+              headerShown: false,
+              tabBarActiveTintColor: "white",
+              tabBarInactiveTintColor: "#CCCCCC",
+              tabBarLabelStyle: { fontSize: 12 },
+              tabBarIcon: ({ color, size }) => {
+                let iconName: string;
+                if (route.name === "Home") iconName = "home";
+                else if (route.name === "Forum") iconName = "forum";
+                else if (route.name === "Profile") iconName = "person";
+                else iconName = "circle"; // default
+                return <MaterialIcons name={iconName} size={size} color={color} />;
+              },
+            })}
+          >
+            <Tab.Screen name="Home" component={HomeStack} />
+            <Tab.Screen
+              name="CreatePost"
+              component={() => null}
+              options={{
+                tabBarButton: () => <CreatePostButton />,
+              }}
+              listeners={{ tabPress: (e) => e.preventDefault() }}
+            />
+            <Tab.Screen name="Forum" component={ForumStack} />
+            <Tab.Screen name="Profile" component={ProfileStack} />
+          </Tab.Navigator>
+        </NavigationContainer>
+      </PaperProvider>
     </ThemeProvider>
   );
 }
+
+
+const styles = StyleSheet.create({
+  bottomSheet: {
+    position: "absolute",
+    bottom: 70, // lifts it above the bottom tab bar
+    left: 20,
+    right: 20,
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 16,
+    elevation: 5,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 15,
+    textAlign: "center",
+  },
+});
 
