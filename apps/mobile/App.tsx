@@ -8,7 +8,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import HomeScreen from "./screens/HomeScreen";
 import EventsScreen from "./screens/EventsScreen";
 import Profile from "./screens/Profile";
-// import ForumScreen from "./screens/ForumScreen"; // placeholder
+import ForumScreen from "./screens/ForumScreen"; // placeholder
 
 // Bottom Tab Navigator
 const Tab = createBottomTabNavigator();
@@ -68,7 +68,7 @@ function ForumStack() {
     <ForumStackNav.Navigator>
       <ForumStackNav.Screen
         name="ForumMain"
-        component={Profile}          // replace with ForumScreen if exists
+        component={ForumScreen}          // replace with ForumScreen if exists
         options={{
           headerTitle: "CareSpace",
           headerStyle: { backgroundColor: "#4f46e5" },
