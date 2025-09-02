@@ -73,7 +73,8 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text, View } from 'react-native';
-import Profile from './screens/profile';
+import Profile from './screens/Profile';
+import Reporting from './screens/Reporting';
 
 function HomeScreen() {
   return (
@@ -91,6 +92,7 @@ export default function App() {
       <Tab.Navigator screenOptions={{ headerShown: false }}>
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Profile" component={Profile} />
+        <Tab.Screen name="Reporting" component={Reporting} />
       </Tab.Navigator>
     </NavigationContainer>
   );
