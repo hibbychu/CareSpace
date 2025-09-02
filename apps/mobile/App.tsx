@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { Menu, Provider as PaperProvider } from "react-native-paper";
-import { View, TouchableOpacity, Text, Animated, StyleSheet  } from "react-native";
+import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -62,14 +62,14 @@ function HomeStack() {
 
 function CreatePostButton() {
   const [visible, setVisible] = useState(false);
+  const navigation = useNavigation<any>();
 
   const openSheet = () => setVisible(true);
   const closeSheet = () => setVisible(false);
 
   const handleSelect = (type: "public" | "anonymous") => {
-    console.log("Selected type:", type);
     closeSheet();
-    // navigate or run your logic
+    navigation.navigate("CreatePost", { screen: "CreatePost", params: { type } });
   };
 
   return (
@@ -141,7 +141,6 @@ function CreatePostStack() {
       <CreatePostStackNav.Screen
         name="CreatePost"
         component={CreatePostScreen}
-
         options={{
           headerTitle: "CareSpace",
           headerStyle: { backgroundColor: "#7b2cbf" },
@@ -221,11 +220,13 @@ export default function App() {
             <Tab.Screen name="Home" component={HomeStack} />
             <Tab.Screen
               name="CreatePost"
-              component={() => null}
+              component={CreatePostStack}
               options={{
                 tabBarButton: () => <CreatePostButton />,
               }}
-              listeners={{ tabPress: (e) => e.preventDefault() }}
+              listeners={{
+                tabPress: (e) => e.preventDefault(), // prevent default so button opens modal instead
+              }}
             />
             <Tab.Screen name="Forum" component={ForumStack} />
             <Tab.Screen name="Profile" component={ProfileStack} />

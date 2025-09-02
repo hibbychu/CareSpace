@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { Text, StyleSheet, } from 'react-native';
 
 function CreatePostScreen() {
   return (
-      <Text>Hi</Text>
-    );
+    <Text>Hi</Text>
+  );
 }
 
 const styles = StyleSheet.create({
