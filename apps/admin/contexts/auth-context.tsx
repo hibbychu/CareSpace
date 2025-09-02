@@ -1,19 +1,14 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-interface User {
-  id: string;
-  username: string;
-  email?: string;
-  name: string;
-  role: string;
-}
+import { User } from 'firebase/auth';
+import { authenticateAdmin, signOutAdmin, onAdminAuthStateChanged, AdminUser } from '@/lib/auth';
 
 interface AuthContextType {
-  user: User | null;
+  user: AdminUser | null;
+  firebaseUser: User | null;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -21,61 +16,87 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AdminUser | null>(null);
+  const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check for existing session on mount
+  // Listen to Firebase auth state changes
   useEffect(() => {
-    // Check for stored temporary session
-    const storedUser = localStorage.getItem('temp_auth_user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {
-        localStorage.removeItem('temp_auth_user');
+    const unsubscribe = onAdminAuthStateChanged((firebaseUser, isAdmin) => {
+      setFirebaseUser(firebaseUser);
+      
+      if (firebaseUser && isAdmin) {
+        // Extract admin user data from Firebase user and custom claims
+        firebaseUser.getIdTokenResult().then((tokenResult) => {
+          const claims = tokenResult.claims as Record<string, unknown>; // Type assertion for custom claims
+          const adminUser: AdminUser = {
+            id: firebaseUser.uid,
+            username: (claims.username as string) || firebaseUser.displayName || 'admin',
+            email: firebaseUser.email || '',
+            name: ((claims.username as string) || firebaseUser.displayName || 'admin')
+              .replace(/[._]/g, ' ')
+              .replace(/\b\w/g, (l: string) => l.toUpperCase()),
+            role: (claims.role as string) || 'admin',
+            permissions: (claims.permissions as string[]) || ['events', 'forums', 'users']
+          };
+          setUser(adminUser);
+        }).catch(() => {
+          // Fallback if token claims fail
+          const adminUser: AdminUser = {
+            id: firebaseUser.uid,
+            username: firebaseUser.displayName || 'admin',
+            email: firebaseUser.email || '',
+            name: (firebaseUser.displayName || 'admin')
+              .replace(/[._]/g, ' ')
+              .replace(/\b\w/g, (l: string) => l.toUpperCase()),
+            role: 'admin',
+            permissions: ['events', 'forums', 'users']
+          };
+          setUser(adminUser);
+        });
+      } else {
+        setUser(null);
       }
-    }
-    setIsLoading(false);
+      
+      setIsLoading(false);
+    });
+
+    return unsubscribe;
   }, []);
 
-  const login = async (username: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      setIsLoading(true);
       
-      // Temporary login - accepts any username (3+ chars) and password (4+ chars)
-      if (username.length >= 3 && password.length >= 4) {
-        const userData: User = {
-          id: Date.now().toString(),
-          username: username,
-          email: `${username}@carespace.com`, // Generate email from username
-          name: username.replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-          role: 'admin'
-        };
-        
-        setUser(userData);
-        
-        // Store temporary session
-        localStorage.setItem('temp_auth_user', JSON.stringify(userData));
-        
-        return true;
-      }
+      // Use Firebase authentication
+      const adminUser = await authenticateAdmin(email, password);
+      setUser(adminUser);
+      return true;
       
-      return false;
     } catch (error) {
       console.error('Login error:', error);
       return false;
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    // Clear temporary session
-    localStorage.removeItem('temp_auth_user');
+  const logout = async () => {
+    try {
+      await signOutAdmin();
+      setUser(null);
+      setFirebaseUser(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force logout locally even if Firebase logout fails
+      setUser(null);
+      setFirebaseUser(null);
+    }
   };
 
   const value: AuthContextType = {
     user,
+    firebaseUser,
     isLoading,
     login,
     logout,

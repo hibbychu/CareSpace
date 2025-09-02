@@ -8,7 +8,7 @@ import { LoginForm } from '@/components/login-form';
 import { Shield, Users, Calendar, MessageSquare } from 'lucide-react';
 
 type LoginFormData = {
-  username: string;
+  email: string;
   password: string;
   rememberMe?: boolean;
 };
@@ -31,12 +31,12 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const success = await login(data.username, data.password);
+      const success = await login(data.email, data.password);
       
       if (success) {
         router.push('/dashboard');
       } else {
-        setError('Invalid username or password. Please try again.');
+        setError('Invalid email or password. Please try again.');
       }
       
     } catch {

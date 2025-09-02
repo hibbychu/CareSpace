@@ -8,11 +8,16 @@
  */
 
 import {setGlobalOptions} from "firebase-functions";
-import {onRequest} from "firebase-functions/https";
+import {onCall} from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
+import * as admin from "firebase-admin";
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+// Initialize Firebase Admin
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+
+const auth = admin.auth();
 
 // For cost control, you can set the maximum number of containers that can be
 // running at the same time. This helps mitigate the impact of unexpected
@@ -26,7 +31,118 @@ import * as logger from "firebase-functions/logger";
 // this will be the maximum concurrent request count.
 setGlobalOptions({ maxInstances: 10 });
 
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+interface AdminLoginData {
+  email: string;
+  password: string;
+}
+
+interface AdminUser {
+  uid: string;
+  email: string;
+  role: string;
+  permissions: string[];
+}
+
+/**
+ * Admin Login Callable Function - No CORS issues!
+ * Authenticates admin users using their existing Firebase Auth account
+ */
+export const adminLogin = onCall(async (request) => {
+  try {
+    const { email, password } = request.data as AdminLoginData;
+
+    logger.info("Admin login attempt", { email });
+
+    // Validate input
+    if (!email || !password) {
+      throw new Error("Email and password are required");
+    }
+
+    // Check if user exists and has admin privileges
+    try {
+      const userRecord = await auth.getUserByEmail(email);
+      
+      // Check if user has admin custom claims
+      const customClaims = userRecord.customClaims || {};
+      
+      if (!customClaims.admin && customClaims.role !== 'admin') {
+        logger.warn("Admin login failed - insufficient privileges", { email });
+        throw new Error("Insufficient admin privileges");
+      }
+
+      // Create custom token for the admin user
+      const customToken = await auth.createCustomToken(userRecord.uid, {
+        admin: true,
+        role: 'admin',
+        permissions: customClaims.permissions || ['events', 'forums', 'users']
+      });
+
+      const adminUser: AdminUser = {
+        uid: userRecord.uid,
+        email: userRecord.email || email,
+        role: 'admin',
+        permissions: (customClaims.permissions as string[]) || ['events', 'forums', 'users']
+      };
+
+      logger.info("Admin login successful", { email, uid: userRecord.uid });
+
+      return {
+        success: true,
+        customToken,
+        user: adminUser
+      };
+
+    } catch (error) {
+      logger.warn("Admin login failed - user not found or invalid", { email });
+      throw new Error("Invalid email or insufficient privileges");
+    }
+
+  } catch (error) {
+    logger.error("Admin login error", { error: error instanceof Error ? error.message : error });
+    
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Authentication failed"
+    };
+  }
+});
+
+/**
+ * Set Admin Claims Function
+ * Call this once to make your Firebase Auth user an admin
+ */
+export const setAdminClaims = onCall(async (request) => {
+  try {
+    const { email } = request.data;
+
+    if (!email) {
+      throw new Error("Email is required");
+    }
+
+    // Get user by email
+    const userRecord = await auth.getUserByEmail(email);
+
+    // Set admin custom claims
+    await auth.setCustomUserClaims(userRecord.uid, {
+      admin: true,
+      role: 'admin',
+      permissions: ['events', 'forums', 'users', 'settings']
+    });
+
+    logger.info("Admin claims set successfully", { email, uid: userRecord.uid });
+
+    return {
+      success: true,
+      message: `Admin claims set for ${email}`,
+      uid: userRecord.uid
+    };
+
+  } catch (error) {
+    logger.error("Set admin claims error", { error: error instanceof Error ? error.message : error });
+    
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to set admin claims"
+    };
+  }
+});
