@@ -8,17 +8,14 @@ import {
   TouchableOpacity,
 } from "react-native";
 import temp from "../assets/temp.png";
-import { useNavigation } from '@react-navigation/native';
 
-function HomeScreen() {
-  const navigation = useNavigation();
+function EventsScreen() {
   return (
     <ScrollView style={{ flex: 1, padding: 20 }}>
       {/* Upcoming Events Section */}
       <View style={styles.titleRow}>
-        <Text style={styles.name}>Upcoming Events</Text>
-        <TouchableOpacity style={styles.viewMoreButton} onPress={() => navigation.navigate('Events')}>
-          <Text style={styles.viewMoreText}>View More</Text>
+        <TouchableOpacity style={styles.filterButton}>
+          <Text style={styles.filterText}>Filter</Text>
         </TouchableOpacity>
       </View>
 
@@ -48,38 +45,6 @@ function HomeScreen() {
           </View>
         </View>
       </View>
-
-      {/* Latest News Section */}
-      <View style={styles.titleRow}>
-        <Text style={styles.name}>Latest News</Text>
-        <TouchableOpacity style={styles.viewMoreButton}>
-          <Text style={styles.viewMoreText}>View More</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* News cards */}
-      <View style={styles.cardsContainer}>
-        {/* News Card 1 */}
-        <TouchableOpacity style={styles.card}>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Article 1</Text>
-            <Text style={styles.cardDate}>Synopsis - no read more button, the entire card is clickable</Text>
-          </View>
-        </TouchableOpacity>
-
-        {/* Event Card 2 */}
-        <View style={styles.card}>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Article 2</Text>
-            <Text style={styles.cardDate}>Synopsis</Text>
-            <TouchableOpacity style={styles.cardButton}>
-              <Text style={styles.cardButtonText}>Read More</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-
-      {/* Other content can go here */}
     </ScrollView>
   );
 }
@@ -95,7 +60,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
   },
-  viewMoreButton: {
+  filterButton: {
     backgroundColor: "#fff",
     borderWidth: 2,
     borderColor: "#4f46e5",
@@ -103,7 +68,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
-  viewMoreText: {
+  filterText: {
     color: "#4f46e5",
     fontSize: 14,
   },
@@ -149,4 +114,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeScreen;
+export default EventsScreen;
