@@ -2,8 +2,9 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Text, View } from "react-native";
-import Profile from "./screens/Profile";
 import HomeScreen from "./screens/HomeScreen";
+import ForumsPage from "./screens/Forums";
+import Profile from "./screens/Profile";
 
 const Tab = createBottomTabNavigator();
 
@@ -21,6 +22,18 @@ export default function App() {
             headerTitleAlign: "center",
           }}
         />
+
+        <Tab.Screen
+          name="Forum"
+          component={ForumsPage}
+          options={{
+            title: "Forums",
+            headerStyle: { backgroundColor: "#4f46e5" },
+            headerTintColor: "#fff", 
+            headerTitleAlign: "center",
+          }}
+        />
+
         <Tab.Screen name="Profile" component={Profile} />
       </Tab.Navigator>
     </NavigationContainer>
