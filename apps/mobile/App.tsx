@@ -36,7 +36,7 @@ function HomeStack() {
         component={EventsScreen}
         options={{
           title: "All Events",             // Events header
-          headerStyle: { backgroundColor: "#7b2cbf" },
+          headerStyle: { backgroundColor: "#4f46e5" },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
         }}
@@ -45,14 +45,14 @@ function HomeStack() {
         name="EventDetails"
         component={EventDetails}
         options={{
-          title: "Event Name",             
-          headerStyle: { backgroundColor: "#7b2cbf" },
+          title: "Event Name",
+          headerStyle: { backgroundColor: "#4f46e5" },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
         }}
       />
     </HomeStackNav.Navigator>
-    
+
   );
 }
 const ProfileStackNav = createNativeStackNavigator();
@@ -65,8 +65,8 @@ function ProfileStack() {
         name="ProfileMain"
         component={Profile}
         options={{
-          headerTitle: "CareSpace",  
-          headerStyle: { backgroundColor: "#7b2cbf" },
+          headerTitle: "CareSpace",
+          headerStyle: { backgroundColor: "#4f46e5" },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
         }}
@@ -86,7 +86,7 @@ function ForumStack() {
         component={ForumScreen}
         options={{
           headerTitle: "CareSpace",
-          headerStyle: { backgroundColor:"#7b2cbf" },
+          headerStyle: { backgroundColor: "#7b2cbf" },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
           headerRight: () => (
@@ -122,9 +122,12 @@ export default function App() {
       <NavigationContainer>
         <Tab.Navigator
           screenOptions={({ route }) => ({
-            headerShown: false, // hide tab navigator headers
-            tabBarActiveTintColor: "#7b2cbf",
-            tabBarInactiveTintColor: "#999",
+            tabBarStyle: {
+              backgroundColor: "#7b2cbf",
+            },
+            headerShown: false,
+            tabBarActiveTintColor: "white",
+            tabBarInactiveTintColor: "#CCCCCC",
             tabBarLabelStyle: { fontSize: 12 },
             tabBarIcon: ({ color, size }) => {
               let iconName: string;
