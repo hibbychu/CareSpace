@@ -51,16 +51,6 @@ function HomeStack() {
           headerTitleAlign: "center",
         }}
       />
-      <HomeStackNav.Screen
-        name="EventDetails"
-        component={EventDetails}
-        options={{
-          title: "Event Name",             
-          headerStyle: { backgroundColor: "#4f46e5" },
-          headerTintColor: "#fff",
-          headerTitleAlign: "center",
-        }}
-      />
     </HomeStackNav.Navigator>
     
   );
