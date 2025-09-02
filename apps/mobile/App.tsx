@@ -36,7 +36,7 @@ function HomeStack() {
         component={EventsScreen}
         options={{
           title: "All Events",             // Events header
-          headerStyle: { backgroundColor: "#4f46e5" },
+          headerStyle: { backgroundColor: "#7b2cbf" },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
         }}
@@ -46,7 +46,7 @@ function HomeStack() {
         component={EventDetails}
         options={{
           title: "Event Name",             
-          headerStyle: { backgroundColor: "#4f46e5" },
+          headerStyle: { backgroundColor: "#7b2cbf" },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
         }}
@@ -66,7 +66,7 @@ function ProfileStack() {
         component={Profile}
         options={{
           headerTitle: "CareSpace",  
-          headerStyle: { backgroundColor: "#4f46e5" },
+          headerStyle: { backgroundColor: "#7b2cbf" },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
         }}
@@ -123,7 +123,7 @@ export default function App() {
         <Tab.Navigator
           screenOptions={({ route }) => ({
             headerShown: false, // hide tab navigator headers
-            tabBarActiveTintColor: "#4f46e5",
+            tabBarActiveTintColor: "#7b2cbf",
             tabBarInactiveTintColor: "#999",
             tabBarLabelStyle: { fontSize: 12 },
             tabBarIcon: ({ color, size }) => {
