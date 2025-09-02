@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity, Text, ScrollView, Image } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+
 
 function CreatePostScreen() {
   const [title, setTitle] = useState('');
@@ -9,10 +11,24 @@ function CreatePostScreen() {
   const [bold, setBold] = useState(false);
   const [underline, setUnderline] = useState(false);
 
-  // Placeholder for image picker
-  const handleAddImage = () => {
-    // Integrate expo-image-picker here
-    alert('Add Image clicked!');
+  const handleAddImage = async () => {
+    // Request permission
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      alert('Permission to access media library is required!');
+      return;
+    }
+
+    // Open image picker
+    const pickerResult = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images, // use MediaTypeOptions if MediaType does not exist
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!pickerResult.canceled) {
+      setImages([...images, pickerResult.assets[0].uri]);
+    }
   };
 
   const handlePost = () => {

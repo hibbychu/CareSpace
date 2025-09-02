@@ -142,7 +142,7 @@ function CreatePostStack() {
         name="CreatePost"
         component={CreatePostScreen}
         options={{
-          headerTitle: "CareSpace",
+          headerTitle: "Create a new Post",
           headerStyle: { backgroundColor: "#7b2cbf" },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
@@ -162,7 +162,7 @@ function ForumStack() {
         name="ForumMain"
         component={ForumScreen}
         options={{
-          headerTitle: "CareSpace",
+          headerTitle: "Forums",
           headerStyle: { backgroundColor: "#7b2cbf" },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
