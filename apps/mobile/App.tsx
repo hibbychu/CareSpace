@@ -9,6 +9,7 @@ import { ThemeProvider, ThemeContext } from "./ThemeContext";
 import HomeScreen from "./screens/HomeScreen";
 import EventsScreen from "./screens/EventsScreen";
 import Profile from "./screens/Profile";
+import EventDetails from "./screens/EventDetails";
 import ForumScreen from "./screens/ForumScreen";
 import PostDetailScreen from "./screens/PostDetailScreen";
 
@@ -35,12 +36,33 @@ function HomeStack() {
         component={EventsScreen}
         options={{
           title: "All Events",             // Events header
-          headerStyle: { backgroundColor: "#7b2cbf" },
+          headerStyle: { backgroundColor: "#4f46e5" },
+          headerTintColor: "#fff",
+          headerTitleAlign: "center",
+        }}
+      />
+      <HomeStackNav.Screen
+        name="EventDetails"
+        component={EventDetails}
+        options={{
+          title: "Event Name",             
+          headerStyle: { backgroundColor: "#4f46e5" },
+          headerTintColor: "#fff",
+          headerTitleAlign: "center",
+        }}
+      />
+      <HomeStackNav.Screen
+        name="EventDetails"
+        component={EventDetails}
+        options={{
+          title: "Event Name",             
+          headerStyle: { backgroundColor: "#4f46e5" },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
         }}
       />
     </HomeStackNav.Navigator>
+    
   );
 }
 const ProfileStackNav = createNativeStackNavigator();
@@ -53,8 +75,8 @@ function ProfileStack() {
         name="ProfileMain"
         component={Profile}
         options={{
-          headerTitle: "CareSpace",   // header for this tab
-          headerStyle: { backgroundColor: "#7b2cbf" },
+          headerTitle: "CareSpace",  
+          headerStyle: { backgroundColor: "#4f46e5" },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
         }}

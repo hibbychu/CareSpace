@@ -9,9 +9,17 @@ import {
 } from "react-native";
 import temp from "../assets/temp.png";
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+
+type HomeStackParamList = {
+  HomeMain: undefined;
+  Events: undefined;
+  EventDetails: undefined;
+};
 
 function HomeScreen() {
-  const navigation = useNavigation();
+  const navigation =
+      useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   return (
     <ScrollView style={{ flex: 1, padding: 20 }}>
       {/* Upcoming Events Section */}
@@ -30,7 +38,7 @@ function HomeScreen() {
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Event 1</Text>
             <Text style={styles.cardDate}>Sep 5, 2025 | 2:00 PM</Text>
-            <TouchableOpacity style={styles.cardButton}>
+            <TouchableOpacity style={styles.cardButton} onPress={() => navigation.navigate("EventDetails")}>
               <Text style={styles.cardButtonText}>More Details</Text>
             </TouchableOpacity>
           </View>
@@ -42,7 +50,7 @@ function HomeScreen() {
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Event 2</Text>
             <Text style={styles.cardDate}>Sep 12, 2025 | 5:00 PM</Text>
-            <TouchableOpacity style={styles.cardButton}>
+            <TouchableOpacity style={styles.cardButton} onPress={() => navigation.navigate("EventDetails")}>
               <Text style={styles.cardButtonText}>More Details</Text>
             </TouchableOpacity>
           </View>
