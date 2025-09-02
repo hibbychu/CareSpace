@@ -1,5 +1,6 @@
 // ForumScreen.tsx
 import React, { useState, useContext } from "react";
+import { Share } from "react-native";
 import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, TextInput, useColorScheme } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { Picker } from '@react-native-picker/picker';
@@ -73,6 +74,17 @@ const ForumScreen = ({ navigation }) => {
         return Math.ceil(((date.getTime() - onejan.getTime()) / millisecsInDay + onejan.getDay() + 1) / 7);
     };
 
+    const handleShare = async (post: any) => {
+        try {
+            const message = post.title + (post.body ? `\n\n${post.body}` : "");
+            await Share.share({
+                message,
+            });
+        } catch (error) {
+            console.log("Error sharing post:", error);
+        }
+    };
+
     const renderPost = ({ item }: any) => (
         <TouchableOpacity onPress={() => navigation.navigate("PostDetail", { post: item })}>
             <View style={[styles.postContainer, { backgroundColor: isDark ? "#1c1c1c" : "#fff" }]}>
@@ -85,7 +97,7 @@ const ForumScreen = ({ navigation }) => {
                         <Ionicons name="heart" size={20} color="white" />
                         <Text style={styles.actionText}>{item.likes}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionBtn}>
+                    <TouchableOpacity style={styles.actionBtn} onPress={() => handleShare(item)}>
                         <Ionicons name="share-social" size={20} color="white" />
                     </TouchableOpacity>
                 </View>

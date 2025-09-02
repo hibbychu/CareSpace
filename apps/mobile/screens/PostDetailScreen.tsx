@@ -1,5 +1,7 @@
 // PostDetailScreen.tsx
 import React, { useState, useContext } from "react";
+import { Share } from "react-native";
+
 import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, FlatList, Alert } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { ThemeContext } from "../ThemeContext"; // adjust path if needed
@@ -39,6 +41,16 @@ const PostDetailScreen = ({ route, navigation }) => {
     Alert.alert("Reported", "This comment has been reported.");
   };
 
+  const handleShare = async () => {
+    try {
+      const message = post.title + (post.body ? `\n\n${post.body}` : "");
+      await Share.share({ message });
+    } catch (error) {
+      console.log("Error sharing post:", error);
+    }
+  };
+
+
   const renderComment = ({ item }) => (
     <View style={[styles.commentContainer, { backgroundColor: isDark ? "#1c1c1c" : "#DADADA" }]}>
       <TouchableOpacity style={styles.commentHeader} onPress={() => Alert.alert("Profile clicked", `Navigate to ${item.author}'s profile`)}>
@@ -72,7 +84,7 @@ const PostDetailScreen = ({ route, navigation }) => {
       <Text style={[styles.title, { color: isDark ? "#fff" : "#000" }]}>{post.title}</Text>
       <Text style={[styles.body, { color: isDark ? "#ccc" : "#555" }]}>{post.body}</Text>
 
-       {/* Owner Section */}
+      {/* Owner Section */}
       <TouchableOpacity style={styles.ownerSection} onPress={() => Alert.alert("Owner clicked", `Navigate to ${post.owner || "Owner"}'s profile`)}>
         <Ionicons name="person-circle" size={40} color={isDark ? "#fff" : "#000"} />
         <View style={{ marginLeft: 8 }}>
@@ -88,6 +100,11 @@ const PostDetailScreen = ({ route, navigation }) => {
         <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#7b2cbf" }]}>
           <Ionicons name="heart" size={20} color="white" />
           <Text style={styles.actionText}>{post.likes}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#7b2cbf" }]} onPress={handleShare}>
+          <Ionicons name="share-social" size={20} color="white" />
+          <Text style={styles.actionText}>Share</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
         <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#d32f2f" }]}>
