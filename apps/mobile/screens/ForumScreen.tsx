@@ -6,9 +6,9 @@ import { Picker } from '@react-native-picker/picker';
 import { ThemeContext } from "../ThemeContext";
 
 const posts = [
-    { id: "1", title: "Looking for cricket mates! Anyone keen for ...", body: "Hi everyone, I'm new here and looking to find some friends to play cricket with on the weekends. I'm keen to get a regular group together for some friendly matches.", likes: 24, image: null },
-    { id: "2", title: "The food at this hawker is good. Reminds m...", body: "", likes: 69, image: "https://picsum.photos/400/250" },
-    { id: "3", title: "What's the best way to send money to India...", body: "Just wanted to get some advice from those of you who regularly send money back home. What's the best way to do it now? My old method seems not to be working...", likes: 11, image: null },
+    { id: "1", title: "Looking for cricket mates! Anyone keen for ...", body: "Hi everyone, I'm new here and looking to find some friends to play cricket with on the weekends. I'm keen to get a regular group together for some friendly matches.", likes: 24, image: null, createdAt: new Date("2025-09-01T10:00:00"), },
+    { id: "2", title: "The food at this hawker is good. Reminds m...", body: "", likes: 69, image: "https://picsum.photos/400/250", createdAt: new Date("2025-09-03T09:15:00"), },
+    { id: "3", title: "What's the best way to send money to India...", body: "Just wanted to get some advice from those of you who regularly send money back home. What's the best way to do it now? My old method seems not to be working...", likes: 11, image: null, createdAt: new Date("2025-09-02T15:30:00"), },
 ];
 
 const pickerOptions = [
@@ -27,9 +27,55 @@ const ForumScreen = ({ navigation }) => {
     const [isSearchMode, setIsSearchMode] = useState(false);
     const [searchText, setSearchText] = useState("");
 
+    const getFilteredPosts = () => {
+        let filteredPosts = posts.filter(post =>
+            post.title.toLowerCase().includes(searchText.toLowerCase()) ||
+            post.body.toLowerCase().includes(searchText.toLowerCase())
+        );
+
+        const now = new Date();
+
+        switch (selectedFilter) {
+            case "latest":
+                filteredPosts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+                break;
+            case "popular_day":
+                filteredPosts = filteredPosts.filter(
+                    post => post.createdAt.toDateString() === now.toDateString()
+                );
+                filteredPosts.sort((a, b) => b.likes - a.likes);
+                break;
+            case "popular_week":
+                filteredPosts = filteredPosts.filter(
+                    post => getWeekNumber(post.createdAt) === getWeekNumber(now) &&
+                        post.createdAt.getFullYear() === now.getFullYear()
+                );
+                filteredPosts.sort((a, b) => b.likes - a.likes);
+                break;
+            case "popular_month":
+                filteredPosts = filteredPosts.filter(
+                    post => post.createdAt.getMonth() === now.getMonth() &&
+                        post.createdAt.getFullYear() === now.getFullYear()
+                );
+                filteredPosts.sort((a, b) => b.likes - a.likes);
+                break;
+            default:
+                break;
+        }
+
+        return filteredPosts;
+    };
+
+    // helper function to get week number
+    const getWeekNumber = (date: Date) => {
+        const onejan = new Date(date.getFullYear(), 0, 1);
+        const millisecsInDay = 86400000;
+        return Math.ceil(((date.getTime() - onejan.getTime()) / millisecsInDay + onejan.getDay() + 1) / 7);
+    };
+
     const renderPost = ({ item }: any) => (
         <TouchableOpacity onPress={() => navigation.navigate("PostDetail", { post: item })}>
-            <View style={[styles.postContainer, { borderBottomColor: isDark ? "#333" : "#eee", backgroundColor: isDark ? "#1c1c1c" : "#fff" }]}>
+            <View style={[styles.postContainer, { borderBottomColor: isDark ? "#333" : "gray", backgroundColor: isDark ? "#1c1c1c" : "#fff" }]}>
                 {item.image && <Image source={{ uri: item.image }} style={styles.postImage} />}
                 <Text style={[styles.postTitle, { color: isDark ? "#fff" : "#000" }]} numberOfLines={1}>{item.title}</Text>
                 {item.body ? <Text style={[styles.postBody, { color: isDark ? "#ccc" : "#555" }]}>{item.body}</Text> : null}
@@ -38,9 +84,6 @@ const ForumScreen = ({ navigation }) => {
                     <TouchableOpacity style={styles.actionBtn}>
                         <Ionicons name="heart" size={20} color="white" />
                         <Text style={styles.actionText}>{item.likes}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionBtn}>
-                        <MaterialIcons name="chat-bubble-outline" size={20} color="white" />
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.actionBtn}>
                         <Ionicons name="share-social" size={20} color="white" />
@@ -98,7 +141,7 @@ const ForumScreen = ({ navigation }) => {
 
             {/* Post Feed */}
             <FlatList
-                data={posts}
+                data={getFilteredPosts()}
                 renderItem={renderPost}
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={{ paddingBottom: 70 }}
@@ -141,8 +184,8 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         padding: 12,
     },
-    postTitle: { fontWeight: "bold", fontSize: 15, marginBottom: 4 },
-    postBody: { fontSize: 13, marginBottom: 8 },
+    postTitle: { fontWeight: "bold", fontSize: 18, marginBottom: 4 },
+    postBody: { fontSize: 14, marginBottom: 8 },
     postImage: { width: "100%", height: 180, borderRadius: 6, marginBottom: 8 },
     actionsRow: {
         flexDirection: "row",
