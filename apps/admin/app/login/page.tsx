@@ -8,7 +8,7 @@ import { LoginForm } from '@/components/login-form';
 import { Shield, Users, Calendar, MessageSquare } from 'lucide-react';
 
 type LoginFormData = {
-  email: string;
+  username: string;
   password: string;
   rememberMe?: boolean;
 };
@@ -31,12 +31,12 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const success = await login(data.email, data.password);
+      const success = await login(data.username, data.password);
       
       if (success) {
         router.push('/dashboard');
       } else {
-        setError('Invalid email or password. Please try again.');
+        setError('Invalid username or password. Please try again.');
       }
       
     } catch {
@@ -92,8 +92,8 @@ export default function LoginPage() {
                   Temporary Login (Development Mode)
                 </h3>
                 <div className="mt-2 text-sm text-purple-700">
-                  <p>Use any valid email and password (4+ characters) to login.</p>
-                  <p className="mt-1">Default: <span className="font-mono bg-white px-1 rounded">admin@carespace.com</span> / <span className="font-mono bg-white px-1 rounded">demo123</span></p>
+                  <p>Use any username (3+ characters) and password (4+ characters) to login.</p>
+                  <p className="mt-1">Default: <span className="font-mono bg-white px-1 rounded">admin</span> / <span className="font-mono bg-white px-1 rounded">demo123</span></p>
                 </div>
               </div>
             </div>
@@ -122,19 +122,11 @@ export default function LoginPage() {
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#7C4DFF] to-purple-700 relative overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative z-10 flex flex-col justify-center px-12 py-16 text-white">
-          {/* Logo */}
-          <div className="mb-8">
-            <BrandLogo variant="full" size="lg" className="mb-4" />
-            <div className="text-purple-100">
-              <LogoInstructions />
-            </div>
-          </div>
-
           <h1 className="text-4xl font-bold mb-6">
             Welcome to CareSpace Admin
           </h1>
           <p className="text-xl text-purple-100 mb-8">
-            Manage your healthcare community platform with powerful admin tools.
+            Manage the migrant worker community platform with powerful admin tools.
           </p>
 
           {/* Feature Highlights */}

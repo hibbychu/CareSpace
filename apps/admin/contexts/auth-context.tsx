@@ -4,7 +4,8 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 
 interface User {
   id: string;
-  email: string;
+  username: string;
+  email?: string;
   name: string;
   role: string;
 }
@@ -12,7 +13,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -37,18 +38,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (username: string, password: string): Promise<boolean> => {
     try {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      // Temporary login - accepts any email/password combination
-      // Just needs to be a valid email format and password length > 3
-      if (email.includes('@') && password.length >= 4) {
+      // Temporary login - accepts any username (3+ chars) and password (4+ chars)
+      if (username.length >= 3 && password.length >= 4) {
         const userData: User = {
           id: Date.now().toString(),
-          email: email,
-          name: email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+          username: username,
+          email: `${username}@carespace.com`, // Generate email from username
+          name: username.replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
           role: 'admin'
         };
         

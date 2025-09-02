@@ -4,12 +4,12 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Eye, EyeOff, Lock, Mail, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Form validation schema
 const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  username: z.string().min(3, 'Username must be at least 3 characters'),
   password: z.string().min(4, 'Password must be at least 4 characters'),
   rememberMe: z.boolean().optional(),
 });
@@ -32,38 +32,38 @@ export function LoginForm({ onSubmit, isLoading = false, error }: LoginFormProps
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: 'admin@carespace.com',
+      username: 'admin',
       password: 'demo123',
     },
   });
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Email Field */}
+      {/* Username Field */}
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-          Email Address
+        <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+          Username
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Mail className="h-5 w-5 text-gray-400" />
+            <User className="h-5 w-5 text-gray-400" />
           </div>
           <input
-            {...register('email')}
-            type="email"
-            id="email"
+            {...register('username')}
+            type="text"
+            id="username"
             className={cn(
               'block w-full pl-10 pr-3 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#7C4DFF] focus:border-[#7C4DFF]',
-              errors.email ? 'border-red-300' : 'border-gray-300'
+              errors.username ? 'border-red-300' : 'border-gray-300'
             )}
-            placeholder="admin@carespace.com"
+            placeholder="admin"
             disabled={isLoading}
           />
         </div>
-        {errors.email && (
+        {errors.username && (
           <p className="mt-1 text-sm text-red-600 flex items-center">
             <AlertCircle className="h-4 w-4 mr-1" />
-            {errors.email.message}
+            {errors.username.message}
           </p>
         )}
       </div>
@@ -185,11 +185,11 @@ export function LoginForm({ onSubmit, isLoading = false, error }: LoginFormProps
         <p className="text-xs text-gray-500 mb-2">Development Quick Access:</p>
         <button
           type="button"
-          onClick={() => onSubmit({ email: 'dev@carespace.com', password: 'quickdev' })}
+          onClick={() => onSubmit({ username: 'dev_admin', password: 'quickdev' })}
           disabled={isLoading}
           className="text-xs text-[#7C4DFF] hover:text-purple-600 underline disabled:opacity-50"
         >
-          🚀 Quick Login (dev@carespace.com)
+          🚀 Quick Login (dev_admin)
         </button>
       </div>
     </form>
