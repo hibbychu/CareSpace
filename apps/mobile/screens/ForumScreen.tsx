@@ -35,31 +35,33 @@ const pickerOptions = [
     { label: "Popular Month", value: "popular_month" },
 ];
 
-const ForumScreen = () => {
+const ForumScreen = ({ navigation }) => {
     const [selectedFilter, setSelectedFilter] = useState("latest");
     const [selectedFilterLabel, setSelectedFilterLabel] = useState("Latest");
     const [isSearchMode, setIsSearchMode] = useState(false);
     const [searchText, setSearchText] = useState("");
 
     const renderPost = ({ item }: any) => (
-        <View style={styles.postContainer}>
-            {item.image && <Image source={{ uri: item.image }} style={styles.postImage} />}
-            <Text style={styles.postTitle} numberOfLines={1}>{item.title}</Text>
-            {item.body ? <Text style={styles.postBody}>{item.body}</Text> : null}
+        <TouchableOpacity onPress={() => navigation.navigate("PostDetail", { post: item })}>
+            <View style={styles.postContainer}>
+                {item.image && <Image source={{ uri: item.image }} style={styles.postImage} />}
+                <Text style={styles.postTitle} numberOfLines={1}>{item.title}</Text>
+                {item.body ? <Text style={styles.postBody}>{item.body}</Text> : null}
 
-            <View style={styles.actionsRow}>
-                <TouchableOpacity style={styles.actionBtn}>
-                    <Ionicons name="heart" size={20} color="white" />
-                    <Text style={styles.actionText}>{item.likes}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.actionBtn}>
-                    <MaterialIcons name="chat-bubble-outline" size={20} color="white" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.actionBtn}>
-                    <Ionicons name="share-social" size={20} color="white" />
-                </TouchableOpacity>
+                <View style={styles.actionsRow}>
+                    <TouchableOpacity style={styles.actionBtn}>
+                        <Ionicons name="heart" size={20} color="white" />
+                        <Text style={styles.actionText}>{item.likes}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.actionBtn}>
+                        <MaterialIcons name="chat-bubble-outline" size={20} color="white" />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.actionBtn}>
+                        <Ionicons name="share-social" size={20} color="white" />
+                    </TouchableOpacity>
+                </View>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 
     return (
