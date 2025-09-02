@@ -40,7 +40,7 @@ const PostDetailScreen = ({ route, navigation }) => {
   };
 
   const renderComment = ({ item }) => (
-    <View style={[styles.commentContainer, { backgroundColor: isDark ? "#1c1c1c" : "#f5f5f5" }]}>
+    <View style={[styles.commentContainer, { backgroundColor: isDark ? "#1c1c1c" : "#DADADA" }]}>
       <TouchableOpacity style={styles.commentHeader} onPress={() => Alert.alert("Profile clicked", `Navigate to ${item.author}'s profile`)}>
         <Ionicons name="person-circle" size={30} color={isDark ? "#fff" : "#000"} />
         <Text style={[styles.commentAuthor, { color: isDark ? "#fff" : "#000" }]}>{item.author}</Text>
@@ -89,7 +89,8 @@ const PostDetailScreen = ({ route, navigation }) => {
           <Ionicons name="heart" size={20} color="white" />
           <Text style={styles.actionText}>{post.likes}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#7b2cbf" }]}>
+        <View style={{ flex: 1 }} />
+        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#d32f2f" }]}>
           <MaterialIcons name="report" size={20} color="white" />
           <Text style={styles.actionText}>Report</Text>
         </TouchableOpacity>
@@ -151,7 +152,7 @@ const styles = StyleSheet.create({
   actionText: { color: "white", marginLeft: 4 },
   commentsTitle: { fontWeight: "bold", fontSize: 16, marginBottom: 6 },
   commentContainer: {
-    borderRadius: 8,
+    borderRadius: 10,
     padding: 8,
     marginBottom: 8,
   },

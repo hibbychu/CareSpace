@@ -75,7 +75,7 @@ const ForumScreen = ({ navigation }) => {
 
     const renderPost = ({ item }: any) => (
         <TouchableOpacity onPress={() => navigation.navigate("PostDetail", { post: item })}>
-            <View style={[styles.postContainer, { borderBottomColor: isDark ? "#333" : "gray", backgroundColor: isDark ? "#1c1c1c" : "#fff" }]}>
+            <View style={[styles.postContainer, { backgroundColor: isDark ? "#1c1c1c" : "#fff" }]}>
                 {item.image && <Image source={{ uri: item.image }} style={styles.postImage} />}
                 <Text style={[styles.postTitle, { color: isDark ? "#fff" : "#000" }]} numberOfLines={1}>{item.title}</Text>
                 {item.body ? <Text style={[styles.postBody, { color: isDark ? "#ccc" : "#555" }]}>{item.body}</Text> : null}
@@ -90,6 +90,7 @@ const ForumScreen = ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
             </View>
+            <View style={[styles.bottomBorder, { backgroundColor: isDark ? "#444" : "gray" }]} />
         </TouchableOpacity>
     );
 
@@ -136,7 +137,7 @@ const ForumScreen = ({ navigation }) => {
                     </View>
                 )}
 
-                <View style={[styles.bottomBorder, { backgroundColor: isDark ? "#444" : "#ccc" }]} />
+                <View style={[styles.bottomBorder, { backgroundColor: isDark ? "#444" : "gray" }]} />
             </View>
 
             {/* Post Feed */}
@@ -181,7 +182,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
     },
     postContainer: {
-        borderBottomWidth: 1,
         padding: 12,
     },
     postTitle: { fontWeight: "bold", fontSize: 18, marginBottom: 4 },
