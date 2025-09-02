@@ -1,10 +1,14 @@
 // PostDetailScreen.tsx
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, FlatList } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { ThemeContext } from "../ThemeContext"; // adjust path if needed
 
 const PostDetailScreen = ({ route }) => {
   const { post } = route.params; // passed from ForumScreen
+  const { isDarkTheme } = useContext(ThemeContext); // consume theme
+  const isDark = isDarkTheme;
+
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState([
     { id: "1", text: "Nice post!", author: "Alice" },
@@ -18,44 +22,52 @@ const PostDetailScreen = ({ route }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: isDark ? "#121212" : "#fff" }]}>
       {post.image && <Image source={{ uri: post.image }} style={styles.postImage} />}
-      <Text style={styles.title}>{post.title}</Text>
-      <Text style={styles.body}>{post.body}</Text>
-      <Text style={styles.date}>Posted on: {new Date().toLocaleDateString()}</Text>
+      <Text style={[styles.title, { color: isDark ? "#fff" : "#000" }]}>{post.title}</Text>
+      <Text style={[styles.body, { color: isDark ? "#ccc" : "#555" }]}>{post.body}</Text>
+      <Text style={[styles.date, { color: isDark ? "#888" : "#888" }]}>Posted on: {new Date().toLocaleDateString()}</Text>
 
       <View style={styles.actionsRow}>
-        <TouchableOpacity style={styles.actionBtn}>
+        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#7b2cbf" }]}>
           <Ionicons name="heart" size={20} color="white" />
           <Text style={styles.actionText}>{post.likes}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtn}>
+        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#7b2cbf" }]}>
           <MaterialIcons name="report" size={20} color="white" />
           <Text style={styles.actionText}>Report</Text>
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.commentsTitle}>Comments</Text>
+      <Text style={[styles.commentsTitle, { color: isDark ? "#fff" : "#000" }]}>Comments</Text>
       <FlatList
         data={comments}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.comment}>
-            <Text style={styles.commentAuthor}>{item.author}:</Text>
-            <Text style={styles.commentText}>{item.text}</Text>
+            <Text style={[styles.commentAuthor, { color: isDark ? "#fff" : "#000" }]}>{item.author}:</Text>
+            <Text style={[styles.commentText, { color: isDark ? "#ccc" : "#555" }]}>{item.text}</Text>
           </View>
         )}
       />
 
       <View style={styles.commentInputRow}>
         <TextInput
-          style={styles.commentInput}
+          style={[
+            styles.commentInput,
+            {
+              backgroundColor: isDark ? "#333" : "#fff",
+              color: isDark ? "#fff" : "#000",
+              borderColor: isDark ? "#555" : "#ccc",
+            },
+          ]}
           placeholder="Add a comment..."
+          placeholderTextColor={isDark ? "#aaa" : "#888"}
           value={commentText}
           onChangeText={setCommentText}
         />
         <TouchableOpacity onPress={addComment}>
-          <Ionicons name="send" size={24} color="#7b2cbf" style={{ marginLeft: 8 }} />
+          <Ionicons name="send" size={24} color={isDark ? "#bb86fc" : "#7b2cbf"} style={{ marginLeft: 8 }} />
         </TouchableOpacity>
       </View>
     </View>
@@ -65,16 +77,15 @@ const PostDetailScreen = ({ route }) => {
 export default PostDetailScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 12, backgroundColor: "#fff" },
+  container: { flex: 1, padding: 12 },
   postImage: { width: "100%", height: 200, borderRadius: 8, marginBottom: 12 },
   title: { fontSize: 18, fontWeight: "bold", marginBottom: 6 },
-  body: { fontSize: 14, color: "#555", marginBottom: 8 },
-  date: { fontSize: 12, color: "#888", marginBottom: 12 },
+  body: { fontSize: 14, marginBottom: 8 },
+  date: { fontSize: 12, marginBottom: 12 },
   actionsRow: { flexDirection: "row", marginBottom: 12 },
   actionBtn: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#7b2cbf",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
@@ -91,7 +102,6 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#ccc",
     paddingHorizontal: 10,
   },
 });
