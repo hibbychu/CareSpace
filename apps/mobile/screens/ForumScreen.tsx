@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
-import { View, Text, FlatList, Image, TouchableOpacity, TextInput, Share } from "react-native";
+import { View, Text, FlatList, Image, TouchableOpacity, TextInput, Share, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Menu } from "react-native-paper";
 import { ThemeContext } from "../ThemeContext";
@@ -7,15 +7,59 @@ import { db } from "../firebase";
 import { collection, query, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
 
 export default function ForumScreen({ navigation }) {
-  const { isDarkTheme } = useContext(ThemeContext);
-  const isDark = isDarkTheme;
+    const { theme } = useContext(ThemeContext);
 
-  const [posts, setPosts] = useState<any[]>([]);
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState("latest");
-  const [selectedFilterLabel, setSelectedFilterLabel] = useState("Latest");
-  const [isSearchMode, setIsSearchMode] = useState(false);
-  const [searchText, setSearchText] = useState("");
+    const [posts, setPosts] = useState<any[]>([]);
+    const [menuVisible, setMenuVisible] = useState(false);
+    const [selectedFilter, setSelectedFilter] = useState("latest");
+    const [selectedFilterLabel, setSelectedFilterLabel] = useState("Latest");
+    const [isSearchMode, setIsSearchMode] = useState(false);
+    const [searchText, setSearchText] = useState("");
+
+    const pickerOptions = [
+        { label: "Latest", value: "latest" },
+        { label: "Popular Today", value: "popular_today" },
+        { label: "Popular Week", value: "popular_week" },
+        { label: "Popular Month", value: "popular_month" },
+    ];
+
+    const getFilteredPosts = () => {
+        let filteredPosts = posts.filter(post =>
+            post.title.toLowerCase().includes(searchText.toLowerCase()) ||
+            post.body.toLowerCase().includes(searchText.toLowerCase())
+        );
+
+        const now = new Date();
+
+        switch (selectedFilter) {
+            case "latest":
+                filteredPosts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+                break;
+            case "popular_day":
+                filteredPosts = filteredPosts.filter(
+                    post => post.createdAt.toDateString() === now.toDateString()
+                );
+                filteredPosts.sort((a, b) => b.likes - a.likes);
+                break;
+            case "popular_week":
+                filteredPosts = filteredPosts.filter(
+                    post => getWeekNumber(post.createdAt) === getWeekNumber(now) &&
+                        post.createdAt.getFullYear() === now.getFullYear()
+                );
+                filteredPosts.sort((a, b) => b.likes - a.likes);
+                break;
+            case "popular_month":
+                filteredPosts = filteredPosts.filter(
+                    post => post.createdAt.getMonth() === now.getMonth() &&
+                        post.createdAt.getFullYear() === now.getFullYear()
+                );
+                filteredPosts.sort((a, b) => b.likes - a.likes);
+                break;
+            default:
+                break;
+        }
+        return filteredPosts;
+    };
 
   // fetch posts from Firestore
   useEffect(() => {

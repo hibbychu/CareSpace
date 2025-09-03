@@ -1,8 +1,3 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Modal } from 'react-native';
-import EditProfile from './EditProfile';
-import { useNavigation } from '@react-navigation/native';
-// Profile.tsx
 import React, { useEffect, useState } from 'react';
 import { 
   View, 
@@ -13,56 +8,13 @@ import {
   TouchableOpacity, 
   Alert 
 } from 'react-native';
+import EditProfile from './EditProfile';
+import { useNavigation } from '@react-navigation/native';
 import { auth } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 
 interface Props {
   navigation: any; // React Navigation prop
-}
-
-function Profile() {
-  const [modalVisible, setModalVisible] = useState(false);
-  const navigation = useNavigation();
-
-  const user = {
-    avatar: 'https://via.placeholder.com/120',
-    name: 'Jane Doe',
-    email: 'jane.doe@example.com',
-    about: 'Hello! I love building mobile apps with React Native and exploring UI design.',
-  };
-
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Image source={{ uri: user.avatar }} style={styles.avatar} />
-      <Text style={styles.name}>{user.name}</Text>
-      <Text style={styles.email}>{user.email}</Text>
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>About Me</Text>
-        <Text style={styles.sectionContent}>{user.about}</Text>
-      </View>
-       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('EditProfile')}>
-        <Text style={styles.buttonText}>Edit Profile</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={[styles.button, styles.logoutButton]}>
-        <Text style={styles.buttonText}>Logout</Text>
-      </TouchableOpacity>
-    
-
-      {/* EditProfile modal */}
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <EditProfile
-          initialName={user.name}
-          initialEmail={user.email}
-          initialAbout={user.about}
-          onClose={() => setModalVisible(false)}
-        />
-      </Modal>
-    </ScrollView>
-  );
 }
 
 const Profile: React.FC<Props> = ({ navigation }) => {
@@ -101,7 +53,7 @@ const Profile: React.FC<Props> = ({ navigation }) => {
       {/* Action Buttons */}
       {user ? (
         <>
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('EditProfile')}>
             <Text style={styles.buttonText}>Edit Profile</Text>
           </TouchableOpacity>
           <TouchableOpacity 
