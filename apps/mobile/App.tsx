@@ -62,70 +62,70 @@ function HomeStack() {
   );
 }
 
-function CreatePostButton() {
-  const [visible, setVisible] = useState(false);
-  const navigation = useNavigation<any>();
-  const { theme } = useContext(ThemeContext);
-  const openSheet = () => setVisible(true);
-  const closeSheet = () => setVisible(false);
+// function CreatePostButton() {
+//   const [visible, setVisible] = useState(false);
+//   const navigation = useNavigation<any>();
+//   const { theme } = useContext(ThemeContext);
+//   const openSheet = () => setVisible(true);
+//   const closeSheet = () => setVisible(false);
 
-  const handleSelect = (type: "public" | "anonymous") => {
-    closeSheet();
-    navigation.navigate("CreatePost" as never, {
-      screen: "CreatePost",
-      params: { type },
-    } as never);
-  };
+//   const handleSelect = (type: "public" | "anonymous") => {
+//     closeSheet();
+//     navigation.navigate("CreatePost" as never, {
+//       screen: "CreatePost",
+//       params: { type },
+//     } as never);
+//   };
 
-  return (
-    <View>
-      {/* Button */}
-      <TouchableOpacity
-        style={{
-          justifyContent: "center",
-          alignItems: "center",
-          height: 50,
-          borderRadius: 30,
-        }}
-        onPress={openSheet}
-      >
-        <MaterialIcons name="add" size={28} color="white" />
-        <Text style={{ color: "white", fontSize: 12 }}>Create Post</Text>
-      </TouchableOpacity>
+//   return (
+//     <View>
+//       {/* Button */}
+//       <TouchableOpacity
+//         style={{
+//           justifyContent: "center",
+//           alignItems: "center",
+//           height: 50,
+//           borderRadius: 30,
+//         }}
+//         onPress={openSheet}
+//       >
+//         <MaterialIcons name="add" size={28} color="white" />
+//         <Text style={{ color: "white", fontSize: 12 }}>Create Post</Text>
+//       </TouchableOpacity>
 
-      {/* Bottom Sheet */}
-      <Portal>
-        <Modal
-          visible={visible}
-          onDismiss={closeSheet}
-          contentContainerStyle={[
-            styles.bottomSheet,
-            { backgroundColor: theme.background },
-          ]}
-        >
-          <Text style={[styles.title, { color: theme.text }]}>Create Post</Text>
-          <Button
-            mode="contained"
-            style={{ marginBottom: 10, paddingVertical: 6 }}
-            onPress={() => handleSelect("public")}>
-            Public Post
-          </Button>
-          <Button
-            mode="contained-tonal"
-            style={{ backgroundColor: "#d32f2f", paddingVertical: 6 }}
-            textColor="white"      // set text color here
-            onPress={() => handleSelect("anonymous")}
-          >
-            Anonymous Safety Report
-          </Button>
-          <Button onPress={closeSheet} style={{ marginTop: 10}} textColor={theme.text2}>
-            Cancel
-          </Button>
-        </Modal>
-      </Portal>
-    </View>
-  );
-}
+//       {/* Bottom Sheet */}
+//       <Portal>
+//         <Modal
+//           visible={visible}
+//           onDismiss={closeSheet}
+//           contentContainerStyle={[
+//             styles.bottomSheet,
+//             { backgroundColor: theme.background },
+//           ]}
+//         >
+//           <Text style={[styles.title, { color: theme.text }]}>Create Post</Text>
+//           <Button
+//             mode="contained"
+//             style={{ marginBottom: 10, paddingVertical: 6 }}
+//             onPress={() => handleSelect("public")}>
+//             Public Post
+//           </Button>
+//           <Button
+//             mode="contained-tonal"
+//             style={{ backgroundColor: "#d32f2f", paddingVertical: 6 }}
+//             textColor="white"      // set text color here
+//             onPress={() => handleSelect("anonymous")}
+//           >
+//             Anonymous Safety Report
+//           </Button>
+//           <Button onPress={closeSheet} style={{ marginTop: 10}} textColor={theme.text2}>
+//             Cancel
+//           </Button>
+//         </Modal>
+//       </Portal>
+//     </View>
+//   );
+// }
 
 
 const ProfileStackNav = createNativeStackNavigator();
