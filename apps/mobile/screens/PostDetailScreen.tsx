@@ -68,7 +68,7 @@ const PostDetailScreen = ({ route, navigation }) => {
           <Ionicons name="heart" size={20} color={isDark ? "#bb86fc" : "#7b2cbf"} />
           <Text style={[styles.commentActionText, { color: isDark ? "#fff" : "#000" }]}>{item.likes}</Text>
         </TouchableOpacity>
-
+        <View style={{ flex: 1 }} />
         <TouchableOpacity style={styles.commentActionBtn} onPress={() => handleReport(item.id)}>
           <MaterialIcons name="report" size={20} color={isDark ? "#ff6b6b" : "#d32f2f"} />
           <Text style={[styles.commentActionText, { color: isDark ? "#fff" : "#000" }]}>Report</Text>
