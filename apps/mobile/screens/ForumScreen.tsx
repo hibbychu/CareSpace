@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
-import { View, Text, FlatList, Image, TouchableOpacity, TextInput, Share } from "react-native";
+import { View, Text, FlatList, Image, TouchableOpacity, TextInput, Share, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Menu } from "react-native-paper";
 import { ThemeContext } from "../ThemeContext";
