@@ -28,8 +28,7 @@ import { onAuthStateChanged } from "firebase/auth";
 
 const PostDetailScreen = ({ route }) => {
   const { post } = route.params;
-  const { isDarkTheme } = useContext(ThemeContext);
-  const isDark = isDarkTheme;
+  const { theme } = useContext(ThemeContext);
 
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState<any[]>([]);
@@ -107,70 +106,68 @@ const PostDetailScreen = ({ route }) => {
   };
 
   const renderComment = ({ item }) => (
-    <View
-      style={[
-        styles.commentContainer,
-        { backgroundColor: isDark ? "#1c1c1c" : "#DADADA" },
-      ]}
-    >
-      <TouchableOpacity
-        style={styles.commentHeader}
-        onPress={() =>
-          Alert.alert("Profile clicked", `Navigate to ${item.authorName}'s profile`)
-        }
-      >
-        <Ionicons name="person-circle" size={30} color={isDark ? "#fff" : "#000"} />
-        <Text style={[styles.commentAuthor, { color: isDark ? "#fff" : "#000" }]}>
-          {item.authorName}
-        </Text>
-        <Text style={[styles.commentTime, { color: isDark ? "#aaa" : "#666" }]}>
+    <View style={[styles.commentContainer, { backgroundColor: theme.commentBackground }]}>
+      <TouchableOpacity style={styles.commentHeader} onPress={() => Alert.alert("Profile clicked", `Navigate to ${item.author}'s profile`)}>
+        <Ionicons name="person-circle" size={30} color={theme.text} />
+        <Text style={[styles.commentAuthor, { color: theme.text }]}>{item.author}</Text>
+        <Text style={[styles.commentTime, { color: theme.dateGrey }]}>
           {item.createdAt.toLocaleString()}
         </Text>
       </TouchableOpacity>
 
-      <Text style={[styles.commentText, { color: isDark ? "#ccc" : "#333" }]}>
-        {item.text}
-      </Text>
+      <Text style={[styles.commentText, { color: theme.postBodyText }]}>{item.text}</Text>
 
       <View style={styles.commentActionsRow}>
-        <TouchableOpacity
-          style={styles.commentActionBtn}
-          onPress={() => handleUpvote(item.id)}
-        >
-          <Ionicons name="heart" size={20} color={isDark ? "#bb86fc" : "#7b2cbf"} />
-          <Text style={[styles.commentActionText, { color: isDark ? "#fff" : "#000" }]}>
-            {item.likes}
-          </Text>
+        <TouchableOpacity style={styles.commentActionBtn} onPress={() => handleUpvote(item.id)}>
+          <Ionicons name="heart" size={20} color={theme.text2} />
+          <Text style={[styles.commentActionText, { color: theme.text }]}>{item.likes}</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.commentActionBtn}
-          onPress={() => handleReport(item.id)}
-        >
-          <MaterialIcons name="report" size={20} color={isDark ? "#ff6b6b" : "#d32f2f"} />
-          <Text style={[styles.commentActionText, { color: isDark ? "#fff" : "#000" }]}>
-            Report
-          </Text>
+        <View style={{ flex: 1 }} />
+        <TouchableOpacity style={styles.commentActionBtn} onPress={() => handleReport(item.id)}>
+          <MaterialIcons name="report" size={20} color={theme.reportRed} />
+          <Text style={[styles.commentActionText, { color: theme.text }]}>Report</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? "#121212" : "#fff" }]}>
-      {post.image && <Image source={{ uri: post.image }} style={styles.postImage} />}
-      <Text style={[styles.title, { color: isDark ? "#fff" : "#000" }]}>{post.title}</Text>
-      <Text style={[styles.body, { color: isDark ? "#ccc" : "#555" }]}>{post.body}</Text>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
 
-      <View style={styles.ownerSection}>
-        <Ionicons name="person-circle" size={40} color={isDark ? "#fff" : "#000"} />
+      {post.image && <Image source={{ uri: post.image }} style={styles.postImage} />}
+      <Text style={[styles.title, { color: theme.text }]}>{post.title}</Text>
+      <Text style={[styles.body, { color: theme.postBodyText }]}>{post.body}</Text>
+
+      {/* Owner Section */}
+      <TouchableOpacity style={styles.ownerSection} onPress={() => Alert.alert("Owner clicked", `Navigate to ${post.owner || "Owner"}'s profile`)}>
+        <Ionicons name="person-circle" size={40} color={theme.text} />
         <View style={{ marginLeft: 8 }}>
-          <Text style={[styles.ownerName, { color: isDark ? "#fff" : "#000" }]}>
-            {post.owner || "Owner"}
-          </Text>
+          <Text style={[styles.ownerName, { color: theme.text }]}>{post.owner || "Owner of post"}</Text>
         </View>
+      </TouchableOpacity>
+
+      <Text style={[styles.date, { color: theme.dateGrey}]}>
+        Posted on: {new Date().toLocaleDateString()}
+      </Text>
+
+      <View style={styles.actionsRow}>
+        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#7b2cbf" }]}>
+          <Ionicons name="heart" size={20} color="white" />
+          <Text style={styles.actionText}>{post.likes}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#7b2cbf" }]} onPress={handleShare}>
+          <Ionicons name="share-social" size={20} color="white" />
+          <Text style={styles.actionText}>Share</Text>
+        </TouchableOpacity>
+        <View style={{ flex: 1 }} />
+        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#d32f2f" }]}>
+          <MaterialIcons name="report" size={20} color="white" />
+          <Text style={styles.actionText}>Report</Text>
+        </TouchableOpacity>
       </View>
 
+      <Text style={[styles.commentsTitle, { color: theme.text }]}>Comments ({comments.length})</Text>
       <FlatList
         data={comments}
         keyExtractor={(i) => i.id}
@@ -183,23 +180,18 @@ const PostDetailScreen = ({ route }) => {
           style={[
             styles.commentInput,
             {
-              backgroundColor: isDark ? "#333" : "#fff",
-              color: isDark ? "#fff" : "#000",
-              borderColor: isDark ? "#555" : "#ccc",
+              backgroundColor: theme.background,
+              color: theme.text,
+              borderColor: theme.bottomBorder,
             },
           ]}
           placeholder="Add a comment..."
-          placeholderTextColor={isDark ? "#aaa" : "#888"}
+          placeholderTextColor={theme.searchBarBackground}
           value={commentText}
           onChangeText={setCommentText}
         />
         <TouchableOpacity onPress={addComment}>
-          <Ionicons
-            name="send"
-            size={24}
-            color={isDark ? "#bb86fc" : "#7b2cbf"}
-            style={{ marginLeft: 8 }}
-          />
+          <Ionicons name="send" size={24} color={theme.text2} style={{ marginLeft: 8 }} />
         </TouchableOpacity>
       </View>
     </View>

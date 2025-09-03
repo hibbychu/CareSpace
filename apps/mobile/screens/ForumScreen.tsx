@@ -44,30 +44,138 @@ export default function ForumScreen({ navigation }) {
     } catch (err) { console.log(err); }
   };
 
-  const renderPost = ({ item }: any) => (
-    <TouchableOpacity onPress={() => navigation.navigate("PostDetail", { post: item })}>
-      <View style={{ padding: 12, backgroundColor: isDark ? "#1c1c1c" : "#fff", marginBottom: 8 }}>
-        {item.image && <Image source={{ uri: item.image }} style={{ width: "100%", height: 180, borderRadius: 6, marginBottom: 8 }} />}
-        <Text style={{ fontWeight: "bold", fontSize: 18, color: isDark ? "#fff" : "#000" }}>{item.title}</Text>
-        {item.body ? <Text style={{ color: isDark ? "#ccc" : "#555" }}>{item.body}</Text> : null}
-        <TouchableOpacity onPress={() => handleShare(item)} style={{ flexDirection: "row", marginTop: 8 }}>
-          <Ionicons name="share-social" size={20} color="white" />
-          <Text style={{ color: "white", marginLeft: 4 }}>{item.likes}</Text>
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
-  );
+    const renderPost = ({ item }: any) => (
+        <TouchableOpacity onPress={() => navigation.navigate("PostDetail", { post: item })}>
+            <View style={[styles.postContainer, { backgroundColor: theme.background }]}>
+                {item.image && <Image source={{ uri: item.image }} style={styles.postImage} />}
+                <Text style={[styles.postTitle, { color: theme.text }]} numberOfLines={1}>{item.title}</Text>
+                {item.body ? <Text style={[styles.postBody, { color: theme.postBodyText }]}>{item.body}</Text> : null}
 
-  return (
-    <View style={{ flex: 1, backgroundColor: isDark ? "#121212" : "#fff", padding: 12 }}>
-      <FlatList
-        data={posts.filter(p =>
-          p.title.toLowerCase().includes(searchText.toLowerCase()) ||
-          p.body.toLowerCase().includes(searchText.toLowerCase())
-        )}
-        renderItem={renderPost}
-        keyExtractor={(item) => item.id}
-      />
-    </View>
-  );
-}
+                <View style={[styles.actionsRow, { backgroundColor: "#9688B2" }]}>
+                    <TouchableOpacity style={styles.actionBtn}>
+                        <Ionicons name="heart" size={20} color="white" />
+                        <Text style={styles.actionText}>{item.likes}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.actionBtn} onPress={() => handleShare(item)}>
+                        <Ionicons name="share-social" size={20} color="white" />
+                    </TouchableOpacity>
+                </View>
+            </View>
+            <View style={[styles.bottomBorder, { backgroundColor: theme.bottomBorder }]} />
+        </TouchableOpacity>
+    );
+
+    return (
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
+            {/* Filter/Search Bar */}
+            <View style={styles.filterSearchBarBg}>
+                {!isSearchMode ? (
+                    <>
+                        <Menu
+                            visible={menuVisible}
+                            onDismiss={() => setMenuVisible(false)}
+                            anchor={
+                                <TouchableOpacity onPress={() => setMenuVisible(true)}>
+                                    <Text style={{ color: theme.text, fontSize: 16 }}>
+                                        {selectedFilterLabel} ▾
+                                    </Text>
+                                </TouchableOpacity>
+                            }
+                            contentStyle={{ backgroundColor: "#9688B2" }}
+                        >
+                            {pickerOptions.map(opt => (
+                                <Menu.Item
+                                    key={opt.value}
+                                    onPress={() => {
+                                        setSelectedFilter(opt.value);
+                                        setSelectedFilterLabel(opt.label);
+                                        setMenuVisible(false);
+                                    }}
+                                    title={opt.label}
+                                    titleStyle={{ color: "white" }}
+                                />
+                            ))}
+                        </Menu>
+
+                        <View style={{ flex: 1 }} />
+
+                        <TouchableOpacity onPress={() => setIsSearchMode(true)}>
+                            <Ionicons name="search" size={30} color={theme.iconsGrey} style={{ marginLeft: 15 }} />
+                        </TouchableOpacity>
+                    </>
+                ) : (
+                    <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+                        <TextInput
+                            style={[styles.searchInput, { backgroundColor: theme.searchBarBackground, color: theme.text }]}
+                            placeholder="Search posts..."
+                            placeholderTextColor={theme.searchBarPlaceHolderText}
+                            value={searchText}
+                            onChangeText={setSearchText}
+                            autoFocus
+                        />
+                        <TouchableOpacity onPress={() => setIsSearchMode(false)}>
+                            <Ionicons name="close" size={30} color={theme.iconsGrey} style={{ marginLeft: 10 }} />
+                        </TouchableOpacity>
+                    </View>
+                )}
+
+                <View style={[styles.bottomBorder, { backgroundColor: theme.bottomBorder }]} />
+            </View>
+
+            {/* Post Feed */}
+            <FlatList
+                data={getFilteredPosts()}
+                renderItem={renderPost}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={{ paddingBottom: 70 }}
+            />
+        </View>
+    );
+};
+
+export default ForumScreen;
+
+const styles = StyleSheet.create({
+    container: { flex: 1 },
+    filterSearchBarBg: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        position: "relative",
+    },
+    bottomBorder: {
+        height: 1,
+        position: "absolute",
+        left: 10,
+        right: 10,
+        bottom: 0,
+    },
+    searchInput: {
+        flex: 1,
+        height: 50,
+        fontSize: 16,
+        borderRadius: 6,
+        paddingHorizontal: 10,
+    },
+    postContainer: {
+        padding: 12,
+    },
+    postTitle: { fontWeight: "bold", fontSize: 18, marginBottom: 4 },
+    postBody: { fontSize: 14, marginBottom: 8 },
+    postImage: { width: "100%", height: 180, borderRadius: 6, marginBottom: 8 },
+    actionsRow: {
+        flexDirection: "row",
+        marginTop: 4,
+        borderRadius: 10,
+        alignSelf: "flex-start",
+    },
+    actionBtn: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: 7,
+        paddingHorizontal: 15,
+        marginRight: 8,
+    },
+    actionText: { color: "white", marginLeft: 4, fontSize: 12 },
+});
