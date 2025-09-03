@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Menu, Provider as PaperProvider } from "react-native-paper";
 import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { NavigationContainer, useNavigation } from "@react-navigation/native";
@@ -63,7 +63,7 @@ function HomeStack() {
 function CreatePostButton() {
   const [visible, setVisible] = useState(false);
   const navigation = useNavigation<any>();
-
+  const { theme } = useContext(ThemeContext);
   const openSheet = () => setVisible(true);
   const closeSheet = () => setVisible(false);
 
@@ -96,24 +96,27 @@ function CreatePostButton() {
         <Modal
           visible={visible}
           onDismiss={closeSheet}
-          contentContainerStyle={styles.bottomSheet}
+          contentContainerStyle={[
+            styles.bottomSheet,
+            { backgroundColor: theme.background },
+          ]}
         >
-          <Text style={styles.title}>Create Post</Text>
+          <Text style={[styles.title, { color: theme.text }]}>Create Post</Text>
           <Button
             mode="contained"
-            style={{ marginBottom: 10, paddingVertical:6 }}
+            style={{ marginBottom: 10, paddingVertical: 6 }}
             onPress={() => handleSelect("public")}>
             Public Post
           </Button>
           <Button
             mode="contained-tonal"
-            style={{ backgroundColor: "#d32f2f", paddingVertical:6 }}
+            style={{ backgroundColor: "#d32f2f", paddingVertical: 6 }}
             textColor="white"      // set text color here
             onPress={() => handleSelect("anonymous")}
           >
             Anonymous Safety Report
           </Button>
-          <Button onPress={closeSheet} style={{ marginTop: 10 }}>
+          <Button onPress={closeSheet} style={{ marginTop: 10}} textColor={theme.text2}>
             Cancel
           </Button>
         </Modal>

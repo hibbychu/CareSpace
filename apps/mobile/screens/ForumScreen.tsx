@@ -20,7 +20,7 @@ const pickerOptions = [
 ];
 
 const ForumScreen = ({ navigation }) => {
-    const { isDarkTheme } = useContext(ThemeContext); // ← use the context
+    const { isDarkTheme } = useContext(ThemeContext);
     const isDark = isDarkTheme;
     const [menuVisible, setMenuVisible] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState("latest");
