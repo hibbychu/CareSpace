@@ -6,7 +6,11 @@
     "services/*",
     "packages/*"
   ],
-  "dependencies": {
-    "@react-navigation/native-stack": "^7.3.26"
+  "devDependencies": {
+    "npm-check-updates": "^17.0.0"
+  },
+  "resolutions": {
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
   }
 }
