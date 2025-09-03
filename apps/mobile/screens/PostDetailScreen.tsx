@@ -1,77 +1,156 @@
 // PostDetailScreen.tsx
-import React, { useState, useContext } from "react";
-import { Share } from "react-native";
-
-import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, FlatList, Alert } from "react-native";
+import React, { useState, useContext, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  Alert,
+} from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { ThemeContext } from "../ThemeContext"; // adjust path if needed
+import { ThemeContext } from "../ThemeContext";
+import { db, auth } from "../firebase";
+import {
+  collection,
+  addDoc,
+  query,
+  orderBy,
+  onSnapshot,
+  serverTimestamp,
+  updateDoc,
+  doc,
+  increment,
+} from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
-const PostDetailScreen = ({ route, navigation }) => {
+const PostDetailScreen = ({ route }) => {
   const { post } = route.params;
   const { isDarkTheme } = useContext(ThemeContext);
   const isDark = isDarkTheme;
 
   const [commentText, setCommentText] = useState("");
-  const [comments, setComments] = useState([
-    { id: "1", text: "Nice post!", author: "Alice", avatar: null, likes: 2, createdAt: new Date(Date.now() - 3600 * 1000) },
-    { id: "2", text: "I agree!", author: "Bob", avatar: null, likes: 3, createdAt: new Date(Date.now() - 7200 * 1000) },
-  ]);
+  const [comments, setComments] = useState<any[]>([]);
+  const [user, setUser] = useState<any>(null);
 
-  const addComment = () => {
+  // Load comments + auth listener
+  useEffect(() => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (u) => setUser(u));
+
+    const commentsQ = query(
+      collection(db, "posts", post.id, "comments"),
+      orderBy("createdAt", "desc")
+    );
+    const unsubscribeComments = onSnapshot(commentsQ, (snap) => {
+      setComments(
+        snap.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+          createdAt: d.data().createdAt
+            ? d.data().createdAt.toDate()
+            : new Date(),
+        }))
+      );
+    });
+
+    return () => {
+      unsubscribeAuth();
+      unsubscribeComments();
+    };
+  }, [post.id]);
+
+  const addComment = async () => {
     if (!commentText.trim()) return;
-    setComments([
-      ...comments,
-      {
-        id: Date.now().toString(),
-        text: commentText,
-        author: "You",
-        avatar: null,
-        likes: 0,
-        createdAt: new Date()
-      }
-    ]);
-    setCommentText("");
-  };
+    if (!user) {
+      Alert.alert("Login required", "Please sign in to add a comment.");
+      return;
+    }
 
-  const handleUpvote = (id: string) => {
-    setComments(comments.map(c => c.id === id ? { ...c, likes: c.likes + 1 } : c));
-  };
-
-  const handleReport = (id: string) => {
-    Alert.alert("Reported", "This comment has been reported.");
-  };
-
-  const handleShare = async () => {
     try {
-      const message = post.title + (post.body ? `\n\n${post.body}` : "");
-      await Share.share({ message });
-    } catch (error) {
-      console.log("Error sharing post:", error);
+      await addDoc(collection(db, "posts", post.id, "comments"), {
+        text: commentText.trim(),
+        authorName: user.displayName || user.email || "Anonymous",
+        authorUid: user.uid,
+        likes: 0,
+        createdAt: serverTimestamp(),
+      });
+      setCommentText("");
+    } catch (err) {
+      console.log("add comment error", err);
+      Alert.alert("Error", "Unable to post comment.");
     }
   };
 
+  const handleUpvote = async (commentId: string) => {
+    try {
+      const ref = doc(db, "posts", post.id, "comments", commentId);
+      await updateDoc(ref, { likes: increment(1) });
+    } catch (err) {
+      console.log("comment upvote error", err);
+    }
+  };
+
+  const handleReport = async (commentId: string) => {
+    try {
+      await addDoc(collection(db, "reports"), {
+        type: "comment",
+        targetPostId: post.id,
+        targetCommentId: commentId,
+        reportedAt: serverTimestamp(),
+      });
+      Alert.alert("Reported", "Thanks — the moderation team will review this.");
+    } catch (err) {
+      console.log("report error", err);
+    }
+  };
 
   const renderComment = ({ item }) => (
-    <View style={[styles.commentContainer, { backgroundColor: isDark ? "#1c1c1c" : "#DADADA" }]}>
-      <TouchableOpacity style={styles.commentHeader} onPress={() => Alert.alert("Profile clicked", `Navigate to ${item.author}'s profile`)}>
+    <View
+      style={[
+        styles.commentContainer,
+        { backgroundColor: isDark ? "#1c1c1c" : "#DADADA" },
+      ]}
+    >
+      <TouchableOpacity
+        style={styles.commentHeader}
+        onPress={() =>
+          Alert.alert("Profile clicked", `Navigate to ${item.authorName}'s profile`)
+        }
+      >
         <Ionicons name="person-circle" size={30} color={isDark ? "#fff" : "#000"} />
-        <Text style={[styles.commentAuthor, { color: isDark ? "#fff" : "#000" }]}>{item.author}</Text>
+        <Text style={[styles.commentAuthor, { color: isDark ? "#fff" : "#000" }]}>
+          {item.authorName}
+        </Text>
         <Text style={[styles.commentTime, { color: isDark ? "#aaa" : "#666" }]}>
           {item.createdAt.toLocaleString()}
         </Text>
       </TouchableOpacity>
 
-      <Text style={[styles.commentText, { color: isDark ? "#ccc" : "#333" }]}>{item.text}</Text>
+      <Text style={[styles.commentText, { color: isDark ? "#ccc" : "#333" }]}>
+        {item.text}
+      </Text>
 
       <View style={styles.commentActionsRow}>
-        <TouchableOpacity style={styles.commentActionBtn} onPress={() => handleUpvote(item.id)}>
+        <TouchableOpacity
+          style={styles.commentActionBtn}
+          onPress={() => handleUpvote(item.id)}
+        >
           <Ionicons name="heart" size={20} color={isDark ? "#bb86fc" : "#7b2cbf"} />
-          <Text style={[styles.commentActionText, { color: isDark ? "#fff" : "#000" }]}>{item.likes}</Text>
+          <Text style={[styles.commentActionText, { color: isDark ? "#fff" : "#000" }]}>
+            {item.likes}
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.commentActionBtn} onPress={() => handleReport(item.id)}>
+        <TouchableOpacity
+          style={styles.commentActionBtn}
+          onPress={() => handleReport(item.id)}
+        >
           <MaterialIcons name="report" size={20} color={isDark ? "#ff6b6b" : "#d32f2f"} />
-          <Text style={[styles.commentActionText, { color: isDark ? "#fff" : "#000" }]}>Report</Text>
+          <Text style={[styles.commentActionText, { color: isDark ? "#fff" : "#000" }]}>
+            Report
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -79,44 +158,22 @@ const PostDetailScreen = ({ route, navigation }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: isDark ? "#121212" : "#fff" }]}>
-
       {post.image && <Image source={{ uri: post.image }} style={styles.postImage} />}
       <Text style={[styles.title, { color: isDark ? "#fff" : "#000" }]}>{post.title}</Text>
       <Text style={[styles.body, { color: isDark ? "#ccc" : "#555" }]}>{post.body}</Text>
 
-      {/* Owner Section */}
-      <TouchableOpacity style={styles.ownerSection} onPress={() => Alert.alert("Owner clicked", `Navigate to ${post.owner || "Owner"}'s profile`)}>
+      <View style={styles.ownerSection}>
         <Ionicons name="person-circle" size={40} color={isDark ? "#fff" : "#000"} />
         <View style={{ marginLeft: 8 }}>
-          <Text style={[styles.ownerName, { color: isDark ? "#fff" : "#000" }]}>{post.owner || "Owner of post"}</Text>
+          <Text style={[styles.ownerName, { color: isDark ? "#fff" : "#000" }]}>
+            {post.owner || "Owner"}
+          </Text>
         </View>
-      </TouchableOpacity>
-
-      <Text style={[styles.date, { color: isDark ? "#888" : "#888" }]}>
-        Posted on: {new Date().toLocaleDateString()}
-      </Text>
-
-      <View style={styles.actionsRow}>
-        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#7b2cbf" }]}>
-          <Ionicons name="heart" size={20} color="white" />
-          <Text style={styles.actionText}>{post.likes}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#7b2cbf" }]} onPress={handleShare}>
-          <Ionicons name="share-social" size={20} color="white" />
-          <Text style={styles.actionText}>Share</Text>
-        </TouchableOpacity>
-        <View style={{ flex: 1 }} />
-        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#d32f2f" }]}>
-          <MaterialIcons name="report" size={20} color="white" />
-          <Text style={styles.actionText}>Report</Text>
-        </TouchableOpacity>
       </View>
 
-      <Text style={[styles.commentsTitle, { color: isDark ? "#fff" : "#000" }]}>Comments ({comments.length})</Text>
       <FlatList
         data={comments}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(i) => i.id}
         renderItem={renderComment}
         contentContainerStyle={{ paddingBottom: 80 }}
       />
@@ -137,7 +194,12 @@ const PostDetailScreen = ({ route, navigation }) => {
           onChangeText={setCommentText}
         />
         <TouchableOpacity onPress={addComment}>
-          <Ionicons name="send" size={24} color={isDark ? "#bb86fc" : "#7b2cbf"} style={{ marginLeft: 8 }} />
+          <Ionicons
+            name="send"
+            size={24}
+            color={isDark ? "#bb86fc" : "#7b2cbf"}
+            style={{ marginLeft: 8 }}
+          />
         </TouchableOpacity>
       </View>
     </View>
@@ -148,31 +210,12 @@ export default PostDetailScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 12 },
-  ownerSection: {
-    flexDirection: "row",   // aligns children in a row
-    alignItems: "center",   // vertically centers them
-    marginBottom: 12,
-  },
   postImage: { width: "100%", height: 200, borderRadius: 8, marginBottom: 12 },
   title: { fontSize: 18, fontWeight: "bold", marginBottom: 6 },
   body: { fontSize: 14, marginBottom: 8 },
-  date: { fontSize: 12, marginBottom: 12 },
-  actionsRow: { flexDirection: "row", marginBottom: 12 },
-  actionBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    marginRight: 8,
-  },
-  actionText: { color: "white", marginLeft: 4 },
-  commentsTitle: { fontWeight: "bold", fontSize: 16, marginBottom: 6 },
-  commentContainer: {
-    borderRadius: 10,
-    padding: 8,
-    marginBottom: 8,
-  },
+  ownerSection: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
+  ownerName: { fontWeight: "bold" },
+  commentContainer: { borderRadius: 10, padding: 8, marginBottom: 8 },
   commentHeader: { flexDirection: "row", alignItems: "center", marginBottom: 4 },
   commentAuthor: { fontWeight: "bold", marginLeft: 6 },
   commentTime: { marginLeft: 8, fontSize: 12 },
@@ -181,11 +224,5 @@ const styles = StyleSheet.create({
   commentActionBtn: { flexDirection: "row", alignItems: "center", marginRight: 12 },
   commentActionText: { marginLeft: 4 },
   commentInputRow: { flexDirection: "row", alignItems: "center", marginTop: 8 },
-  commentInput: {
-    flex: 1,
-    height: 40,
-    borderRadius: 8,
-    borderWidth: 1,
-    paddingHorizontal: 10,
-  },
+  commentInput: { flex: 1, height: 40, borderRadius: 8, borderWidth: 1, paddingHorizontal: 10 },
 });
