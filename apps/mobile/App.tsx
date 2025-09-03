@@ -72,9 +72,11 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 import { Text, View } from 'react-native';
 import Profile from './screens/Profile';
 import Reporting from './screens/Reporting';
+import EditProfile from './screens/EditProfile';
 
 function HomeScreen() {
   return (
@@ -85,6 +87,17 @@ function HomeScreen() {
 }
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+
+
+function ProfileStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Profile" component={Profile} />
+      <Stack.Screen name="EditProfile" component={EditProfile} />
+    </Stack.Navigator>
+  );
+}
 
 export default function App() {
   return (
@@ -92,7 +105,7 @@ export default function App() {
       <Tab.Navigator screenOptions={{ headerShown: false }}>
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Reporting" component={Reporting} />
-        <Tab.Screen name="Profile" component={Profile} />
+        <Tab.Screen name="Profile" component={ProfileStack} />
       </Tab.Navigator>
     </NavigationContainer>
   );

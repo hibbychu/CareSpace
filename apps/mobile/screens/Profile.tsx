@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import EditProfile from './EditProfile';
+import { useNavigation } from '@react-navigation/native';
 
 function Profile() {
   const [modalVisible, setModalVisible] = useState(false);
+  const navigation = useNavigation();
 
   const user = {
     avatar: 'https://via.placeholder.com/120',
@@ -21,7 +23,7 @@ function Profile() {
         <Text style={styles.sectionTitle}>About Me</Text>
         <Text style={styles.sectionContent}>{user.about}</Text>
       </View>
-      <TouchableOpacity style={styles.button} onPress={() => setModalVisible(true)}>
+       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('EditProfile')}>
         <Text style={styles.buttonText}>Edit Profile</Text>
       </TouchableOpacity>
       <TouchableOpacity style={[styles.button, styles.logoutButton]}>
