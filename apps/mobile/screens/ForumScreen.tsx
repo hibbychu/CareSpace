@@ -61,30 +61,37 @@ export default function ForumScreen({ navigation }) {
         return filteredPosts;
     };
 
-  // fetch posts from Firestore
+    const getWeekNumber = (date: Date) => {
+        const onejan = new Date(date.getFullYear(), 0, 1);
+        const millisecsInDay = 86400000;
+        return Math.ceil(((date.getTime() - onejan.getTime()) / millisecsInDay + onejan.getDay() + 1) / 7);
+    };
+
+
+    // fetch posts from Firestore
     useEffect(() => {
         const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
         const unsub = onSnapshot(q, (snap) => {
-        const arr = snap.docs.map(doc => {
-            const data = doc.data();
-            return {
-            id: doc.id,
-            title: data.title,
-            body: data.body || "",
-            likes: data.likes || 0,
-            image: data.image || null,
-            owner: data.ownerName || "Owner",
-            createdAt: data.createdAt ? (data.createdAt as Timestamp).toDate() : new Date(),
-            };
-        });
-        setPosts(arr);
+            const arr = snap.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    title: data.title,
+                    body: data.body || "",
+                    likes: data.likes || 0,
+                    image: data.image || null,
+                    owner: data.ownerName || "Owner",
+                    createdAt: data.createdAt ? (data.createdAt as Timestamp).toDate() : new Date(),
+                };
+            });
+            setPosts(arr);
         });
         return () => unsub();
     }, []);
 
     const handleShare = async (post: any) => {
         try {
-        await Share.share({ message: post.title + (post.body ? `\n\n${post.body}` : "") });
+            await Share.share({ message: post.title + (post.body ? `\n\n${post.body}` : "") });
         } catch (err) { console.log(err); }
     };
 
@@ -187,7 +194,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         paddingVertical: 8,
         position: "relative",
-        height:50,
+        height: 50,
     },
     bottomBorder: {
         height: 1,
