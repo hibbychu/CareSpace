@@ -91,8 +91,8 @@ export default function App() {
     <NavigationContainer>
       <Tab.Navigator screenOptions={{ headerShown: false }}>
         <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Profile" component={Profile} />
         <Tab.Screen name="Reporting" component={Reporting} />
+        <Tab.Screen name="Profile" component={Profile} />
       </Tab.Navigator>
     </NavigationContainer>
   );

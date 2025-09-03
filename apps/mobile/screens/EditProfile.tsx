@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 
 
 function EditProfile({ initialName, initialEmail, initialAbout, onClose }) {
   const [name, setName] = useState(initialName || '');
+  const [email, setEmail] = useState(initialEmail || '');
   const [about, setAbout] = useState(initialAbout || '');
 
   const handleSave = () => {
@@ -16,6 +17,8 @@ function EditProfile({ initialName, initialEmail, initialAbout, onClose }) {
       <Text style={styles.title}>Edit Profile</Text>
       <Text style={styles.label}>Name</Text>
       <TextInput style={styles.input} value={name} onChangeText={setName} />
+      <Text style={styles.label}>Email</Text>
+      <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType='email-address' />
       <Text style={styles.label}>About</Text>
       <TextInput style={[styles.input, styles.textarea]} value={about} onChangeText={setAbout} multiline />
       <TouchableOpacity style={styles.button} onPress={handleSave}>
@@ -36,7 +39,7 @@ const styles = StyleSheet.create({
   textarea: { minHeight: 80, textAlignVertical: 'top', marginBottom: 12 },
   button: { backgroundColor: '#7b2cbf', paddingVertical: 14, borderRadius: 9, marginTop: 16, alignItems: 'center' },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  cancel: { backgroundColor: '#ef4444', paddingVertical: 10, borderRadius: 7, alignItems: 'center', marginTop: 10 },
+  cancel: { backgroundColor: '#888', paddingVertical: 10, borderRadius: 7, alignItems: 'center', marginTop: 10 },
 });
 
 export default EditProfile;
