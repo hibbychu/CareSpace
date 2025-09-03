@@ -4,6 +4,14 @@ export const lightTheme = {
   primary: "#7b2cbf",
   secondary: "#9688B2",
   text2: "#7b2cbf",
+  searchBarBackground: "#f0f0f0",
+  searchBarPlaceHolderText: "#aaa",
+  postBodyText: "#555",
+  bottomBorder: "gray",
+  iconsGrey: "grey",
+  commentBackground: "#DADADA",
+  dateGrey: "#aaa",
+  reportRed: "#d32f2f",
 };
 
 export const darkTheme = {
@@ -12,4 +20,12 @@ export const darkTheme = {
   primary: "#7b2cbf",
   secondary: "#9688B2",
   text2: "#9688B2",
+  searchBarBackground: "#333",
+  searchBarPlaceHolderText: "#888",
+  postBodyText: "#ccc",
+  bottomBorder: "#444",
+  iconsGrey: "#fff",
+  commentBackground: "#1c1c1c",
+  dateGrey: "#666",
+  reportRed: "#ff6b6b",
 };

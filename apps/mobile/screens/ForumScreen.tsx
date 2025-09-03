@@ -4,7 +4,7 @@ import { Share } from "react-native";
 import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, TextInput, useColorScheme } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { Menu } from "react-native-paper";
-import { ThemeContext } from "../ThemeContext";
+import { theme, ThemeContext } from "../ThemeContext";
 
 const posts = [
     { id: "1", title: "Looking for cricket mates! Anyone keen for ...", body: "Hi everyone, I'm new here and looking to find some friends to play cricket with on the weekends. I'm keen to get a regular group together for some friendly matches.", likes: 24, image: null, createdAt: new Date("2025-09-01T10:00:00"), },
@@ -20,8 +20,7 @@ const pickerOptions = [
 ];
 
 const ForumScreen = ({ navigation }) => {
-    const { isDarkTheme } = useContext(ThemeContext);
-    const isDark = isDarkTheme;
+    const { theme } = useContext(ThemeContext);
     const [menuVisible, setMenuVisible] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState("latest");
     const [selectedFilterLabel, setSelectedFilterLabel] = useState("Latest");
@@ -86,10 +85,10 @@ const ForumScreen = ({ navigation }) => {
 
     const renderPost = ({ item }: any) => (
         <TouchableOpacity onPress={() => navigation.navigate("PostDetail", { post: item })}>
-            <View style={[styles.postContainer, { backgroundColor: isDark ? "#1c1c1c" : "#fff" }]}>
+            <View style={[styles.postContainer, { backgroundColor: theme.background }]}>
                 {item.image && <Image source={{ uri: item.image }} style={styles.postImage} />}
-                <Text style={[styles.postTitle, { color: isDark ? "#fff" : "#000" }]} numberOfLines={1}>{item.title}</Text>
-                {item.body ? <Text style={[styles.postBody, { color: isDark ? "#ccc" : "#555" }]}>{item.body}</Text> : null}
+                <Text style={[styles.postTitle, { color: theme.text }]} numberOfLines={1}>{item.title}</Text>
+                {item.body ? <Text style={[styles.postBody, { color: theme.postBodyText }]}>{item.body}</Text> : null}
 
                 <View style={[styles.actionsRow, { backgroundColor: "#9688B2" }]}>
                     <TouchableOpacity style={styles.actionBtn}>
@@ -101,12 +100,12 @@ const ForumScreen = ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
             </View>
-            <View style={[styles.bottomBorder, { backgroundColor: isDark ? "#444" : "gray" }]} />
+            <View style={[styles.bottomBorder, { backgroundColor: theme.bottomBorder }]} />
         </TouchableOpacity>
     );
 
     return (
-        <View style={[styles.container, { backgroundColor: isDark ? "#121212" : "#fff" }]}>
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
             {/* Filter/Search Bar */}
             <View style={styles.filterSearchBarBg}>
                 {!isSearchMode ? (
@@ -116,7 +115,7 @@ const ForumScreen = ({ navigation }) => {
                             onDismiss={() => setMenuVisible(false)}
                             anchor={
                                 <TouchableOpacity onPress={() => setMenuVisible(true)}>
-                                    <Text style={{ color: isDark ? "#fff" : "#000", fontSize: 16 }}>
+                                    <Text style={{ color: theme.text, fontSize: 16 }}>
                                         {selectedFilterLabel} ▾
                                     </Text>
                                 </TouchableOpacity>
@@ -140,26 +139,26 @@ const ForumScreen = ({ navigation }) => {
                         <View style={{ flex: 1 }} />
 
                         <TouchableOpacity onPress={() => setIsSearchMode(true)}>
-                            <Ionicons name="search" size={30} color={isDark ? "#fff" : "grey"} style={{ marginLeft: 15 }} />
+                            <Ionicons name="search" size={30} color={theme.iconsGrey} style={{ marginLeft: 15 }} />
                         </TouchableOpacity>
                     </>
                 ) : (
                     <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
                         <TextInput
-                            style={[styles.searchInput, { backgroundColor: isDark ? "#333" : "#f0f0f0", color: isDark ? "#fff" : "#000" }]}
+                            style={[styles.searchInput, { backgroundColor: theme.searchBarBackground, color: theme.text }]}
                             placeholder="Search posts..."
-                            placeholderTextColor={isDark ? "#aaa" : "#888"}
+                            placeholderTextColor={theme.searchBarPlaceHolderText}
                             value={searchText}
                             onChangeText={setSearchText}
                             autoFocus
                         />
                         <TouchableOpacity onPress={() => setIsSearchMode(false)}>
-                            <Ionicons name="close" size={30} color={isDark ? "#fff" : "grey"} style={{ marginLeft: 10 }} />
+                            <Ionicons name="close" size={30} color={theme.iconsGrey} style={{ marginLeft: 10 }} />
                         </TouchableOpacity>
                     </View>
                 )}
 
-                <View style={[styles.bottomBorder, { backgroundColor: isDark ? "#444" : "gray" }]} />
+                <View style={[styles.bottomBorder, { backgroundColor: theme.bottomBorder }]} />
             </View>
 
             {/* Post Feed */}
