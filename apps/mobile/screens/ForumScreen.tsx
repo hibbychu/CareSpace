@@ -62,31 +62,31 @@ export default function ForumScreen({ navigation }) {
     };
 
   // fetch posts from Firestore
-  useEffect(() => {
-    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-    const unsub = onSnapshot(q, (snap) => {
-      const arr = snap.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          title: data.title,
-          body: data.body || "",
-          likes: data.likes || 0,
-          image: data.image || null,
-          owner: data.ownerName || "Owner",
-          createdAt: data.createdAt ? (data.createdAt as Timestamp).toDate() : new Date(),
-        };
-      });
-      setPosts(arr);
-    });
-    return () => unsub();
-  }, []);
+    useEffect(() => {
+        const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+        const unsub = onSnapshot(q, (snap) => {
+        const arr = snap.docs.map(doc => {
+            const data = doc.data();
+            return {
+            id: doc.id,
+            title: data.title,
+            body: data.body || "",
+            likes: data.likes || 0,
+            image: data.image || null,
+            owner: data.ownerName || "Owner",
+            createdAt: data.createdAt ? (data.createdAt as Timestamp).toDate() : new Date(),
+            };
+        });
+        setPosts(arr);
+        });
+        return () => unsub();
+    }, []);
 
-  const handleShare = async (post: any) => {
-    try {
-      await Share.share({ message: post.title + (post.body ? `\n\n${post.body}` : "") });
-    } catch (err) { console.log(err); }
-  };
+    const handleShare = async (post: any) => {
+        try {
+        await Share.share({ message: post.title + (post.body ? `\n\n${post.body}` : "") });
+        } catch (err) { console.log(err); }
+    };
 
     const renderPost = ({ item }: any) => (
         <TouchableOpacity onPress={() => navigation.navigate("PostDetail", { post: item })}>
