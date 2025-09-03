@@ -187,6 +187,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         paddingVertical: 8,
         position: "relative",
+        height:50,
     },
     bottomBorder: {
         height: 1,
