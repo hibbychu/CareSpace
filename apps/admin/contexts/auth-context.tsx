@@ -26,34 +26,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setFirebaseUser(firebaseUser);
       
       if (firebaseUser && isAdmin) {
-        // Extract admin user data from Firebase user and custom claims
-        firebaseUser.getIdTokenResult().then((tokenResult) => {
-          const claims = tokenResult.claims as Record<string, unknown>; // Type assertion for custom claims
-          const adminUser: AdminUser = {
-            id: firebaseUser.uid,
-            username: (claims.username as string) || firebaseUser.displayName || 'admin',
-            email: firebaseUser.email || '',
-            name: ((claims.username as string) || firebaseUser.displayName || 'admin')
-              .replace(/[._]/g, ' ')
-              .replace(/\b\w/g, (l: string) => l.toUpperCase()),
-            role: (claims.role as string) || 'admin',
-            permissions: (claims.permissions as string[]) || ['events', 'forums', 'users']
-          };
-          setUser(adminUser);
-        }).catch(() => {
-          // Fallback if token claims fail
-          const adminUser: AdminUser = {
-            id: firebaseUser.uid,
-            username: firebaseUser.displayName || 'admin',
-            email: firebaseUser.email || '',
-            name: (firebaseUser.displayName || 'admin')
-              .replace(/[._]/g, ' ')
-              .replace(/\b\w/g, (l: string) => l.toUpperCase()),
-            role: 'admin',
-            permissions: ['events', 'forums', 'users']
-          };
-          setUser(adminUser);
-        });
+        // Create admin user from Firebase user data
+        const adminUser: AdminUser = {
+          id: firebaseUser.uid,
+          username: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'admin',
+          email: firebaseUser.email || '',
+          name: (firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'admin')
+            .replace(/[._]/g, ' ')
+            .replace(/\b\w/g, (l: string) => l.toUpperCase()),
+          role: 'admin',
+          permissions: ['events', 'forums', 'users', 'settings']
+        };
+        setUser(adminUser);
       } else {
         setUser(null);
       }
@@ -68,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       
-      // Use Firebase authentication
+      // Use Firebase Auth + Firestore admin verification
       const adminUser = await authenticateAdmin(email, password);
       setUser(adminUser);
       return true;

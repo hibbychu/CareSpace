@@ -1,6 +1,6 @@
-import { auth, functions } from './firebase';
-import { User, onAuthStateChanged, signInWithEmailAndPassword, signInWithCustomToken, signOut } from 'firebase/auth';
-import { httpsCallable } from 'firebase/functions';
+import { auth, db } from './firebase';
+import { User, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
 export interface AdminUser {
   id: string;
@@ -11,54 +11,121 @@ export interface AdminUser {
   permissions: string[];
 }
 
-interface AdminLoginResponse {
-  success: boolean;
-  customToken?: string;
-  user?: {
-    uid: string;
-    email: string;
-    role: string;
-    permissions: string[];
-  };
-  error?: string;
+/**
+ * Check if user is admin based on Firestore document
+ * Collection: admins, Document ID: user UID
+ */
+async function isAdmin(uid: string): Promise<boolean> {
+  try {
+    console.log('🔍 Starting admin check for UID:', uid);
+    console.log('📍 Firebase project:', db.app.name);
+    console.log('🔐 Current auth user:', auth.currentUser?.uid);
+    console.log('🔐 Auth state matches UID:', auth.currentUser?.uid === uid);
+    
+    const adminDocRef = doc(db, "admins", uid);
+    console.log('📄 Document path:', adminDocRef.path);
+    console.log('📄 Full document reference:', adminDocRef);
+    
+    console.log('⏳ Attempting Firestore read...');
+    const adminDoc = await getDoc(adminDocRef);
+    
+    console.log('✅ Firestore read completed successfully');
+    console.log('📋 Document exists:', adminDoc.exists());
+    
+    if (adminDoc.exists()) {
+      console.log('📊 Document data:', adminDoc.data());
+      console.log('🆔 Document ID:', adminDoc.id);
+      console.log('✅ User is an admin!');
+    } else {
+      console.log('❌ Document does not exist in admins collection');
+      console.log('💡 Create a document with ID:', uid, 'in the admins collection');
+    }
+    
+    return adminDoc.exists();
+  } catch (error) {
+    console.error('❌ Error checking admin status:', error);
+    console.error('🔍 Error type:', typeof error);
+    console.error('📝 Error message:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('🔧 Error code:', (error as { code?: string })?.code);
+    console.error('📋 Full error object:', error);
+    
+    // Check if it's a permissions error
+    if (error instanceof Error && error.message.includes('permissions')) {
+      console.error('🚨 PERMISSIONS ERROR DETECTED');
+      console.error('🔍 This could be due to:');
+      console.error('   1. Firestore rules blocking access');
+      console.error('   2. User not authenticated when checking');
+      console.error('   3. Wrong Firebase project configuration');
+      console.error('   4. Document path issues');
+    }
+    
+    return false;
+  }
 }
 
 /**
- * Authenticate admin user using email/password
- * This will use Firebase Auth directly + callable function for admin verification
+ * Authenticate admin user using Firebase Auth + Firestore admin verification
+ * 
+ * Step 1: Firebase Auth handles user authentication (email/password)
+ * Step 2: Firestore handles admin privilege checking (document exists in admins collection)
+ * 
+ * No custom claims needed - admin status is purely based on Firestore document existence
  */
 export async function authenticateAdmin(email: string, password: string): Promise<AdminUser> {
   try {
-    // First, try to sign in with Firebase Auth directly
+    console.log('🚀 Starting admin authentication for email:', email);
+    
+    // Step 1: Standard Firebase Auth - just authenticate the user
+    // This doesn't check for admin privileges, just validates email/password
+    console.log('🔐 Step 1: Authenticating with Firebase Auth...');
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
-
-    // Get ID token to check custom claims
-    const idTokenResult = await user.getIdTokenResult();
-    const claims = idTokenResult.claims as Record<string, unknown>;
-
-    // Check if user has admin privileges
-    if (!claims.admin && claims.role !== 'admin') {
-      // Sign out the user since they don't have admin privileges
+    
+    console.log('✅ Firebase Auth successful!');
+    console.log('👤 User UID:', user.uid);
+    console.log('📧 User email:', user.email);
+    console.log('📝 User display name:', user.displayName);
+    
+    // Wait a moment for auth state to settle
+    console.log('⏳ Waiting for auth state to settle...');
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Step 2: Separate admin check using Firestore
+    // This is completely independent of Firebase Auth
+    console.log('🔍 Step 2: Checking admin privileges via Firestore...');
+    const isUserAdmin = await isAdmin(user.uid);
+    
+    console.log('📋 Admin check result:', isUserAdmin);
+    
+    if (!isUserAdmin) {
+      console.log('❌ User is not an admin, signing out...');
+      // User is authenticated but not an admin, so sign them out
       await signOut(auth);
-      throw new Error('Insufficient admin privileges');
+      throw new Error('This account does not have admin privileges');
     }
 
-    // Convert to our admin user format
-    return {
+    console.log('🎉 Admin authentication successful!');
+    // Create admin user object with default admin properties
+    const adminUser = {
       id: user.uid,
       username: user.displayName || email.split('@')[0],
       email: user.email || email,
       name: user.displayName || email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
-      role: (claims.role as string) || 'admin',
-      permissions: (claims.permissions as string[]) || ['events', 'forums', 'users']
+      role: 'admin',
+      permissions: ['events', 'forums', 'users', 'settings']
     };
+    
+    console.log('👤 Created admin user object:', adminUser);
+    return adminUser;
 
   } catch (error: unknown) {
-    console.error('Admin authentication error:', error);
+    console.error('❌ Admin authentication error:', error);
+    console.error('🔍 Error type:', typeof error);
+    console.error('📝 Error message:', error instanceof Error ? error.message : 'Unknown error');
     
-    // Handle specific Firebase Auth errors
     const firebaseError = error as { code?: string; message?: string };
+    console.error('🔧 Firebase error code:', firebaseError.code);
+    
     if (firebaseError.code === 'auth/user-not-found') {
       throw new Error('No account found with this email');
     } else if (firebaseError.code === 'auth/wrong-password') {
@@ -67,82 +134,11 @@ export async function authenticateAdmin(email: string, password: string): Promis
       throw new Error('Invalid email address');
     } else if (firebaseError.code === 'auth/too-many-requests') {
       throw new Error('Too many failed attempts. Please try again later');
-    } else if (firebaseError.message === 'Insufficient admin privileges') {
+    } else if (firebaseError.message?.includes('admin privileges')) {
       throw new Error('This account does not have admin privileges');
     } else {
       throw new Error('Login failed. Please check your credentials');
     }
-  }
-}
-
-/**
- * Alternative method using callable function (if direct auth doesn't work)
- */
-export async function authenticateAdminWithFunction(email: string, password: string): Promise<AdminUser> {
-  try {
-    // Call Firebase Callable Function
-    const adminLogin = httpsCallable(functions, 'adminLogin');
-    
-    const result = await adminLogin({ email, password });
-    const { success, customToken, user, error } = result.data as AdminLoginResponse;
-
-    if (!success) {
-      throw new Error(error || 'Authentication failed');
-    }
-
-    if (!customToken || !user) {
-      throw new Error('Invalid response from authentication service');
-    }
-
-    // Sign in with the custom token from Cloud Function
-    await signInWithCustomToken(auth, customToken);
-
-    // Convert to our admin user format
-    return {
-      id: user.uid,
-      username: user.email.split('@')[0],
-      email: user.email,
-      name: user.email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
-      role: user.role,
-      permissions: user.permissions
-    };
-  } catch (error) {
-    console.error('Admin authentication error:', error);
-    throw new Error('Invalid email or password');
-  }
-}
-
-/**
- * Check if current user is an authenticated admin
- */
-export function isCurrentUserAdmin(): Promise<boolean> {
-  return new Promise((resolve) => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      unsubscribe();
-      if (user) {
-        // Check custom claims for admin role
-        user.getIdTokenResult().then((idTokenResult) => {
-          const isAdmin = idTokenResult.claims.admin === true || idTokenResult.claims.role === 'admin';
-          resolve(isAdmin);
-        }).catch(() => resolve(false));
-      } else {
-        resolve(false);
-      }
-    });
-  });
-}
-
-/**
- * Get current admin user's ID token for API calls
- */
-export async function getAdminIdToken(): Promise<string | null> {
-  if (!auth.currentUser) return null;
-  
-  try {
-    return await auth.currentUser.getIdToken();
-  } catch (error) {
-    console.error('Error getting ID token:', error);
-    return null;
   }
 }
 
@@ -160,9 +156,8 @@ export function onAdminAuthStateChanged(callback: (user: User | null, isAdmin: b
   return onAuthStateChanged(auth, async (user) => {
     if (user) {
       try {
-        const idTokenResult = await user.getIdTokenResult();
-        const isAdmin = idTokenResult.claims.admin === true || idTokenResult.claims.role === 'admin';
-        callback(user, isAdmin);
+        const isUserAdmin = await isAdmin(user.uid);
+        callback(user, isUserAdmin);
       } catch {
         callback(user, false);
       }
