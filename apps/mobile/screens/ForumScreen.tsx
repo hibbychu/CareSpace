@@ -3,7 +3,7 @@ import React, { useState, useContext } from "react";
 import { Share } from "react-native";
 import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, TextInput, useColorScheme } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { Picker } from '@react-native-picker/picker';
+import { Menu } from "react-native-paper";
 import { ThemeContext } from "../ThemeContext";
 
 const posts = [
@@ -22,7 +22,7 @@ const pickerOptions = [
 const ForumScreen = ({ navigation }) => {
     const { isDarkTheme } = useContext(ThemeContext); // ← use the context
     const isDark = isDarkTheme;
-
+    const [menuVisible, setMenuVisible] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState("latest");
     const [selectedFilterLabel, setSelectedFilterLabel] = useState("Latest");
     const [isSearchMode, setIsSearchMode] = useState(false);
@@ -111,20 +111,31 @@ const ForumScreen = ({ navigation }) => {
             <View style={styles.filterSearchBarBg}>
                 {!isSearchMode ? (
                     <>
-                        <Picker
-                            selectedValue={selectedFilter}
-                            onValueChange={(itemValue) => {
-                                setSelectedFilter(itemValue);
-                                const label = pickerOptions.find(opt => opt.value === itemValue)?.label || "";
-                                setSelectedFilterLabel(label);
-                            }}
-                            style={[styles.picker, { color: isDark ? "#fff" : "#000" }]}
-                            dropdownIconColor={isDark ? "#fff" : "gray"}
+                        <Menu
+                            visible={menuVisible}
+                            onDismiss={() => setMenuVisible(false)}
+                            anchor={
+                                <TouchableOpacity onPress={() => setMenuVisible(true)}>
+                                    <Text style={{ color: isDark ? "#fff" : "#000", fontSize: 16 }}>
+                                        {selectedFilterLabel} ▾
+                                    </Text>
+                                </TouchableOpacity>
+                            }
+                            contentStyle={{ backgroundColor: "#9688B2" }}
                         >
                             {pickerOptions.map(opt => (
-                                <Picker.Item key={opt.value} label={opt.label} value={opt.value} />
+                                <Menu.Item
+                                    key={opt.value}
+                                    onPress={() => {
+                                        setSelectedFilter(opt.value);
+                                        setSelectedFilterLabel(opt.label);
+                                        setMenuVisible(false);
+                                    }}
+                                    title={opt.label}
+                                    titleStyle={{ color: "white" }}
+                                />
                             ))}
-                        </Picker>
+                        </Menu>
 
                         <View style={{ flex: 1 }} />
 
@@ -179,11 +190,6 @@ const styles = StyleSheet.create({
         left: 10,
         right: 10,
         bottom: 0,
-    },
-    picker: {
-        width: 180,
-        height: 50,
-        fontSize: 14
     },
     searchInput: {
         flex: 1,
