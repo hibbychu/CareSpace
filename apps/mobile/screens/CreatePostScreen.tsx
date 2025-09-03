@@ -5,6 +5,8 @@ import { useRoute } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import { RichEditor, RichToolbar, actions } from "react-native-pell-rich-editor";
 import { ThemeContext } from "../ThemeContext";
+import { db, auth } from "../firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 export default function CreatePostScreen() {
   const route = useRoute();
@@ -39,6 +41,29 @@ export default function CreatePostScreen() {
     const bodyHtml = await richText.current?.getContentHtml();
     console.log({ title, bodyHtml, images, type });
     // Implement post logic
+    if (!title.trim() || !bodyHtml?.trim()) {
+      alert("Title and body cannot be empty");
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "posts"), {
+        title,
+        body: bodyHtml,
+        images,
+        type,
+        owner: auth.currentUser?.email || "Anonymous",
+        createdAt: serverTimestamp(),
+      });
+
+      alert("Post created!");
+      setTitle("");
+      setImages([]);
+      richText.current?.setContentHTML(""); // clear editor
+    } catch (err) {
+      console.error("Error adding post:", err);
+      alert("Failed to create post.");
+    }
   };
 
   return (
