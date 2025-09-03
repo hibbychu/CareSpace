@@ -90,7 +90,7 @@ const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 
-function ProfileStack() {
+function EditProfileStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Profile" component={Profile} />
@@ -105,7 +105,7 @@ export default function App() {
       <Tab.Navigator screenOptions={{ headerShown: false }}>
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Reporting" component={Reporting} />
-        <Tab.Screen name="Profile" component={ProfileStack} />
+        <Tab.Screen name="Profile" component={EditProfileStack} />
       </Tab.Navigator>
     </NavigationContainer>
   );

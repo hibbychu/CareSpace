@@ -2,6 +2,23 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import EditProfile from './EditProfile';
 import { useNavigation } from '@react-navigation/native';
+// Profile.tsx
+import React, { useEffect, useState } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  Image, 
+  ScrollView, 
+  TouchableOpacity, 
+  Alert 
+} from 'react-native';
+import { auth } from "../firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+
+interface Props {
+  navigation: any; // React Navigation prop
+}
 
 function Profile() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -47,6 +64,80 @@ function Profile() {
     </ScrollView>
   );
 }
+
+const Profile: React.FC<Props> = ({ navigation }) => {
+  const [user, setUser] = useState<any>(null);
+
+  // Listen for Firebase auth state
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => setUser(u));
+    return unsubscribe;
+  }, []);
+
+  // Logout handler
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      Alert.alert("Logged out successfully");
+      setUser(null);
+    } catch (err) {
+      console.error("Logout error:", err);
+      Alert.alert("Error", "Unable to logout");
+    }
+  };
+
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      {/* Profile Picture */}
+      <Image
+        source={{ uri: user?.photoURL || 'https://via.placeholder.com/120' }}
+        style={styles.avatar}
+      />
+
+      {/* User Info */}
+      <Text style={styles.name}>{user?.displayName || "Guest"}</Text>
+      <Text style={styles.email}>{user?.email || "Not logged in"}</Text>
+
+      {/* Action Buttons */}
+      {user ? (
+        <>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Edit Profile</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.button, styles.logoutButton]} 
+            onPress={handleLogout}
+          >
+            <Text style={styles.buttonText}>Logout</Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <>
+          <TouchableOpacity 
+            style={styles.button} 
+            onPress={() => navigation.navigate("Login")}
+          >
+            <Text style={styles.buttonText}>Login</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.button, styles.logoutButton]} 
+            onPress={() => navigation.navigate("Signup")}
+          >
+            <Text style={styles.buttonText}>Sign Up</Text>
+          </TouchableOpacity>
+        </>
+      )}
+
+      {/* About Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>About Me</Text>
+        <Text style={styles.sectionContent}>
+          Hello! I love building mobile apps with React Native and exploring UI design.
+        </Text>
+      </View>
+    </ScrollView>
+  );
+};
 
 const styles = StyleSheet.create({
   container: { alignItems: 'center', padding: 24, backgroundColor: '#f2f2f2' },
