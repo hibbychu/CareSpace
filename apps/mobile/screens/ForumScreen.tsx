@@ -83,6 +83,7 @@ export default function ForumScreen({ navigation }) {
                     image: data.image || null,
                     owner: data.ownerName || "Owner",
                     createdAt: data.createdAt ? (data.createdAt as Timestamp).toDate() : new Date(),
+                    postType: data.postType,
                 };
             });
             setPosts(arr);

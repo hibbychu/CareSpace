@@ -42,6 +42,7 @@ const PostDetailScreen = ({ route }) => {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState<"success" | "error" | "info" | "warning">("info");
 
+
   // Load comments + auth listener
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (u) => setUser(u));
@@ -159,15 +160,17 @@ const PostDetailScreen = ({ route }) => {
           u: { textDecorationLine: "underline" },
           i: { fontStyle: "italic" },
         }}
-      />
-
+      />  
+      
       {/* Owner Section */}
-      <TouchableOpacity style={styles.ownerSection} onPress={() => Alert.alert("Owner clicked", `Navigate to ${post.owner || "Owner"}'s profile`)}>
-        <Ionicons name="person-circle" size={40} color={theme.text} />
-        <View style={{ marginLeft: 8 }}>
-          <Text style={[styles.ownerName, { color: theme.text }]}>{post.owner || "Owner of post"}</Text>
-        </View>
-      </TouchableOpacity>
+      {post.postType !== "report" && (
+        <TouchableOpacity style={styles.ownerSection} onPress={() => Alert.alert("Owner clicked", `Navigate to ${post.owner || "Owner"}'s profile`)}>
+          <Ionicons name="person-circle" size={40} color={theme.text} />
+          <View style={{ marginLeft: 8 }}>
+            <Text style={[styles.ownerName, { color: theme.text }]}>{post.owner || "Owner of post"}</Text>
+          </View>
+        </TouchableOpacity>
+      )}
 
       <Text style={[styles.date, { color: theme.dateGrey }]}>
         Posted on: {new Date().toLocaleDateString()}
@@ -233,11 +236,11 @@ export default PostDetailScreen;
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 12 },
   postImage: { width: "100%", height: 200, borderRadius: 8, marginBottom: 12 },
-  title: { fontSize: 18, fontWeight: "bold", marginBottom: 6 },
-  body: { fontSize: 14, marginBottom: 8 },
-  ownerSection: { flexDirection: "row", alignItems: "center", marginVertical: 8 },
+  title: { fontSize: 20, fontWeight: "bold", marginBottom: 6 },
+  body: { fontSize: 16, marginBottom: 8 },
+  ownerSection: { flexDirection: "row", alignItems: "center", marginTop: 10 },
   ownerName: { fontWeight: "bold" },
-  date: { marginBottom: 10 },
+  date: { marginVertical: 10 },
   actionsRow: { flexDirection: "row", marginBottom: 12 },
   actionBtn: {
     flexDirection: "row",
