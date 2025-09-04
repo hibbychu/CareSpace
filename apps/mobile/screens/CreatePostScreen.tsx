@@ -19,6 +19,7 @@ export default function CreatePostScreen() {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState<"success" | "error" | "info" | "warning">("info");
   const { theme } = useContext(ThemeContext);
+  const [user, setUser] = useState<any>(null);
 
   const handleAddImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -43,6 +44,12 @@ export default function CreatePostScreen() {
   };
 
   const handlePost = async () => {
+    if (!user) {
+      setAlertMessage("Login required. Please sign in to create a post or report");
+      setAlertType("info");
+      setAlertVisible(true);
+      return;
+    }
     const bodyHtml = await richText.current?.getContentHtml();
     console.log({ title, bodyHtml, images, type });
     if (!title.trim() || !bodyHtml?.trim()) {
