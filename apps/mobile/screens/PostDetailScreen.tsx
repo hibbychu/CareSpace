@@ -82,6 +82,15 @@ const PostDetailScreen = ({ route }) => {
     }
   };
 
+  const handleShare = async () => {
+    try {
+      const message = post.title + (post.body ? `\n\n${post.body}` : "");
+      await Share.share({ message });
+    } catch (error) {
+      console.log("Error sharing post:", error);
+    }
+  };
+
   const handleUpvote = async (commentId: string) => {
     try {
       const ref = doc(db, "posts", post.id, "comments", commentId);
@@ -146,12 +155,12 @@ const PostDetailScreen = ({ route }) => {
         </View>
       </TouchableOpacity>
 
-      <Text style={[styles.date, { color: theme.dateGrey}]}>
+      <Text style={[styles.date, { color: theme.dateGrey }]}>
         Posted on: {new Date().toLocaleDateString()}
       </Text>
 
       <View style={styles.actionsRow}>
-        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#7b2cbf" }]}>
+        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#7b2cbf" }]} >
           <Ionicons name="heart" size={20} color="white" />
           <Text style={styles.actionText}>{post.likes}</Text>
         </TouchableOpacity>
@@ -207,14 +216,25 @@ const styles = StyleSheet.create({
   body: { fontSize: 14, marginBottom: 8 },
   ownerSection: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
   ownerName: { fontWeight: "bold" },
+  actionsRow: { flexDirection: "row", marginBottom: 12 },
+  actionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginRight: 8,
+  },
+  actionText: { color: "white", marginLeft: 4 },
   commentContainer: { borderRadius: 10, padding: 8, marginBottom: 8 },
   commentHeader: { flexDirection: "row", alignItems: "center", marginBottom: 4 },
   commentAuthor: { fontWeight: "bold", marginLeft: 6 },
   commentTime: { marginLeft: 8, fontSize: 12 },
   commentText: { fontSize: 14, marginBottom: 6 },
-  commentActionsRow: { flexDirection: "row" },
-  commentActionBtn: { flexDirection: "row", alignItems: "center", marginRight: 12 },
-  commentActionText: { marginLeft: 4 },
+  commentsTitle: { fontWeight: "bold", fontSize: 16, marginBottom: 6 },
   commentInputRow: { flexDirection: "row", alignItems: "center", marginTop: 8 },
   commentInput: { flex: 1, height: 40, borderRadius: 8, borderWidth: 1, paddingHorizontal: 10 },
+  commentActionsRow: {flexDirection: "row"},
+  commentActionBtn: { flexDirection: "row", alignItems: "center", marginRight: 12 },
+  commentActionText: { marginLeft: 4 },
 });
