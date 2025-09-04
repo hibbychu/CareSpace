@@ -279,7 +279,6 @@ export default function App() {
             <Tab.Screen
               name="Profile"
               component={ProfileStack}
-              // component={EditProfileStack}
               options={{
                 tabBarLabel: user ? user.displayName || user.email : "Profile",
               }}
