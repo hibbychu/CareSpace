@@ -31,6 +31,21 @@ type Event = {
   description: string;
 };
 
+const latestArticles = [
+  {
+    id: "1",
+    title: "Migrant Workers in Singapore: Safety Measures",
+    description: "Authorities have introduced new safety protocols...",
+    url: "https://example.com/article1",
+  },
+  {
+    id: "2",
+    title: "Housing Improvements for Migrant Workers",
+    description: "A new initiative aims to provide better living conditions...",
+    url: "https://example.com/article2",
+  },
+];
+
 function HomeScreen() {
   const { theme } = useContext(ThemeContext);
   const navigation =
@@ -101,24 +116,54 @@ function HomeScreen() {
               <Text style={{ color: theme.text, marginBottom: 4 }}>
                 Address: {event.address}
               </Text>
-              <Text style={{ color: theme.text }}>{event.description}</Text>
+              <Text style={{ color: theme.text, marginBottom: 4 }}>
+                {event.description}
+              </Text>
+              <TouchableOpacity
+                style={styles.cardButton}
+                onPress={() => navigation.navigate("EventDetails", { eventID: event.eventID })}
+              >
+                <Text style={styles.cardButtonText}>More Details</Text>
+              </TouchableOpacity>
             </View>
           </View>
         ))}
+      </View>
+      
+      {/* Latest News Section */}
+      <View style={styles.titleRow}>
+        <Text style={styles.name}>Latest News</Text>
+        <TouchableOpacity
+          style={styles.viewMoreButton}
+          onPress={() => navigation.navigate("News")}
+        >
+          <Text style={styles.viewMoreText}>View More</Text>
+        </TouchableOpacity>
+      </View>
 
-        {/* Static Event Card Example */}
-        <View style={styles.card}>
-          <Image source={temp} style={styles.cardImage} />
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Event 2</Text>
-            <Text style={styles.cardDate}>Sep 12, 2025 | 5:00 PM</Text>
+      {/* News cards */}
+      <View style={styles.cardsContainer}>
+        {/* News Cards */}
+        <View style={styles.cardsContainer}>
+          {latestArticles.map((item) => (
             <TouchableOpacity
-              style={styles.cardButton}
-              onPress={() => navigation.navigate("EventDetails")}
+              key={item.id}
+              style={styles.card}
+              onPress={async () => {
+                const supported = await Linking.canOpenURL(item.url);
+                if (supported) {
+                  await Linking.openURL(item.url); // opens in browser
+                } else {
+                  alert("Cannot open this URL: " + item.url);
+                }
+              }}
             >
-              <Text style={styles.cardButtonText}>More Details</Text>
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle}>{item.title}</Text>
+                <Text style={styles.cardDate}>{item.description}</Text>
+              </View>
             </TouchableOpacity>
-          </View>
+          ))}
         </View>
       </View>
     </ScrollView>
