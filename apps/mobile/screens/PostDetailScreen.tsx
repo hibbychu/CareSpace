@@ -9,7 +9,8 @@ import {
   TouchableOpacity,
   FlatList,
   Alert,
-  Dimensions
+  Dimensions,
+  Share,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { ThemeContext } from "../ThemeContext";
@@ -27,6 +28,8 @@ import {
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import RenderHTML from "react-native-render-html";
+import CustomAlert from "./CustomAlert";
+
 
 const PostDetailScreen = ({ route }) => {
   const { post } = route.params;
@@ -35,6 +38,9 @@ const PostDetailScreen = ({ route }) => {
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState<"success" | "error" | "info" | "warning">("info");
 
   // Load comments + auth listener
   useEffect(() => {
@@ -65,7 +71,9 @@ const PostDetailScreen = ({ route }) => {
   const addComment = async () => {
     if (!commentText.trim()) return;
     if (!user) {
-      Alert.alert("Login required", "Please sign in to add a comment.");
+      setAlertMessage("Login required. Please sign in to add a comment.");
+      setAlertType("info");
+      setAlertVisible(true);
       return;
     }
 
@@ -80,16 +88,19 @@ const PostDetailScreen = ({ route }) => {
       setCommentText("");
     } catch (err) {
       console.log("add comment error", err);
-      Alert.alert("Error", "Unable to post comment.");
+      setAlertMessage("Error. Unable to post comment.");
+      setAlertType("info");
+      setAlertVisible(true);
     }
   };
 
   const handleShare = async () => {
     try {
-      const message = post.title + (post.body ? `\n\n${post.body}` : "");
-      await Share.share({ message });
-    } catch (error) {
-      console.log("Error sharing post:", error);
+      await Share.share({
+        message: post.title + (post.body ? `\n\n${post.body}` : "")
+      });
+    } catch (err) {
+      console.log("Error sharing post:", err);
     }
   };
 
@@ -102,18 +113,10 @@ const PostDetailScreen = ({ route }) => {
     }
   };
 
-  const handleReport = async (commentId: string) => {
-    try {
-      await addDoc(collection(db, "reports"), {
-        type: "comment",
-        targetPostId: post.id,
-        targetCommentId: commentId,
-        reportedAt: serverTimestamp(),
-      });
-      Alert.alert("Reported", "Thanks — the moderation team will review this.");
-    } catch (err) {
-      console.log("report error", err);
-    }
+  const handleReport = async () => {
+    setAlertMessage("Reported Submitted. \nThe moderation team will review this.");
+    setAlertType("success");
+    setAlertVisible(true);
   };
 
   const renderComment = ({ item }) => (
@@ -133,7 +136,7 @@ const PostDetailScreen = ({ route }) => {
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
 
-        <TouchableOpacity style={styles.commentActionBtn} onPress={() => handleReport(item.id)}>
+        <TouchableOpacity style={styles.commentActionBtn} onPress={() => handleReport()}>
           <MaterialIcons name="report" size={20} color={theme.reportRed} />
           <Text style={[styles.commentActionText, { color: theme.text }]}>Report</Text>
         </TouchableOpacity>
@@ -181,7 +184,7 @@ const PostDetailScreen = ({ route }) => {
           <Text style={styles.actionText}>Share</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
-        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#d32f2f" }]}>
+        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#d32f2f" }]} onPress={handleReport}>
           <MaterialIcons name="report" size={20} color="white" />
           <Text style={styles.actionText}>Report</Text>
         </TouchableOpacity>
@@ -214,6 +217,13 @@ const PostDetailScreen = ({ route }) => {
           <Ionicons name="send" size={24} color={theme.text2} style={{ marginLeft: 8 }} />
         </TouchableOpacity>
       </View>
+
+      <CustomAlert
+        message={alertMessage}
+        visible={alertVisible}
+        onHide={() => setAlertVisible(false)}
+        type={alertType}
+      />
     </View>
   );
 };
@@ -227,7 +237,7 @@ const styles = StyleSheet.create({
   body: { fontSize: 14, marginBottom: 8 },
   ownerSection: { flexDirection: "row", alignItems: "center", marginVertical: 8 },
   ownerName: { fontWeight: "bold" },
-  date:{marginBottom: 10},
+  date: { marginBottom: 10 },
   actionsRow: { flexDirection: "row", marginBottom: 12 },
   actionBtn: {
     flexDirection: "row",
