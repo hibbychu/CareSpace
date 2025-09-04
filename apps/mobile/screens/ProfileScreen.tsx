@@ -60,12 +60,12 @@ const Profile: React.FC<Props> = ({ navigation }) => {
           >
             <Text style={styles.buttonText}>Logout</Text>
           </TouchableOpacity>
-          {/* <View style={styles.section}>
+          <View style={styles.section}>
             <Text style={styles.sectionTitle}>About Me</Text>
             <Text style={styles.sectionContent}>
               Hello! I love building mobile apps with React Native and exploring UI design.
-            </Text> */}
-          {/* </View> */}
+            </Text>
+          </View>
         </>
       ) : (
         <>
