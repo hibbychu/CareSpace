@@ -51,8 +51,8 @@ function EditProfile({ route }) {
 
       <Text style={styles.label}>Name</Text>
       <TextInput style={styles.input} value={name} onChangeText={setName} />
-      <Text style={styles.label}>Email</Text>
-      <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType='email-address' />
+      {/* <Text style={styles.label}>Email</Text>
+      <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType='email-address' /> */}
       <Text style={styles.label}>About</Text>
       <TextInput style={[styles.input, styles.textarea]} value={about} onChangeText={setAbout} multiline />
       <TouchableOpacity style={styles.button} onPress={handleSave}>

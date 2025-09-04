@@ -8,8 +8,6 @@ import {
   TouchableOpacity,
   Alert
 } from 'react-native';
-import EditProfile from './EditProfileScreen';
-import { useNavigation } from '@react-navigation/native';
 import { auth } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 
@@ -62,12 +60,12 @@ const Profile: React.FC<Props> = ({ navigation }) => {
           >
             <Text style={styles.buttonText}>Logout</Text>
           </TouchableOpacity>
-          <View style={styles.section}>
+          {/* <View style={styles.section}>
             <Text style={styles.sectionTitle}>About Me</Text>
             <Text style={styles.sectionContent}>
               Hello! I love building mobile apps with React Native and exploring UI design.
-            </Text>
-          </View>
+            </Text> */}
+          {/* </View> */}
         </>
       ) : (
         <>
