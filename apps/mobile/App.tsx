@@ -20,6 +20,7 @@ import ForumScreen from "./screens/ForumScreen";
 import PostDetailScreen from "./screens/PostDetailScreen";
 import CreatePostScreen from "./screens/CreatePostScreen";
 import EditProfile from './screens/EditProfile';
+import NewsScreen from "./screens/NewsScreen";
 
 function ThemeToggleButton() {
   const { isDarkTheme, toggleTheme } = useContext(ThemeContext);
@@ -71,6 +72,16 @@ function HomeStack() {
         component={EventDetails}
         options={{
           title: "Event Name",
+          headerStyle: { backgroundColor: "#4f46e5" },
+          headerTintColor: "#fff",
+          headerTitleAlign: "center",
+        }}
+      />
+      <HomeStackNav.Screen
+        name="News"
+        component={NewsScreen}
+        options={{
+          title: "All News",
           headerStyle: { backgroundColor: "#4f46e5" },
           headerTintColor: "#fff",
           headerTitleAlign: "center",

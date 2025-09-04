@@ -6,6 +6,7 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
+  Linking,
 } from "react-native";
 import temp from "../assets/temp.png";
 import { useNavigation } from "@react-navigation/native";
@@ -16,7 +17,23 @@ type HomeStackParamList = {
   HomeMain: undefined;
   Events: undefined;
   EventDetails: undefined;
+  News: undefined;
 };
+
+const latestArticles = [
+  {
+    id: "1",
+    title: "Migrant Workers in Singapore: Safety Measures",
+    description: "Authorities have introduced new safety protocols...",
+    url: "https://example.com/article1",
+  },
+  {
+    id: "2",
+    title: "Housing Improvements for Migrant Workers",
+    description: "A new initiative aims to provide better living conditions...",
+    url: "https://example.com/article2",
+  },
+];
 
 function HomeScreen() {
   const { theme } = useContext(ThemeContext);
@@ -26,7 +43,9 @@ function HomeScreen() {
   const styles = createStyles(theme);
 
   return (
-    <ScrollView style={{ flex: 1, padding: 20, backgroundColor: theme.background }}>
+    <ScrollView
+      style={{ flex: 1, padding: 20, backgroundColor: theme.background }}
+    >
       {/* Upcoming Events Section */}
       <View style={styles.titleRow}>
         <Text style={styles.name}>Upcoming Events</Text>
@@ -74,32 +93,37 @@ function HomeScreen() {
       {/* Latest News Section */}
       <View style={styles.titleRow}>
         <Text style={styles.name}>Latest News</Text>
-        <TouchableOpacity style={styles.viewMoreButton}>
+        <TouchableOpacity
+          style={styles.viewMoreButton}
+          onPress={() => navigation.navigate("News")}
+        >
           <Text style={styles.viewMoreText}>View More</Text>
         </TouchableOpacity>
       </View>
 
       {/* News cards */}
       <View style={styles.cardsContainer}>
-        {/* News Card 1 */}
-        <TouchableOpacity style={styles.card}>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Article 1</Text>
-            <Text style={styles.cardDate}>
-              Synopsis - no read more button, the entire card is clickable
-            </Text>
-          </View>
-        </TouchableOpacity>
-
-        {/* News Card 2 */}
-        <View style={styles.card}>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Article 2</Text>
-            <Text style={styles.cardDate}>Synopsis</Text>
-            <TouchableOpacity style={styles.cardButton}>
-              <Text style={styles.cardButtonText}>Read More</Text>
+        {/* News Cards */}
+        <View style={styles.cardsContainer}>
+          {latestArticles.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.card}
+              onPress={async () => {
+                const supported = await Linking.canOpenURL(item.url);
+                if (supported) {
+                  await Linking.openURL(item.url); // opens in browser
+                } else {
+                  alert("Cannot open this URL: " + item.url);
+                }
+              }}
+            >
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle}>{item.title}</Text>
+                <Text style={styles.cardDate}>{item.description}</Text>
+              </View>
             </TouchableOpacity>
-          </View>
+          ))}
         </View>
       </View>
     </ScrollView>
@@ -133,6 +157,7 @@ const createStyles = (theme: any) =>
     },
     cardsContainer: {
       marginTop: 10,
+      marginBottom: 10,
     },
     card: {
       backgroundColor: theme.cardBackground,
