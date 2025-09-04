@@ -21,6 +21,20 @@ import PostDetailScreen from "./screens/PostDetailScreen";
 import CreatePostScreen from "./screens/CreatePostScreen";
 import EditProfile from './screens/EditProfile';
 
+function ThemeToggleButton() {
+  const { isDarkTheme, toggleTheme } = useContext(ThemeContext);
+
+  return (
+    <MaterialIcons
+      name={isDarkTheme ? "light-mode" : "dark-mode"}
+      size={26}
+      color="#fff"
+      style={{ marginRight: 12 }}
+      onPress={toggleTheme}
+    />
+  );
+}
+
 // Bottom Tab
 const Tab = createBottomTabNavigator();
 
@@ -28,7 +42,10 @@ const Tab = createBottomTabNavigator();
 const HomeStackNav = createNativeStackNavigator();
 function HomeStack() {
   return (
-    <HomeStackNav.Navigator>
+    <HomeStackNav.Navigator
+      screenOptions={{
+        headerRight: () => <ThemeToggleButton />,
+      }}>
       <HomeStackNav.Screen
         name="HomeMain"
         component={HomeScreen}
@@ -141,7 +158,10 @@ function EditProfileStack() {
 const ProfileStackNav = createNativeStackNavigator();
 function ProfileStack() {
   return (
-    <ProfileStackNav.Navigator>
+    <ProfileStackNav.Navigator
+      screenOptions={{
+        headerRight: () => <ThemeToggleButton />,
+      }}>
       <ProfileStackNav.Screen
         name="ProfileMain"
         component={Profile}
@@ -180,7 +200,10 @@ function ProfileStack() {
 const CreatePostStackNav = createNativeStackNavigator();
 function CreatePostStack() {
   return (
-    <CreatePostStackNav.Navigator>
+    <CreatePostStackNav.Navigator
+      screenOptions={{
+        headerRight: () => <ThemeToggleButton />,
+      }}>
       <CreatePostStackNav.Screen
         name="CreatePost"
         component={CreatePostScreen}
@@ -202,7 +225,10 @@ function ForumStack() {
   const { isDarkTheme, toggleTheme } = React.useContext(ThemeContext);
 
   return (
-    <ForumStackNav.Navigator>
+    <ForumStackNav.Navigator
+      screenOptions={{
+        headerRight: () => <ThemeToggleButton />,
+      }}>
       <ForumStackNav.Screen
         name="ForumMain"
         component={ForumScreen}
@@ -211,15 +237,6 @@ function ForumStack() {
           headerStyle: { backgroundColor: "#7b2cbf" },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
-          headerRight: () => (
-            <MaterialIcons
-              name={isDarkTheme ? "light-mode" : "dark-mode"}
-              size={26}
-              color="#fff"
-              style={{ marginRight: 12 }}
-              onPress={toggleTheme}
-            />
-          ),
         }}
       />
       <ForumStackNav.Screen

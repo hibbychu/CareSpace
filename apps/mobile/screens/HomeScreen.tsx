@@ -122,20 +122,20 @@ const createStyles = (theme: any) =>
     viewMoreButton: {
       backgroundColor: theme.background,
       borderWidth: 2,
-      borderColor: theme.primary,
+      borderColor: theme.text2,
       borderRadius: 8,
       paddingVertical: 6,
       paddingHorizontal: 12,
     },
     viewMoreText: {
-      color: theme.primary,
+      color: theme.text2,
       fontSize: 14,
     },
     cardsContainer: {
       marginTop: 10,
     },
     card: {
-      backgroundColor: theme.background,
+      backgroundColor: theme.cardBackground,
       borderRadius: 12,
       marginBottom: 16,
       overflow: "hidden",
@@ -169,7 +169,7 @@ const createStyles = (theme: any) =>
       alignItems: "center",
     },
     cardButtonText: {
-      color: theme.background,
+      color: "white",
       fontSize: 14,
     },
   });
