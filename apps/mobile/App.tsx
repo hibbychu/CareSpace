@@ -236,7 +236,6 @@ function CreatePostStack() {
 // Forum Stack
 const ForumStackNav = createNativeStackNavigator();
 function ForumStack() {
-
   return (
     <ForumStackNav.Navigator
       screenOptions={{
@@ -255,12 +254,12 @@ function ForumStack() {
       <ForumStackNav.Screen
         name="PostDetail"
         component={PostDetailScreen}
-        options={{
-          headerTitle: "Post Details",
-          headerStyle: { backgroundColor: "#7b2cbf" },
+        options={({ route }) => ({
+          headerTitle: route.params?.post?.postType === "report" ? "Report Details" : "Post Details",
+          headerStyle: { backgroundColor: route.params?.post?.postType === "report" ? "#d32f2f" : "#7b2cbf",},
           headerTintColor: "#fff",
           headerTitleAlign: "center",
-        }}
+        })}
       />
     </ForumStackNav.Navigator>
   );
