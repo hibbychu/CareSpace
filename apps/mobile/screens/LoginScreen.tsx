@@ -15,7 +15,7 @@ const LoginScreen = ({ navigation }) => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       Alert.alert("Success", "Logged in!");
-      navigation.replace("Forum"); // Navigate to your forum screen
+      navigation.replace("ProfileMain");
     } catch (err: any) {
       Alert.alert("Login failed", err.message);
     }

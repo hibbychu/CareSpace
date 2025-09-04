@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  Image, 
-  ScrollView, 
-  TouchableOpacity, 
-  Alert 
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  Alert
 } from 'react-native';
-import EditProfile from './EditProfile';
+import EditProfile from './EditProfileScreen';
 import { useNavigation } from '@react-navigation/native';
 import { auth } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
@@ -56,37 +56,35 @@ const Profile: React.FC<Props> = ({ navigation }) => {
           <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('EditProfile')}>
             <Text style={styles.buttonText}>Edit Profile</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.button, styles.logoutButton]} 
+          <TouchableOpacity
+            style={[styles.button, styles.logoutButton]}
             onPress={handleLogout}
           >
             <Text style={styles.buttonText}>Logout</Text>
           </TouchableOpacity>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>About Me</Text>
+            <Text style={styles.sectionContent}>
+              Hello! I love building mobile apps with React Native and exploring UI design.
+            </Text>
+          </View>
         </>
       ) : (
         <>
-          <TouchableOpacity 
-            style={styles.button} 
+          <TouchableOpacity
+            style={styles.button}
             onPress={() => navigation.navigate("Login")}
           >
             <Text style={styles.buttonText}>Login</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.button, styles.logoutButton]} 
+          <TouchableOpacity
+            style={[styles.button, styles.logoutButton]}
             onPress={() => navigation.navigate("Signup")}
           >
             <Text style={styles.buttonText}>Sign Up</Text>
           </TouchableOpacity>
         </>
       )}
-
-      {/* About Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>About Me</Text>
-        <Text style={styles.sectionContent}>
-          Hello! I love building mobile apps with React Native and exploring UI design.
-        </Text>
-      </View>
     </ScrollView>
   );
 };

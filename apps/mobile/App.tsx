@@ -12,14 +12,14 @@ import { onAuthStateChanged } from "firebase/auth";
 // Screens
 import HomeScreen from "./screens/HomeScreen";
 import EventsScreen from "./screens/EventsScreen";
-import Profile from "./screens/Profile";
+import Profile from "./screens/ProfileScreen";
 import LoginScreen from "./screens/LoginScreen";
 import SignupScreen from "./screens/SignupScreen";
 import EventDetails from "./screens/EventDetails";
 import ForumScreen from "./screens/ForumScreen";
 import PostDetailScreen from "./screens/PostDetailScreen";
 import CreatePostScreen from "./screens/CreatePostScreen";
-import EditProfile from './screens/EditProfile';
+import EditProfile from './screens/EditProfileScreen';
 
 // Bottom Tab
 const Tab = createBottomTabNavigator();
@@ -128,16 +128,6 @@ function CreatePostButton() {
   );
 }
 
-const EditProfileNav = createNativeStackNavigator();
-function EditProfileStack() {
-  return (
-    <EditProfileNav.Navigator screenOptions={{ headerShown: false }}>
-      <EditProfileNav.Screen name="Profile" component={Profile} />
-      <EditProfileNav.Screen name="EditProfile" component={EditProfile} />
-    </EditProfileNav.Navigator>
-  );
-}
-
 const ProfileStackNav = createNativeStackNavigator();
 function ProfileStack() {
   return (
@@ -165,6 +155,16 @@ function ProfileStack() {
       <ProfileStackNav.Screen
         name="Signup"
         component={SignupScreen}
+        options={{
+          headerTitle: "Sign Up",
+          headerStyle: { backgroundColor: "#4f46e5" },
+          headerTintColor: "#fff",
+          headerTitleAlign: "center",
+        }}
+      />
+      <ProfileStackNav.Screen
+        name="EditProfile"
+        component={EditProfile}
         options={{
           headerTitle: "Sign Up",
           headerStyle: { backgroundColor: "#4f46e5" },
