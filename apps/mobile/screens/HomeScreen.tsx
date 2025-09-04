@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,8 @@ import temp from "../assets/temp.png";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ThemeContext } from "../ThemeContext";
+import { db } from "../firebase";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
 
 type HomeStackParamList = {
   HomeMain: undefined;
@@ -20,20 +22,14 @@ type HomeStackParamList = {
   News: undefined;
 };
 
-const latestArticles = [
-  {
-    id: "1",
-    title: "Migrant Workers in Singapore: Safety Measures",
-    description: "Authorities have introduced new safety protocols...",
-    url: "https://example.com/article1",
-  },
-  {
-    id: "2",
-    title: "Housing Improvements for Migrant Workers",
-    description: "A new initiative aims to provide better living conditions...",
-    url: "https://example.com/article2",
-  },
-];
+type Event = {
+  eventID: string;
+  eventName: string;
+  dateTime: any; // Firestore timestamp
+  organiser: string;
+  address: string;
+  description: string;
+};
 
 function HomeScreen() {
   const { theme } = useContext(ThemeContext);
@@ -41,6 +37,36 @@ function HomeScreen() {
     useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
 
   const styles = createStyles(theme);
+  const [events, setEvents] = useState<Event[]>([]);
+
+  // Fetch events from Firestore
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        // ⚡ make sure this matches your field name in Firestore
+        const q = query(collection(db, "events"), orderBy("dateTime", "asc"));
+        const querySnapshot = await getDocs(q);
+
+        const eventsData: Event[] = querySnapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            eventName: data.eventName,
+            dateTime: data.dateTime, // Firestore Timestamp
+            organiser: data.organiser,
+            address: data.address,
+            description: data.description,
+          };
+        });
+
+        setEvents(eventsData);
+        console.log("Fetched events:", eventsData);
+      } catch (error) {
+        console.log("Error fetching events:", error);
+      }
+    };
+
+  fetchEvents();
+}, []);
 
   return (
     <ScrollView
@@ -57,24 +83,30 @@ function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Event cards */}
       <View style={styles.cardsContainer}>
-        {/* Event Card 1 */}
-        <View style={styles.card}>
-          <Image source={temp} style={styles.cardImage} />
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Event 1</Text>
-            <Text style={styles.cardDate}>Sep 5, 2025 | 2:00 PM</Text>
-            <TouchableOpacity
-              style={styles.cardButton}
-              onPress={() => navigation.navigate("EventDetails")}
-            >
-              <Text style={styles.cardButtonText}>More Details</Text>
-            </TouchableOpacity>
+        {/* Render Firestore events */}
+        {events.map((event) => (
+          <View key={event.eventID} style={styles.card}>
+            <Image source={temp} style={styles.cardImage} />
+            <View style={styles.cardContent}>
+              <Text style={styles.cardTitle}>{event.eventName}</Text>
+              <Text style={styles.cardDate}>
+                {event.dateTime?.toDate
+                  ? event.dateTime.toDate().toLocaleString()
+                  : String(event.dateTime)}
+              </Text>
+              <Text style={{ color: theme.text, marginBottom: 4 }}>
+                Organiser: {event.organiser}
+              </Text>
+              <Text style={{ color: theme.text, marginBottom: 4 }}>
+                Address: {event.address}
+              </Text>
+              <Text style={{ color: theme.text }}>{event.description}</Text>
+            </View>
           </View>
-        </View>
+        ))}
 
-        {/* Event Card 2 */}
+        {/* Static Event Card Example */}
         <View style={styles.card}>
           <Image source={temp} style={styles.cardImage} />
           <View style={styles.cardContent}>
@@ -87,43 +119,6 @@ function HomeScreen() {
               <Text style={styles.cardButtonText}>More Details</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      </View>
-
-      {/* Latest News Section */}
-      <View style={styles.titleRow}>
-        <Text style={styles.name}>Latest News</Text>
-        <TouchableOpacity
-          style={styles.viewMoreButton}
-          onPress={() => navigation.navigate("News")}
-        >
-          <Text style={styles.viewMoreText}>View More</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* News cards */}
-      <View style={styles.cardsContainer}>
-        {/* News Cards */}
-        <View style={styles.cardsContainer}>
-          {latestArticles.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={styles.card}
-              onPress={async () => {
-                const supported = await Linking.canOpenURL(item.url);
-                if (supported) {
-                  await Linking.openURL(item.url); // opens in browser
-                } else {
-                  alert("Cannot open this URL: " + item.url);
-                }
-              }}
-            >
-              <View style={styles.cardContent}>
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <Text style={styles.cardDate}>{item.description}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
         </View>
       </View>
     </ScrollView>
