@@ -2,22 +2,32 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
+import CustomAlert from "./CustomAlert";
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState<"success" | "error" | "info" | "warning">("info");
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert("Error", "Please fill all fields");
+      setAlertMessage("Please fill all fields");
+      setAlertType("error");
+      setAlertVisible(true);
       return;
     }
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      Alert.alert("Success", "Logged in!");
-      navigation.replace("Forum"); // Navigate to your forum screen
+      setAlertMessage("Login successfully");
+      setAlertType("success");
+      setAlertVisible(true);
+      navigation.replace("ProfileMain");
     } catch (err: any) {
-      Alert.alert("Login failed", err.message);
+      setAlertMessage("Login Failed");
+      setAlertType("error");
+      setAlertVisible(true);
     }
   };
 
@@ -32,6 +42,13 @@ const LoginScreen = ({ navigation }) => {
       <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
         <Text style={{ marginTop: 15 }}>Don't have an account? Sign Up</Text>
       </TouchableOpacity>
+
+      <CustomAlert
+        message={alertMessage}
+        visible={alertVisible}
+        onHide={() => setAlertVisible(false)}
+        type={alertType}
+      />
     </View>
   );
 };
