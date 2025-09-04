@@ -5,10 +5,12 @@ import { Menu } from "react-native-paper";
 import { ThemeContext } from "../ThemeContext";
 import { db } from "../firebase";
 import { collection, query, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
+import RenderHTML from "react-native-render-html";
+import { Dimensions } from "react-native";
 
 export default function ForumScreen({ navigation }) {
     const { theme } = useContext(ThemeContext);
-
+    const { width } = Dimensions.get("window");
     const [posts, setPosts] = useState<any[]>([]);
     const [menuVisible, setMenuVisible] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState("latest");
@@ -99,10 +101,25 @@ export default function ForumScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.navigate("PostDetail", { post: item })}>
             <View style={[styles.postContainer, { backgroundColor: theme.background }]}>
                 {item.image && <Image source={{ uri: item.image }} style={styles.postImage} />}
-                <Text style={[styles.postTitle, { color: theme.text }]} numberOfLines={1}>{item.title}</Text>
-                {item.body ? <Text style={[styles.postBody, { color: theme.postBodyText }]}>{item.body}</Text> : null}
+                <Text style={[styles.postTitle, { color: theme.text }]} numberOfLines={1}>
+                    {item.title}
+                </Text>
 
-                <View style={[styles.actionsRow, { backgroundColor: "#9688B2" }]}>
+                {item.body ? (
+                    <RenderHTML
+                        contentWidth={width - 40}
+                        source={{ html: item.body }}
+                        baseStyle={{ color: theme.postBodyText, fontSize: 14 }}
+                        tagsStyles={{
+                            b: { fontWeight: "bold" },
+                            strong: { fontWeight: "bold" },
+                            u: { textDecorationLine: "underline" },
+                            i: { fontStyle: "italic" },
+                        }}
+                    />
+                ) : null}
+
+                <View style={[styles.actionsRow, { backgroundColor: theme.primary }]}>
                     <TouchableOpacity style={styles.actionBtn}>
                         <Ionicons name="heart" size={20} color="white" />
                         <Text style={styles.actionText}>{item.likes}</Text>
@@ -147,7 +164,6 @@ export default function ForumScreen({ navigation }) {
                                 />
                             ))}
                         </Menu>
-
                         <View style={{ flex: 1 }} />
 
                         <TouchableOpacity onPress={() => setIsSearchMode(true)}>
