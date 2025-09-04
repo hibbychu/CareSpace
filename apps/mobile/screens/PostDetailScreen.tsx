@@ -34,7 +34,7 @@ import CustomAlert from "./CustomAlert";
 const PostDetailScreen = ({ route }) => {
   const { post } = route.params;
   const { theme } = useContext(ThemeContext);
-  const { width } = Dimensions.get("window");
+
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
@@ -129,7 +129,9 @@ const PostDetailScreen = ({ route }) => {
           {item.createdAt.toLocaleString()}
         </Text>
       </TouchableOpacity>
+
       <Text style={[styles.commentText, { color: theme.postBodyText }]}>{item.text}</Text>
+
       <View style={styles.commentActionsRow}>
         <TouchableOpacity style={styles.commentActionBtn} onPress={() => handleUpvote(item.id)}>
           <Ionicons name="heart" size={20} color={theme.text2} />
@@ -212,7 +214,7 @@ const PostDetailScreen = ({ route }) => {
             },
           ]}
           placeholder="Add a comment..."
-          placeholderTextColor={"grey"}
+          placeholderTextColor={theme.searchBarBackground}
           value={commentText}
           onChangeText={setCommentText}
         />
@@ -259,7 +261,7 @@ const styles = StyleSheet.create({
   commentsTitle: { fontWeight: "bold", fontSize: 16, marginBottom: 6 },
   commentInputRow: { flexDirection: "row", alignItems: "center", marginTop: 8 },
   commentInput: { flex: 1, height: 40, borderRadius: 8, borderWidth: 1, paddingHorizontal: 10 },
-  commentActionsRow: { flexDirection: "row" },
+  commentActionsRow: {flexDirection: "row"},
   commentActionBtn: { flexDirection: "row", alignItems: "center", marginRight: 12 },
   commentActionText: { marginLeft: 4 },
 });
