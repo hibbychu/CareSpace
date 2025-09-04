@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   FlatList,
   Alert,
+  Dimensions
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { ThemeContext } from "../ThemeContext";
@@ -25,11 +26,12 @@ import {
   increment,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
+import RenderHTML from "react-native-render-html";
 
 const PostDetailScreen = ({ route }) => {
   const { post } = route.params;
   const { theme } = useContext(ThemeContext);
-
+  const { width } = Dimensions.get("window");
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
@@ -123,16 +125,14 @@ const PostDetailScreen = ({ route }) => {
           {item.createdAt.toLocaleString()}
         </Text>
       </TouchableOpacity>
-
       <Text style={[styles.commentText, { color: theme.postBodyText }]}>{item.text}</Text>
-
       <View style={styles.commentActionsRow}>
         <TouchableOpacity style={styles.commentActionBtn} onPress={() => handleUpvote(item.id)}>
           <Ionicons name="heart" size={20} color={theme.text2} />
           <Text style={[styles.commentActionText, { color: theme.text }]}>{item.likes}</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
-        
+
         <TouchableOpacity style={styles.commentActionBtn} onPress={() => handleReport(item.id)}>
           <MaterialIcons name="report" size={20} color={theme.reportRed} />
           <Text style={[styles.commentActionText, { color: theme.text }]}>Report</Text>
@@ -146,7 +146,17 @@ const PostDetailScreen = ({ route }) => {
 
       {post.image && <Image source={{ uri: post.image }} style={styles.postImage} />}
       <Text style={[styles.title, { color: theme.text }]}>{post.title}</Text>
-      <Text style={[styles.body, { color: theme.postBodyText }]}>{post.body}</Text>
+      <RenderHTML
+        contentWidth={width - 40}
+        source={{ html: post.body }}
+        baseStyle={{ color: theme.postBodyText, fontSize: 14 }}
+        tagsStyles={{
+          b: { fontWeight: "bold" },
+          strong: { fontWeight: "bold" },
+          u: { textDecorationLine: "underline" },
+          i: { fontStyle: "italic" },
+        }}
+      />
 
       {/* Owner Section */}
       <TouchableOpacity style={styles.ownerSection} onPress={() => Alert.alert("Owner clicked", `Navigate to ${post.owner || "Owner"}'s profile`)}>
@@ -235,7 +245,7 @@ const styles = StyleSheet.create({
   commentsTitle: { fontWeight: "bold", fontSize: 16, marginBottom: 6 },
   commentInputRow: { flexDirection: "row", alignItems: "center", marginTop: 8 },
   commentInput: { flex: 1, height: 40, borderRadius: 8, borderWidth: 1, paddingHorizontal: 10 },
-  commentActionsRow: {flexDirection: "row"},
+  commentActionsRow: { flexDirection: "row" },
   commentActionBtn: { flexDirection: "row", alignItems: "center", marginRight: 12 },
   commentActionText: { marginLeft: 4 },
 });
