@@ -38,6 +38,7 @@ Tech Stack
 
 ### Admin (Next.js)
 ```bash
+npm install
 npm run dev
 # open http://localhost:3000
 ```
@@ -46,6 +47,7 @@ npm run dev
 
 **Option A: Expo Go (fastest)**  
 ```bash
+npm install
 npm run android
 # scan QR with Expo Go app on your phone
 ```
@@ -54,12 +56,13 @@ npm run android
 1. Open Android Studio and start a Pixel emulator (API 34 (Upsidedown Cake) recommended)  
 2. Run:
 ```bash
+npm install
 npm run android
 ```
 
 **Optional: Web preview (for devs without emulator/phone)**  
 ```bash
-npm -C apps/mobile exec expo install react-dom react-native-web @expo/metro-runtime
+npm install
 npm run web
 ```
 
