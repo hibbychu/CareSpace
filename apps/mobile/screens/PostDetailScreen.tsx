@@ -118,12 +118,12 @@ const PostDetailScreen = ({ route }) => {
     setAlertType("success");
     setAlertVisible(true);
   };
-
+  
   const renderComment = ({ item }) => (
     <View style={[styles.commentContainer, { backgroundColor: theme.commentBackground }]}>
       <TouchableOpacity style={styles.commentHeader} onPress={() => Alert.alert("Profile clicked", `Navigate to ${item.author}'s profile`)}>
         <Ionicons name="person-circle" size={30} color={theme.text} />
-        <Text style={[styles.commentAuthor, { color: theme.text }]}>{item.author}</Text>
+        <Text style={[styles.commentAuthor, { color: theme.text }]}>{item.authorName}</Text>
         <Text style={[styles.commentTime, { color: theme.dateGrey }]}>
           {item.createdAt.toLocaleString()}
         </Text>
