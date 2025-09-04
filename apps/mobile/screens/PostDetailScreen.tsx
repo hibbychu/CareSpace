@@ -30,11 +30,10 @@ import { onAuthStateChanged } from "firebase/auth";
 import RenderHTML from "react-native-render-html";
 import CustomAlert from "./CustomAlert";
 
-
 const PostDetailScreen = ({ route }) => {
   const { post } = route.params;
   const { theme } = useContext(ThemeContext);
-
+  const { width } = Dimensions.get("window");
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
@@ -162,8 +161,8 @@ const PostDetailScreen = ({ route }) => {
           u: { textDecorationLine: "underline" },
           i: { fontStyle: "italic" },
         }}
-      />  
-      
+      />
+
       {/* Owner Section */}
       {post.postType !== "report" && (
         <TouchableOpacity style={styles.ownerSection} onPress={() => Alert.alert("Owner clicked", `Navigate to ${post.owner || "Owner"}'s profile`)}>
@@ -261,7 +260,7 @@ const styles = StyleSheet.create({
   commentsTitle: { fontWeight: "bold", fontSize: 16, marginBottom: 6 },
   commentInputRow: { flexDirection: "row", alignItems: "center", marginTop: 8 },
   commentInput: { flex: 1, height: 40, borderRadius: 8, borderWidth: 1, paddingHorizontal: 10 },
-  commentActionsRow: {flexDirection: "row"},
+  commentActionsRow: { flexDirection: "row" },
   commentActionBtn: { flexDirection: "row", alignItems: "center", marginRight: 12 },
   commentActionText: { marginLeft: 4 },
 });
