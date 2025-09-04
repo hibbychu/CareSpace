@@ -132,6 +132,7 @@ const PostDetailScreen = ({ route }) => {
           <Text style={[styles.commentActionText, { color: theme.text }]}>{item.likes}</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
+        
         <TouchableOpacity style={styles.commentActionBtn} onPress={() => handleReport(item.id)}>
           <MaterialIcons name="report" size={20} color={theme.reportRed} />
           <Text style={[styles.commentActionText, { color: theme.text }]}>Report</Text>

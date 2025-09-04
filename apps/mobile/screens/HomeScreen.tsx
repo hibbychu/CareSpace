@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   View,
   Text,
@@ -8,8 +8,9 @@ import {
   TouchableOpacity,
 } from "react-native";
 import temp from "../assets/temp.png";
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { ThemeContext } from "../ThemeContext";
 
 type HomeStackParamList = {
   HomeMain: undefined;
@@ -18,14 +19,21 @@ type HomeStackParamList = {
 };
 
 function HomeScreen() {
+  const { theme } = useContext(ThemeContext);
   const navigation =
-      useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+    useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+
+  const styles = createStyles(theme);
+
   return (
-    <ScrollView style={{ flex: 1, padding: 20 }}>
+    <ScrollView style={{ flex: 1, padding: 20, backgroundColor: theme.background }}>
       {/* Upcoming Events Section */}
       <View style={styles.titleRow}>
         <Text style={styles.name}>Upcoming Events</Text>
-        <TouchableOpacity style={styles.viewMoreButton} onPress={() => navigation.navigate('Events')}>
+        <TouchableOpacity
+          style={styles.viewMoreButton}
+          onPress={() => navigation.navigate("Events")}
+        >
           <Text style={styles.viewMoreText}>View More</Text>
         </TouchableOpacity>
       </View>
@@ -38,7 +46,10 @@ function HomeScreen() {
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Event 1</Text>
             <Text style={styles.cardDate}>Sep 5, 2025 | 2:00 PM</Text>
-            <TouchableOpacity style={styles.cardButton} onPress={() => navigation.navigate("EventDetails")}>
+            <TouchableOpacity
+              style={styles.cardButton}
+              onPress={() => navigation.navigate("EventDetails")}
+            >
               <Text style={styles.cardButtonText}>More Details</Text>
             </TouchableOpacity>
           </View>
@@ -50,7 +61,10 @@ function HomeScreen() {
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Event 2</Text>
             <Text style={styles.cardDate}>Sep 12, 2025 | 5:00 PM</Text>
-            <TouchableOpacity style={styles.cardButton} onPress={() => navigation.navigate("EventDetails")}>
+            <TouchableOpacity
+              style={styles.cardButton}
+              onPress={() => navigation.navigate("EventDetails")}
+            >
               <Text style={styles.cardButtonText}>More Details</Text>
             </TouchableOpacity>
           </View>
@@ -71,11 +85,13 @@ function HomeScreen() {
         <TouchableOpacity style={styles.card}>
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Article 1</Text>
-            <Text style={styles.cardDate}>Synopsis - no read more button, the entire card is clickable</Text>
+            <Text style={styles.cardDate}>
+              Synopsis - no read more button, the entire card is clickable
+            </Text>
           </View>
         </TouchableOpacity>
 
-        {/* Event Card 2 */}
+        {/* News Card 2 */}
         <View style={styles.card}>
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Article 2</Text>
@@ -86,75 +102,76 @@ function HomeScreen() {
           </View>
         </View>
       </View>
-
-      {/* Other content can go here */}
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  titleRow: {
-    flexDirection: "row", // horizontal layout
-    justifyContent: "space-between", // push items to edges
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  name: {
-    fontSize: 22,
-    fontWeight: "bold",
-  },
-  viewMoreButton: {
-    backgroundColor: "#fff",
-    borderWidth: 2,
-    borderColor: "#7b2cbf",
-    borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-  },
-  viewMoreText: {
-    color: "#7b2cbf",
-    fontSize: 14,
-  },
-  cardsContainer: {
-    marginTop: 10,
-  },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    marginBottom: 16,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  cardImage: {
-    width: "100%",
-    height: 150,
-  },
-  cardContent: {
-    padding: 12,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  cardDate: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 8,
-  },
-  cardButton: {
-    backgroundColor: "#7b2cbf",
-    paddingVertical: 8,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  cardButtonText: {
-    color: "#fff",
-    fontSize: 14,
-  },
-});
+const createStyles = (theme: any) =>
+  StyleSheet.create({
+    titleRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 16,
+    },
+    name: {
+      fontSize: 22,
+      fontWeight: "bold",
+      color: theme.text,
+    },
+    viewMoreButton: {
+      backgroundColor: theme.background,
+      borderWidth: 2,
+      borderColor: theme.primary,
+      borderRadius: 8,
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+    },
+    viewMoreText: {
+      color: theme.primary,
+      fontSize: 14,
+    },
+    cardsContainer: {
+      marginTop: 10,
+    },
+    card: {
+      backgroundColor: theme.background,
+      borderRadius: 12,
+      marginBottom: 16,
+      overflow: "hidden",
+      shadowColor: "#000",
+      shadowOpacity: 0.5,
+      shadowRadius: 6,
+      elevation: 35,
+    },
+    cardImage: {
+      width: "100%",
+      height: 150,
+    },
+    cardContent: {
+      padding: 12,
+    },
+    cardTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      marginBottom: 4,
+      color: theme.text,
+    },
+    cardDate: {
+      fontSize: 14,
+      color: theme.dateGrey,
+      marginBottom: 8,
+    },
+    cardButton: {
+      backgroundColor: theme.primary,
+      paddingVertical: 8,
+      borderRadius: 8,
+      alignItems: "center",
+    },
+    cardButtonText: {
+      color: theme.background,
+      fontSize: 14,
+    },
+  });
 
 export default HomeScreen;
