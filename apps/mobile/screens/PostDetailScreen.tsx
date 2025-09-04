@@ -206,7 +206,7 @@ const PostDetailScreen = ({ route }) => {
             },
           ]}
           placeholder="Add a comment..."
-          placeholderTextColor={theme.searchBarBackground}
+          placeholderTextColor={"grey"}
           value={commentText}
           onChangeText={setCommentText}
         />
@@ -225,8 +225,9 @@ const styles = StyleSheet.create({
   postImage: { width: "100%", height: 200, borderRadius: 8, marginBottom: 12 },
   title: { fontSize: 18, fontWeight: "bold", marginBottom: 6 },
   body: { fontSize: 14, marginBottom: 8 },
-  ownerSection: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
+  ownerSection: { flexDirection: "row", alignItems: "center", marginVertical: 8 },
   ownerName: { fontWeight: "bold" },
+  date:{marginBottom: 10},
   actionsRow: { flexDirection: "row", marginBottom: 12 },
   actionBtn: {
     flexDirection: "row",
