@@ -19,6 +19,7 @@ import EventDetails from "./screens/EventDetails";
 import ForumScreen from "./screens/ForumScreen";
 import PostDetailScreen from "./screens/PostDetailScreen";
 import CreatePostScreen from "./screens/CreatePostScreen";
+import NewsScreen from "./screens/NewsScreen";
 
 // Bottom Tab
 const Tab = createBottomTabNavigator();
@@ -53,6 +54,16 @@ function HomeStack() {
         component={EventDetails}
         options={{
           title: "Event Name",
+          headerStyle: { backgroundColor: "#4f46e5" },
+          headerTintColor: "#fff",
+          headerTitleAlign: "center",
+        }}
+      />
+      <HomeStackNav.Screen
+        name="News"
+        component={NewsScreen}
+        options={{
+          title: "All News",
           headerStyle: { backgroundColor: "#4f46e5" },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
