@@ -19,6 +19,7 @@ import EventDetails from "./screens/EventDetails";
 import ForumScreen from "./screens/ForumScreen";
 import PostDetailScreen from "./screens/PostDetailScreen";
 import CreatePostScreen from "./screens/CreatePostScreen";
+import EditProfile from './screens/EditProfile';
 
 // Bottom Tab
 const Tab = createBottomTabNavigator();
@@ -127,6 +128,15 @@ function CreatePostButton() {
   );
 }
 
+const EditProfileNav = createNativeStackNavigator();
+function EditProfileStack() {
+  return (
+    <EditProfileNav.Navigator screenOptions={{ headerShown: false }}>
+      <EditProfileNav.Screen name="Profile" component={Profile} />
+      <EditProfileNav.Screen name="EditProfile" component={EditProfile} />
+    </EditProfileNav.Navigator>
+  );
+}
 
 const ProfileStackNav = createNativeStackNavigator();
 function ProfileStack() {
