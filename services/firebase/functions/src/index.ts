@@ -8,18 +8,13 @@
  */
 
 import { setGlobalOptions } from "firebase-functions";
-import { onRequest } from "firebase-functions/https";
-import { onSchedule } from "firebase-functions/v2/scheduler";
-import * as logger from "firebase-functions/logger";
+import { onRequest } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
-import fetch from "node-fetch";
 
 // Initialize Firebase Admin
 if (!admin.apps.length) {
   admin.initializeApp();
 }
-
-const auth = admin.auth();
 
 // For cost control, you can set the maximum number of containers that can be
 // running at the same time. This helps mitigate the impact of unexpected
@@ -32,12 +27,7 @@ const auth = admin.auth();
 // In the v1 API, each function can only serve one request per container, so
 // this will be the maximum concurrent request count.
 setGlobalOptions({ maxInstances: 10 });
-export const helloWorld = onRequest((request, response) => {
-  logger.info("Hello logs!", { structuredData: true });
-  response.send("Hello from Firebase!");
-});
 
-admin.initializeApp();
 const db = admin.firestore();
 
 async function saveArticles(articles: any[]) {
@@ -78,7 +68,7 @@ async function fetchNewsArticles() {
       keyword
     )}&sortBy=publishedAt&language=en&apiKey=${NEWS_API_KEY}`
   );
-  const data = await res.json();
+  const data = await res.json() as any;
 
   if (!data.articles || !Array.isArray(data.articles)) {
     console.error("Invalid response from NewsAPI:", data);
