@@ -8,9 +8,10 @@ import CustomAlert from "./CustomAlert";
 import { ThemeContext } from "../ThemeContext";
 
 const SignupScreen = ({ navigation }) => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState<"success" | "error" | "info" | "warning">("info");
@@ -34,10 +35,16 @@ const SignupScreen = ({ navigation }) => {
   const [selectedProfileImage, setSelectedProfileImage] = useState(profileImages[0]); // Default
 
   const handleSignup = async () => {
-    if (!email || !password || !name) {
+    if (!email || !password || !name || !confirmPassword) {
       customAlert("error", "Please fill in all the fields");
       return;
     }
+    if (password !== confirmPassword) {
+      customAlert("error", "Passwords do not match");
+      return;
+    }
+
+
     try {
       // 1. Create user
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -97,6 +104,15 @@ const SignupScreen = ({ navigation }) => {
         placeholderTextColor={theme.dateGrey}
         value={password}
         onChangeText={setPassword}
+        secureTextEntry
+        style={styles.input}
+      />
+
+      <TextInput
+        placeholder="Re-Type Password"
+        placeholderTextColor={theme.dateGrey}
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
         secureTextEntry
         style={styles.input}
       />
