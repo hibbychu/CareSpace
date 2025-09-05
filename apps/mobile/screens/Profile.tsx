@@ -7,6 +7,7 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { ThemeContext } from "../ThemeContext";
+import CustomAlert from "./CustomAlert";
 
 const Profile: React.FC = ({ navigation, route }) => {
   const [user, setUser] = useState(null); // currently logged in user
@@ -15,6 +16,15 @@ const Profile: React.FC = ({ navigation, route }) => {
   const uidFromParams = route?.params?.uid;
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState<"success" | "error" | "info" | "warning">("info");
+
+  const customAlert = (alertType: "success" | "error" | "info" | "warning", alertText: string) => {
+    setAlertMessage(alertText);
+    setAlertType(alertType);
+    setAlertVisible(true);
+  };
 
   // Listen for authentication changes
   useEffect(() => {
@@ -73,12 +83,11 @@ const Profile: React.FC = ({ navigation, route }) => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      Alert.alert("Logged out successfully");
       setUser(null);
       navigation.navigate("Login");
     } catch (err) {
       console.error("Logout error:", err);
-      Alert.alert("Error", "Unable to logout");
+      customAlert("error", "Unable to logout");
     }
   };
 
@@ -129,6 +138,14 @@ const Profile: React.FC = ({ navigation, route }) => {
           <Text style={styles.sectionContent}>{profileUser?.bio}</Text>
         </View>
       </ScrollView>
+
+
+      <CustomAlert
+        message={alertMessage}
+        visible={alertVisible}
+        onHide={() => setAlertVisible(false)}
+        type={alertType}
+      />
     </View>
   );
 };

@@ -131,8 +131,6 @@ const SignupScreen = ({ navigation }) => {
         onHide={() => setAlertVisible(false)}
         type={alertType}
       />
-
-
     </View>
   );
 };

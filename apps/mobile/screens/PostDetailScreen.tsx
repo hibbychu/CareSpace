@@ -184,7 +184,7 @@ const PostDetailScreen = ({ route, navigation }) => {
         >
           <Ionicons name="person-circle" size={40} color={theme.text} />
           <View style={{ marginLeft: 8 }}>
-            <Text style={[styles.ownerName, { color: theme.text }]}>{post.ownerName || "Owner"}</Text>
+            <Text style={[styles.ownerName, { color: theme.text }]}>{post.ownerName || "Owner of Post"}</Text>
           </View>
         </TouchableOpacity>
       )}

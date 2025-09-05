@@ -15,23 +15,22 @@ const LoginScreen = ({ navigation }) => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
 
+  const customAlert = (alertType: "success" | "error" | "info" | "warning", alertText: string) => {
+    setAlertMessage(alertText);
+    setAlertType(alertType);
+    setAlertVisible(true);
+  };
+
   const handleLogin = async () => {
     if (!email || !password) {
-      setAlertMessage("Please fill all fields");
-      setAlertType("error");
-      setAlertVisible(true);
+      customAlert("error", "Please fill all fields");
       return;
     }
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      setAlertMessage("Login successfully");
-      setAlertType("success");
-      setAlertVisible(true);
       navigation.replace("ProfileMain");
     } catch (err: any) {
-      setAlertMessage("Login Failed");
-      setAlertType("error");
-      setAlertVisible(true);
+      customAlert("error", "Login Failed");
     }
   };
 
