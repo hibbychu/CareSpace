@@ -36,10 +36,9 @@ Tech Stack
 
 ### 1 Install Dependencies
 
-At the project root:
+At the project root (/CareSpace):
 
 ```bash
-cd CareSpace
 npm install
 ```
 
