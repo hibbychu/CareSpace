@@ -48,6 +48,7 @@ function HomeStack() {
     <HomeStackNav.Navigator
       screenOptions={{
         headerRight: () => <ThemeToggleButton />,
+        headerLeft: () => <ThemeToggleButton />
       }}>
       <HomeStackNav.Screen
         name="HomeMain"
