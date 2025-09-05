@@ -95,14 +95,11 @@ export default function DashboardLayout({
               {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
             
-            <BrandLogo variant="icon" size="sm" />
+            <BrandLogo variant="icon" size="md" />
             <div className="hidden sm:block">
               <h1 className="text-xl font-semibold text-gray-900">
                 CareSpace Admin
               </h1>
-              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
-                Development Mode
-              </span>
             </div>
           </div>
           
