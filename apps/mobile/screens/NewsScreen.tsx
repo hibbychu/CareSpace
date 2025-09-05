@@ -108,15 +108,18 @@ const createStyles = (theme: any) =>
     list: {
       flex: 1,
       backgroundColor: theme.background,
+      padding: 15,
     },
     card: {
       width: "100%",
       padding: 16,
-      borderBottomWidth: 1,
-      borderColor: theme.borderColor || "#ccc",
       backgroundColor: theme.cardBackground,
       borderRadius: 8,
       marginBottom: 12,
+      shadowColor: "#000",
+      shadowOpacity: 0.5,
+      shadowRadius: 6,
+      elevation: 5,
     },
     title: {
       fontSize: 18,

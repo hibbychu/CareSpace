@@ -71,7 +71,7 @@ function EventsScreen() {
   }, []);
 
   return (
-    <ScrollView style={{ flex: 1, padding: 20, backgroundColor: theme.background }}>
+    <ScrollView style={{ flex: 1, padding: 20 }}>
       <View style={styles.titleRow}>
         <TouchableOpacity style={styles.filterButton}>
           <Text style={styles.filterText}>Filter</Text>
