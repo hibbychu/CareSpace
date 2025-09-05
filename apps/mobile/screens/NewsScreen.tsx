@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,40 +10,53 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { ThemeContext } from "../ThemeContext";
+import { db } from "../firebase";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
 
-const sampleArticles = [
-  {
-    id: "1",
-    title: "Migrant Workers in Singapore: Safety Measures",
-    description:
-      "Authorities have introduced new safety protocols to protect migrant workers amid rising concerns.",
-    imageUrl: "https://via.placeholder.com/400x200.png?text=Migrant+Workers+1",
-    url: "https://example.com/article1",
-  },
-  {
-    id: "2",
-    title: "Housing Improvements for Migrant Workers",
-    description:
-      "A new initiative aims to provide better living conditions for Singapore’s migrant workforce.",
-    imageUrl: "https://via.placeholder.com/400x200.png?text=Migrant+Workers+2",
-    url: "https://example.com/article2",
-  },
-  {
-    id: "3",
-    title: "Support Programs Launched for Migrant Workers",
-    description:
-      "Non-profit organizations are launching programs to support the wellbeing of migrant workers.",
-    imageUrl: "https://via.placeholder.com/400x200.png?text=Migrant+Workers+3",
-    url: "https://example.com/article3",
-  },
-];
+type NewsArticle = {
+  id: string;
+  title: string;
+  description: string;
+  url: string;
+  urlToImage?: string | null;
+};
 
 const NewsScreen = () => {
   const { theme } = useContext(ThemeContext);
   const styles = createStyles(theme);
 
-  const [articles, setArticles] = useState(sampleArticles);
-  const [loading, setLoading] = useState(false);
+  const [articles, setArticles] = useState<NewsArticle[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const newsQuery = query(
+          collection(db, "news"),
+          orderBy("publishedAt", "desc")
+        );
+        const querySnapshot = await getDocs(newsQuery);
+        const newsData = querySnapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            title: data.title,
+            description: data.description,
+            url: data.url,
+            urlToImage: data.urlToImage || null,
+          };
+        });
+        setArticles(newsData);
+      } catch (error) {
+        console.error("Error fetching news: ", error);
+        alert("Failed to load news.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNews();
+  }, []);
 
   const openArticle = async (url: string) => {
     const supported = await Linking.canOpenURL(url);
@@ -57,10 +70,17 @@ const NewsScreen = () => {
   if (loading)
     return <ActivityIndicator size="large" style={{ marginTop: 50 }} />;
 
+  if (articles.length === 0)
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text style={{ color: theme.text }}>No news articles available.</Text>
+      </View>
+    );
+
   return (
     <FlatList
       style={styles.list}
-      contentContainerStyle={{ paddingBottom: 16 }}
+      contentContainerStyle={{ paddingBottom: 16, paddingTop: 10 }}
       data={articles}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
@@ -69,14 +89,14 @@ const NewsScreen = () => {
           onPress={() => openArticle(item.url)}
         >
           <Text style={styles.title}>{item.title}</Text>
-          {item.imageUrl && (
+          {item.urlToImage && (
             <Image
-              source={{ uri: item.imageUrl }}
+              source={{ uri: item.urlToImage }}
               style={styles.image}
               resizeMode="cover"
             />
           )}
-          <Text>{item.description}</Text>
+          <Text style={{ color: theme.text }}>{item.description}</Text>
         </TouchableOpacity>
       )}
     />
@@ -87,21 +107,21 @@ const createStyles = (theme: any) =>
   StyleSheet.create({
     list: {
       flex: 1,
-      backgroundColor: theme === "dark" ? "#121212" : "#fff", // theme-aware
+      backgroundColor: theme.background,
     },
     card: {
       width: "100%",
       padding: 16,
       borderBottomWidth: 1,
-      borderColor: "#ccc",
-      backgroundColor: theme === "dark" ? "#1e1e1e" : "#fff",
+      borderColor: theme.borderColor || "#ccc",
+      backgroundColor: theme.cardBackground,
       borderRadius: 8,
       marginBottom: 12,
     },
     title: {
       fontSize: 18,
       fontWeight: "bold",
-      color: theme === "dark" ? "#fff" : "#000",
+      color: theme.text,
       marginBottom: 8,
     },
     image: {
@@ -113,43 +133,3 @@ const createStyles = (theme: any) =>
   });
 
 export default NewsScreen;
-
-// const NewsScreen = () => {
-//   const [articles, setArticles] = useState<any[]>([]);
-//   const [loading, setLoading] = useState(true);
-//   const db = getFirestore(app);
-
-//   useEffect(() => {
-//     const fetchNews = async () => {
-//       const snapshot = await getDocs(collection(db, "news"));
-//       const newsList = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-//       setArticles(newsList);
-//       setLoading(false);
-//     };
-//     fetchNews();
-//   }, []);
-
-//   if (loading) return <ActivityIndicator size="large" />;
-
-//   return (
-//     <FlatList
-//       data={articles}
-//       keyExtractor={(item) => item.id}
-//       renderItem={({ item }) => (
-//         <View style={{ padding: 16, borderBottomWidth: 1, borderColor: "#ccc" }}>
-//           <Text style={{ fontSize: 18, fontWeight: "bold" }}>{item.title}</Text>
-//           {item.imageUrl && (
-//             <Image
-//               source={{ uri: item.imageUrl }}
-//               style={{ width: "100%", height: 150, marginVertical: 8 }}
-//               resizeMode="cover"
-//             />
-//           )}
-//           <Text>{item.description}</Text>
-//         </View>
-//       )}
-//     />
-//   );
-// };
-
-// export default NewsScreen;

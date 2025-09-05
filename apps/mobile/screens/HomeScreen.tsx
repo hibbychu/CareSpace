@@ -40,21 +40,6 @@ type NewsArticle = {
   urlToImage?: string | null;
 };
 
-const latestArticles = [
-  {
-    id: "1",
-    title: "Migrant Workers in Singapore: Safety Measures",
-    description: "Authorities have introduced new safety protocols...",
-    url: "https://example.com/article1",
-  },
-  {
-    id: "2",
-    title: "Housing Improvements for Migrant Workers",
-    description: "A new initiative aims to provide better living conditions...",
-    url: "https://example.com/article2",
-  },
-];
-
 function HomeScreen() {
   const { theme } = useContext(ThemeContext);
   const navigation =
@@ -64,37 +49,6 @@ function HomeScreen() {
   const [events, setEvents] = useState<Event[]>([]);
   const [newsArticles, setNewsArticles] = useState<NewsArticle[]>([]);
   const [loadingNews, setLoadingNews] = useState(true);
-
-  // Fetch events from Firestore
-  //   useEffect(() => {
-  //     const fetchEvents = async () => {
-  //       try {
-  //         // ⚡ make sure this matches your field name in Firestore
-  //         const q = query(collection(db, "events"), orderBy("dateTime", "asc"));
-  //         const querySnapshot = await getDocs(q);
-
-  //         const eventsData: Event[] = querySnapshot.docs.map((doc) => {
-  //           const data = doc.data();
-  //           return {
-  //             eventID: doc.id, // <-- add this
-  //             eventName: data.eventName,
-  //             dateTime: data.dateTime,
-  //             organiser: data.organiser,
-  //             address: data.address,
-  //             description: data.description,
-  //             imageUrl: data.imageUrl || null,
-  //           };
-  //         });
-
-  //         setEvents(eventsData);
-  //         console.log("Fetched events:", eventsData);
-  //       } catch (error) {
-  //         console.log("Error fetching events:", error);
-  //       }
-  //     };
-
-  //   fetchEvents();
-  // }, []);
 
   useEffect(() => {
     // Fetch and store news once on app start (or debug)
