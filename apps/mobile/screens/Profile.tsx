@@ -51,8 +51,6 @@ const Profile: React.FC = ({ navigation, route }) => {
     fetchProfile();
   }, [uidFromParams, user]);
 
- console.log(uidFromParams)
-
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -79,10 +77,18 @@ const Profile: React.FC = ({ navigation, route }) => {
           <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('EditProfile')}>
             <Text style={styles.buttonText}>Edit Profile</Text>
           </TouchableOpacity>
+
           <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
             <Text style={styles.buttonText}>Logout</Text>
           </TouchableOpacity>
         </>
+      )}
+
+      {(!uidFromParams && !user) && (<TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate("Login")}>
+        <Text style={styles.buttonText}>Login</Text>
+      </TouchableOpacity>
       )}
 
       <View style={styles.section}>
