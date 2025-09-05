@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
-import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
+import { View, TouchableOpacity, Text, StyleSheet, Image } from "react-native";
 import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -53,7 +53,12 @@ function HomeStack() {
         name="HomeMain"
         component={HomeScreen}
         options={{
-          headerTitle: "CareSpace",
+          headerTitle: () => (
+                <Image
+                  source={require("/assets/logo.png")}
+                  style={{ width: 120, height: 40, resizeMode: "contain" }}
+                />
+              ),          
           headerStyle: { backgroundColor: theme.primary },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
@@ -170,7 +175,12 @@ function ProfileStack() {
         name="ProfileMain"
         component={Profile}
         options={{
-          headerTitle: "CareSpace",
+          headerTitle: () => (
+            <Image
+              source={require('/assets/logo.png')}
+              style={{ width: 120, height: 40, resizeMode: 'contain' }}
+            />
+          ),
           headerStyle: { backgroundColor: theme.primary },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
