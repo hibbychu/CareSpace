@@ -325,7 +325,7 @@ export default function EventsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Events Management</h1>
-            <p className="mt-2 text-gray-600">Create and manage healthcare events, workshops, and seminars</p>
+            <p className="mt-2 text-gray-600">Create and manage events, workshops, and seminars</p>
           </div>
           <button
             onClick={() => setShowCreateModal(true)}

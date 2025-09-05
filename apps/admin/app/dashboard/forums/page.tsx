@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { collection, getDocs, query, orderBy, where, deleteDoc, doc, Timestamp, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
-import { Plus, MessageSquare, Eye, MoreVertical, Search, AlertTriangle, Trash2, ThumbsUp, MessageCircle, Send, User, Edit } from 'lucide-react';
+import { Plus, MessageSquare, Eye, MoreVertical, Search, AlertTriangle, Trash2, ThumbsUp, MessageCircle, Send, User, Edit, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Comment {
   id: string;
@@ -19,7 +19,7 @@ interface Post {
   title?: string;
   body?: string;
   images?: string[];
-  type?: 'public' | 'anonymous';
+  postType?: 'post' | 'report';
   owner?: string;
   ownerUid?: string;
   createdAt?: Timestamp | Date | null;
@@ -33,10 +33,11 @@ export default function ForumsPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState<'all' | 'public' | 'anonymous'>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'post' | 'report'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'likes'>('date');
   const [commentText, setCommentText] = useState<{[postId: string]: string}>({});
   const [loadingComments, setLoadingComments] = useState<{[postId: string]: boolean}>({});
+  const [currentImageIndex, setCurrentImageIndex] = useState<{[postId: string]: number}>({});
   
   // Create Post Modal State
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -44,7 +45,8 @@ export default function ForumsPage() {
   const [newPost, setNewPost] = useState({
     title: '',
     body: '',
-    type: 'public' as 'public' | 'anonymous'
+    postType: 'post' as 'post' | 'report',
+    images: ['']
   });
 
   // Edit Post Modal State
@@ -54,7 +56,8 @@ export default function ForumsPage() {
   const [editPost, setEditPost] = useState({
     title: '',
     body: '',
-    type: 'public' as 'public' | 'anonymous'
+    postType: 'post' as 'post' | 'report',
+    images: ['']
   });
 
   // Current admin UID (in a real app, this would come from auth)
@@ -201,18 +204,18 @@ export default function ForumsPage() {
       const postData = {
         title: newPost.title.trim(),
         body: newPost.body.trim(),
-        type: newPost.type,
+        postType: newPost.postType,
         owner: 'Admin User', // In a real app, this would come from auth
         ownerUid: currentAdminUid, // Add the UID for authorization
         likes: 0,
         createdAt: serverTimestamp(),
-        images: [] // Empty array for now
+        images: newPost.images.filter(img => img.trim() !== '') // Filter out empty URLs
       };
 
       await addDoc(collection(db, 'posts'), postData);
       
       // Reset form and close modal
-      setNewPost({ title: '', body: '', type: 'public' });
+      setNewPost({ title: '', body: '', postType: 'post', images: [''] });
       setShowCreateModal(false);
       
       // Refresh posts
@@ -232,7 +235,8 @@ export default function ForumsPage() {
     setEditPost({
       title: post.title || '',
       body: post.body || '',
-      type: post.type || 'public'
+      postType: post.postType || 'post',
+      images: post.images && post.images.length > 0 ? [...post.images] : ['']
     });
     setShowEditModal(true);
   };
@@ -250,8 +254,9 @@ export default function ForumsPage() {
       const postData = {
         title: editPost.title.trim(),
         body: editPost.body.trim(),
-        type: editPost.type,
+        postType: editPost.postType,
         updatedAt: serverTimestamp(),
+        images: editPost.images.filter(img => img.trim() !== '') // Filter out empty URLs
       };
 
       await updateDoc(doc(db, 'posts', editingPost.id), postData);
@@ -259,7 +264,7 @@ export default function ForumsPage() {
       // Close modal and reset
       setShowEditModal(false);
       setEditingPost(null);
-      setEditPost({ title: '', body: '', type: 'public' });
+      setEditPost({ title: '', body: '', postType: 'post', images: [''] });
       
       // Refresh posts
       await fetchPosts();
@@ -308,14 +313,15 @@ export default function ForumsPage() {
       // Build query with filters and sorting
       const queryConstraints = [];
       
-      if (typeFilter !== 'all') {
-        queryConstraints.push(where('type', '==', typeFilter));
-      }
-      
-      if (sortBy === 'date') {
-        queryConstraints.push(orderBy('createdAt', 'desc'));
-      } else {
-        queryConstraints.push(orderBy('likes', 'desc'));
+      // If we're filtering by type, we can't also order by a different field without a composite index
+      // So we'll fetch all posts and sort client-side when filtering
+      if (typeFilter === 'all') {
+        // Only add ordering when not filtering by type
+        if (sortBy === 'date') {
+          queryConstraints.push(orderBy('createdAt', 'desc'));
+        } else {
+          queryConstraints.push(orderBy('likes', 'desc'));
+        }
       }
       
       const finalQuery = queryConstraints.length > 0 
@@ -326,7 +332,7 @@ export default function ForumsPage() {
       const querySnapshot = await getDocs(finalQuery);
       console.log('🔥 Query executed! Document count:', querySnapshot.size);
       
-      const postsData = querySnapshot.docs.map(doc => {
+      let postsData = querySnapshot.docs.map(doc => {
         const data = doc.data();
         console.log('🔥 Document:', doc.id, data);
         return {
@@ -334,6 +340,24 @@ export default function ForumsPage() {
           ...data
         };
       }) as Post[];
+
+      // Apply client-side filtering and sorting when needed
+      if (typeFilter !== 'all') {
+        postsData = postsData.filter(post => post.postType === typeFilter);
+      }
+      
+      // Apply client-side sorting when we couldn't do it in the query
+      if (typeFilter !== 'all' || queryConstraints.length === 0) {
+        if (sortBy === 'date') {
+          postsData.sort((a, b) => {
+            const dateA = a.createdAt instanceof Date ? a.createdAt : a.createdAt?.toDate?.() || new Date(0);
+            const dateB = b.createdAt instanceof Date ? b.createdAt : b.createdAt?.toDate?.() || new Date(0);
+            return dateB.getTime() - dateA.getTime(); // Descending order
+          });
+        } else {
+          postsData.sort((a, b) => (b.likes || 0) - (a.likes || 0)); // Descending order
+        }
+      }
 
       // Fetch comment counts for all posts
       console.log('🔥 Fetching comment counts...');
@@ -400,8 +424,189 @@ export default function ForumsPage() {
     return date.toLocaleDateString();
   };
 
-  const getPostTypeColor = (type: string) => {
-    return type === 'anonymous' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800';
+  const getPostTypeColor = (postType: string) => {
+    return postType === 'report' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800';
+  };
+
+  const nextImage = (postId: string, totalImages: number) => {
+    setCurrentImageIndex(prev => ({
+      ...prev,
+      [postId]: ((prev[postId] || 0) + 1) % totalImages
+    }));
+  };
+
+  const prevImage = (postId: string, totalImages: number) => {
+    setCurrentImageIndex(prev => ({
+      ...prev,
+      [postId]: ((prev[postId] || 0) - 1 + totalImages) % totalImages
+    }));
+  };
+
+  const ImageSlider = ({ images, postId }: { images: string[], postId: string }) => {
+    if (!images || images.length === 0) return null;
+    
+    const currentIndex = currentImageIndex[postId] || 0;
+    
+    return (
+      <div className="relative mb-4">
+        <div className="relative h-64 rounded-lg overflow-hidden bg-gray-100">
+          <img 
+            src={images[currentIndex]} 
+            alt={`Post image ${currentIndex + 1}`}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = '/placeholder-image.png'; // Fallback image
+            }}
+          />
+          
+          {images.length > 1 && (
+            <>
+              {/* Previous button */}
+              <button
+                onClick={() => prevImage(postId, images.length)}
+                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              
+              {/* Next button */}
+              <button
+                onClick={() => nextImage(postId, images.length)}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+              
+              {/* Image indicators */}
+              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
+                {images.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImageIndex(prev => ({ ...prev, [postId]: index }))}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      index === currentIndex ? 'bg-white' : 'bg-white bg-opacity-50'
+                    }`}
+                  />
+                ))}
+              </div>
+              
+              {/* Image counter */}
+              <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
+                {currentIndex + 1} / {images.length}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const addImageField = () => {
+    setNewPost(prev => ({
+      ...prev,
+      images: [...prev.images, '']
+    }));
+  };
+
+  const removeImageField = (index: number) => {
+    setNewPost(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateImageField = (index: number, value: string) => {
+    setNewPost(prev => ({
+      ...prev,
+      images: prev.images.map((img, i) => i === index ? value : img)
+    }));
+  };
+
+  // Edit modal image functions
+  const addEditImageField = () => {
+    setEditPost(prev => ({
+      ...prev,
+      images: [...prev.images, '']
+    }));
+  };
+
+  const removeEditImageField = (index: number) => {
+    setEditPost(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateEditImageField = (index: number, value: string) => {
+    setEditPost(prev => ({
+      ...prev,
+      images: prev.images.map((img, i) => i === index ? value : img)
+    }));
+  };
+
+  const likePost = async (postId: string) => {
+    try {
+      const post = posts.find(p => p.id === postId);
+      if (!post) return;
+
+      const newLikes = (post.likes || 0) + 1;
+
+      // Optimistic update - update UI immediately
+      setPosts(prevPosts => 
+        prevPosts.map(p => 
+          p.id === postId 
+            ? { ...p, likes: newLikes }
+            : p
+        )
+      );
+
+      // Update in Firestore
+      const postRef = doc(db, 'posts', postId);
+      await updateDoc(postRef, {
+        likes: newLikes
+      });
+    } catch (error) {
+      console.error('Error liking post:', error);
+      // Revert optimistic update on error
+      await fetchPosts();
+    }
+  };
+
+  const likeComment = async (postId: string, commentId: string) => {
+    try {
+      const post = posts.find(p => p.id === postId);
+      const comment = post?.comments?.find(c => c.id === commentId);
+      if (!comment) return;
+
+      const newLikes = (comment.likes || 0) + 1;
+
+      // Optimistic update - update UI immediately
+      setPosts(prevPosts => 
+        prevPosts.map(p => 
+          p.id === postId 
+            ? {
+                ...p,
+                comments: p.comments?.map(c => 
+                  c.id === commentId 
+                    ? { ...c, likes: newLikes }
+                    : c
+                ) || []
+              }
+            : p
+        )
+      );
+
+      // Update in Firestore
+      const commentRef = doc(db, 'posts', postId, 'comments', commentId);
+      await updateDoc(commentRef, {
+        likes: newLikes
+      });
+    } catch (error) {
+      console.error('Error liking comment:', error);
+      // Revert optimistic update on error by refreshing comments
+      await fetchComments(postId);
+    }
   };
 
   return (
@@ -430,7 +635,7 @@ export default function ForumsPage() {
         <p>Loading state: {loading ? 'Yes' : 'No'}</p>
         <p>Filter: {typeFilter} | Sort: {sortBy}</p>
         {posts.length > 0 && (
-          <p>Sample post: {posts[0]?.title || 'No title'} (Type: {posts[0]?.type || 'Unknown'})</p>
+          <p>Sample post: {posts[0]?.title || 'No title'} (Type: {posts[0]?.postType || 'Unknown'})</p>
         )}
       </div>
 
@@ -442,7 +647,7 @@ export default function ForumsPage() {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Public Posts</p>
               <p className="text-2xl font-bold text-gray-900">
-                {posts.filter(p => p.type === 'public').length}
+                {posts.filter(p => p.postType === 'post').length}
               </p>
             </div>
           </div>
@@ -454,7 +659,7 @@ export default function ForumsPage() {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Anonymous Reports</p>
               <p className="text-2xl font-bold text-gray-900">
-                {posts.filter(p => p.type === 'anonymous').length}
+                {posts.filter(p => p.postType === 'report').length}
               </p>
             </div>
           </div>
@@ -495,12 +700,12 @@ export default function ForumsPage() {
             <div className="sm:w-48">
               <select
                 value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value as 'all' | 'public' | 'anonymous')}
+                onChange={(e) => setTypeFilter(e.target.value as 'all' | 'post' | 'report')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
               >
                 <option value="all">All Types</option>
-                <option value="public">Public Posts</option>
-                <option value="anonymous">Anonymous Reports</option>
+                <option value="post">Public Posts</option>
+                <option value="report">Anonymous Reports</option>
               </select>
             </div>
 
@@ -542,7 +747,10 @@ export default function ForumsPage() {
                   <div className="flex-shrink-0">
                     <div className="w-10 h-10 bg-[#7C4DFF] rounded-full flex items-center justify-center">
                       <span className="text-white font-medium">
-                        {(post.owner || 'AN').substring(0, 2).toUpperCase()}
+                        {post.postType === 'report' 
+                          ? 'AN' 
+                          : (post.owner || 'AN').substring(0, 2).toUpperCase()
+                        }
                       </span>
                     </div>
                   </div>
@@ -560,10 +768,13 @@ export default function ForumsPage() {
 
                         {/* Tags and Type */}
                         <div className="flex flex-wrap gap-2 mb-3">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPostTypeColor(post.type || 'public')}`}>
-                            {(post.type || 'public').toUpperCase()}
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPostTypeColor(post.postType || 'post')}`}>
+                            {(post.postType === 'report' ? 'REPORT' : 'POST')}
                           </span>
                         </div>
+
+                        {/* Images */}
+                        <ImageSlider images={post.images || []} postId={post.id} />
 
                         {/* Content Preview */}
                         <p className="text-gray-600 text-sm mb-3 line-clamp-2">
@@ -572,11 +783,21 @@ export default function ForumsPage() {
 
                         {/* Author and Stats */}
                         <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <span>Owner: <strong>{post.owner || 'Anonymous'}</strong></span>
-                          <div className="flex items-center gap-1">
+                          {post.postType !== 'report' && (
+                            <span>By <strong>{post.owner || 'Anonymous'}</strong></span>
+                          )}
+                          <button 
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              likePost(post.id);
+                            }}
+                            className="flex items-center gap-1 hover:text-[#7C4DFF] transition-colors"
+                          >
                             <ThumbsUp className="h-4 w-4" />
                             <span>{post.likes || 0} likes</span>
-                          </div>
+                          </button>
                           <button
                             onClick={() => toggleComments(post.id)}
                             className="flex items-center gap-1 hover:text-[#7C4DFF] transition-colors"
@@ -689,7 +910,15 @@ export default function ForumsPage() {
                                   </div>
                                   <p className="text-sm text-gray-700 mt-1">{comment.text}</p>
                                   <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                                    <button className="flex items-center gap-1 hover:text-[#7C4DFF] transition-colors">
+                                    <button 
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        likeComment(post.id, comment.id);
+                                      }}
+                                      className="flex items-center gap-1 hover:text-[#7C4DFF] transition-colors"
+                                    >
                                       <ThumbsUp className="h-3 w-3" />
                                       <span>{comment.likes || 0}</span>
                                     </button>
@@ -745,12 +974,12 @@ export default function ForumsPage() {
                     Post Type
                   </label>
                   <select
-                    value={newPost.type}
-                    onChange={(e) => setNewPost({ ...newPost, type: e.target.value as 'public' | 'anonymous' })}
+                    value={newPost.postType}
+                    onChange={(e) => setNewPost({ ...newPost, postType: e.target.value as 'post' | 'report' })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
                   >
-                    <option value="public">Public Post</option>
-                    <option value="anonymous">Anonymous Report</option>
+                    <option value="post">Public Post</option>
+                    <option value="report">Anonymous Report</option>
                   </select>
                 </div>
 
@@ -780,6 +1009,44 @@ export default function ForumsPage() {
                     rows={4}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent resize-none text-black placeholder:text-gray-500"
                   />
+                </div>
+
+                {/* Image URLs */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Image URLs (optional)
+                  </label>
+                  <div className="space-y-2">
+                    {newPost.images.map((imageUrl, index) => (
+                      <div key={index} className="flex gap-2">
+                        <input
+                          type="url"
+                          value={imageUrl}
+                          onChange={(e) => updateImageField(index, e.target.value)}
+                          placeholder="https://example.com/image.jpg"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                        />
+                        {newPost.images.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeImageField(index)}
+                            className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    {newPost.images.length < 5 && (
+                      <button
+                        type="button"
+                        onClick={addImageField}
+                        className="text-sm text-[#7C4DFF] hover:text-[#6C3CE7] transition-colors"
+                      >
+                        + Add another image
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -836,12 +1103,12 @@ export default function ForumsPage() {
                     Post Type
                   </label>
                   <select
-                    value={editPost.type}
-                    onChange={(e) => setEditPost({ ...editPost, type: e.target.value as 'public' | 'anonymous' })}
+                    value={editPost.postType}
+                    onChange={(e) => setEditPost({ ...editPost, postType: e.target.value as 'post' | 'report' })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
                   >
-                    <option value="public">Public Post</option>
-                    <option value="anonymous">Anonymous Report</option>
+                    <option value="post">Public Post</option>
+                    <option value="report">Anonymous Report</option>
                   </select>
                 </div>
 
@@ -871,6 +1138,44 @@ export default function ForumsPage() {
                     rows={4}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent resize-none text-black placeholder:text-gray-500"
                   />
+                </div>
+
+                {/* Image URLs */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Image URLs (optional)
+                  </label>
+                  <div className="space-y-2">
+                    {editPost.images.map((imageUrl, index) => (
+                      <div key={index} className="flex gap-2">
+                        <input
+                          type="url"
+                          value={imageUrl}
+                          onChange={(e) => updateEditImageField(index, e.target.value)}
+                          placeholder="https://example.com/image.jpg"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                        />
+                        {editPost.images.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeEditImageField(index)}
+                            className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    {editPost.images.length < 5 && (
+                      <button
+                        type="button"
+                        onClick={addEditImageField}
+                        className="text-sm text-[#7C4DFF] hover:text-[#6C3CE7] transition-colors"
+                      >
+                        + Add another image
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
