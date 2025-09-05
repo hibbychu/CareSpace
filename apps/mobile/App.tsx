@@ -12,6 +12,7 @@ import Profile from "./screens/Profile";
 import EventDetails from "./screens/EventDetails";
 import ForumScreen from "./screens/ForumScreen";
 import PostDetailScreen from "./screens/PostDetailScreen";
+import NewsScreen from "./screens/NewsScreen";
 
 // Bottom Tab Navigator
 const Tab = createBottomTabNavigator();
@@ -22,10 +23,20 @@ function HomeStack() {
   return (
     <HomeStackNav.Navigator>
       <HomeStackNav.Screen
-        name="HomeMain"
+        name="News"
+        component={NewsScreen}
+        options={{
+          headerTitle: "CareSpace",
+          headerStyle: { backgroundColor: "#7b2cbf" },
+          headerTintColor: "#fff",
+          headerTitleAlign: "center",
+        }}
+      />
+      <HomeStackNav.Screen
+        name="HomeLanding"
         component={HomeScreen}
         options={{
-          headerTitle: "CareSpace",        // Home header
+          headerTitle: "CareSpace",
           headerStyle: { backgroundColor: "#7b2cbf" },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
@@ -35,7 +46,7 @@ function HomeStack() {
         name="Events"
         component={EventsScreen}
         options={{
-          title: "All Events",             // Events header
+          title: "All Events",
           headerStyle: { backgroundColor: "#4f46e5" },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
@@ -52,7 +63,6 @@ function HomeStack() {
         }}
       />
     </HomeStackNav.Navigator>
-
   );
 }
 const ProfileStackNav = createNativeStackNavigator();
