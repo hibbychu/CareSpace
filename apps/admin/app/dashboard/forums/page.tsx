@@ -233,6 +233,11 @@ export default function ForumsPage() {
             : post
         )
       );
+
+      // Also update viewingPost if it's the same post
+      if (viewingPost && viewingPost.id === postId) {
+        setViewingPost(prev => prev ? { ...prev, comments, showComments: true } : null);
+      }
     } catch (error) {
       console.error('❌ Error fetching comments:', error);
     } finally {
@@ -301,6 +306,9 @@ export default function ForumsPage() {
     try {
       console.log('🔥 Adding comment to post:', postId);
       
+      // Clear the comment text immediately for better UX
+      setCommentText(prev => ({ ...prev, [postId]: '' }));
+      
       await addDoc(collection(db, 'posts', postId, 'comments'), {
         text: text,
         authorName: 'Admin User', // In a real app, this would come from auth
@@ -308,9 +316,6 @@ export default function ForumsPage() {
         likes: 0,
         createdAt: serverTimestamp(),
       });
-
-      // Clear the comment text
-      setCommentText(prev => ({ ...prev, [postId]: '' }));
       
       // Update comment count and refresh comments for this post
       const newCommentCount = await fetchCommentCount(postId);
@@ -321,11 +326,18 @@ export default function ForumsPage() {
             : p
         )
       );
+
+      // Also update viewingPost comment count if it's the same post
+      if (viewingPost && viewingPost.id === postId) {
+        setViewingPost(prev => prev ? { ...prev, commentsCount: newCommentCount } : null);
+      }
       
-      // Refresh comments for this post
+      // Refresh comments for this post (this will update both posts state and viewingPost)
       await fetchComments(postId);
     } catch (error) {
       console.error('❌ Error adding comment:', error);
+      // Restore the comment text if there was an error
+      setCommentText(prev => ({ ...prev, [postId]: text }));
     }
   };
 
@@ -609,28 +621,32 @@ export default function ForumsPage() {
   };
 
   const ImageSlider = ({ images, postId }: { images: string[], postId: string }) => {
-    if (!images || images.length === 0) return null;
+    // Filter out empty strings and check if we have valid images
+    const validImages = images?.filter(img => img && img.trim() !== '') || [];
+    if (validImages.length === 0) return null;
     
     const currentIndex = currentImageIndex[postId] || 0;
+    const safeIndex = currentIndex < validImages.length ? currentIndex : 0;
     
     return (
       <div className="relative mb-4">
         <div className="relative h-64 rounded-lg overflow-hidden bg-gray-100">
           <img 
-            src={images[currentIndex]} 
-            alt={`Post image ${currentIndex + 1}`}
+            src={validImages[safeIndex]} 
+            alt={`Post image ${safeIndex + 1}`}
             className="w-full h-full object-cover"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
-              target.src = '/placeholder-image.png'; // Fallback image
+              target.style.display = 'none';
+              target.parentElement!.innerHTML = '<div class="w-full h-full bg-gray-200 flex items-center justify-center"><span class="text-gray-500 text-sm">Image failed to load</span></div>';
             }}
           />
           
-          {images.length > 1 && (
+          {validImages.length > 1 && (
             <>
               {/* Previous button */}
               <button
-                onClick={() => prevImage(postId, images.length)}
+                onClick={() => prevImage(postId, validImages.length)}
                 className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -638,7 +654,7 @@ export default function ForumsPage() {
               
               {/* Next button */}
               <button
-                onClick={() => nextImage(postId, images.length)}
+                onClick={() => nextImage(postId, validImages.length)}
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
               >
                 <ChevronRight className="h-4 w-4" />
@@ -646,12 +662,12 @@ export default function ForumsPage() {
               
               {/* Image indicators */}
               <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
-                {images.map((_, index) => (
+                {validImages.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentImageIndex(prev => ({ ...prev, [postId]: index }))}
                     className={`w-2 h-2 rounded-full transition-all ${
-                      index === currentIndex ? 'bg-white' : 'bg-white bg-opacity-50'
+                      index === safeIndex ? 'bg-white' : 'bg-white bg-opacity-50'
                     }`}
                   />
                 ))}
@@ -659,7 +675,7 @@ export default function ForumsPage() {
               
               {/* Image counter */}
               <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
-                {currentIndex + 1} / {images.length}
+                {safeIndex + 1} / {validImages.length}
               </div>
             </>
           )}
@@ -727,6 +743,11 @@ export default function ForumsPage() {
         )
       );
 
+      // Also update viewingPost if it's the same post
+      if (viewingPost && viewingPost.id === postId) {
+        setViewingPost(prev => prev ? { ...prev, likes: newLikes } : null);
+      }
+
       // Update in Firestore
       const postRef = doc(db, 'posts', postId);
       await updateDoc(postRef, {
@@ -736,6 +757,12 @@ export default function ForumsPage() {
       console.error('Error liking post:', error);
       // Revert optimistic update on error
       await fetchPosts();
+      if (viewingPost) {
+        const updatedPost = posts.find(p => p.id === viewingPost.id);
+        if (updatedPost) {
+          setViewingPost(updatedPost);
+        }
+      }
     }
   };
 
@@ -763,6 +790,18 @@ export default function ForumsPage() {
         )
       );
 
+      // Also update viewingPost if it's the same post
+      if (viewingPost && viewingPost.id === postId) {
+        setViewingPost(prev => prev ? {
+          ...prev,
+          comments: prev.comments?.map(c => 
+            c.id === commentId 
+              ? { ...c, likes: newLikes }
+              : c
+          ) || []
+        } : null);
+      }
+
       // Update in Firestore
       const commentRef = doc(db, 'posts', postId, 'comments', commentId);
       await updateDoc(commentRef, {
@@ -778,16 +817,9 @@ export default function ForumsPage() {
   const openViewModal = async (post: Post) => {
     setViewingPost(post);
     setShowViewModal(true);
-    // Only load comments if they haven't been loaded yet
-    if (!post.comments || post.comments.length === 0) {
-      await fetchComments(post.id);
-    } else {
-      // Update the viewing post with the latest comment data
-      const updatedPost = posts.find(p => p.id === post.id);
-      if (updatedPost && updatedPost.comments) {
-        setViewingPost(updatedPost);
-      }
-    }
+    
+    // Always load fresh comments when opening modal for better UX
+    await fetchComments(post.id);
   };
 
   return (
@@ -807,17 +839,6 @@ export default function ForumsPage() {
             Create Post
           </button>
         </div>
-      </div>
-
-      {/* Debug Info - Remove this later */}
-      <div className="mb-4 p-4 bg-gray-100 rounded-lg text-sm text-black">
-        <p><strong>Debug Info:</strong></p>
-        <p>Posts fetched: {posts.length}</p>
-        <p>Loading state: {loading ? 'Yes' : 'No'}</p>
-        <p>Filter: {typeFilter} | Sort: {sortBy}</p>
-        {posts.length > 0 && (
-          <p>Sample post: {posts[0]?.title || 'No title'} (Type: {posts[0]?.postType || 'Unknown'})</p>
-        )}
       </div>
 
       {/* Stats */}
