@@ -158,16 +158,6 @@ function CreatePostButton() {
   );
 }
 
-const EditProfileNav = createNativeStackNavigator();
-function EditProfileStack() {
-  return (
-    <EditProfileNav.Navigator screenOptions={{ headerShown: false }}>
-      <EditProfileNav.Screen name="Profile" component={Profile} />
-      <EditProfileNav.Screen name="EditProfile" component={EditProfile} />
-    </EditProfileNav.Navigator>
-  );
-}
-
 const ProfileStackNav = createNativeStackNavigator();
 function ProfileStack() {
   const { theme } = useContext(ThemeContext);
@@ -202,6 +192,16 @@ function ProfileStack() {
         options={{
           headerTitle: "Sign Up",
           headerStyle: { backgroundColor: theme.primary },
+          headerTintColor: "#fff",
+          headerTitleAlign: "center",
+        }}
+      />
+      <ProfileStackNav.Screen
+        name="EditProfile"
+        component={EditProfile}
+        options={{
+          headerTitle: "Sign Up",
+          headerStyle: { backgroundColor: "#4f46e5" },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
         }}

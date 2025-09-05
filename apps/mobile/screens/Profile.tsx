@@ -1,91 +1,93 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  Image, 
-  ScrollView, 
-  TouchableOpacity, 
-  Alert 
-} from 'react-native';
-import EditProfile from './EditProfile';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { auth } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase";
 
-interface Props {
-  navigation: any; // React Navigation prop
-}
+const Profile: React.FC = ({ navigation, route }) => {
+  const [user, setUser] = useState(null); // currently logged in user
+  const [profileUser, setProfileUser] = useState(null); // details to display
+  const [guestMode, setGuestMode] = useState(false);
+  const uidFromParams = route?.params?.uid;
 
-const Profile: React.FC<Props> = ({ navigation }) => {
-  const [user, setUser] = useState<any>(null);
-
-  // Listen for Firebase auth state
+  // Listen for authentication changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => setUser(u));
     return unsubscribe;
   }, []);
 
-  // Logout handler
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (uidFromParams) {
+        // 1. Use UID from params -- show that user's Firestore profile
+        const profileRef = doc(db, "users", uidFromParams);
+        const profileSnap = await getDoc(profileRef);
+        if (profileSnap.exists()) {
+          setProfileUser(profileSnap.data());
+          setGuestMode(false);
+          console.log(
+            "exist"
+          );
+        } else {
+          // UID provided, but not found
+          setProfileUser({ displayName: "Unknown User", email: "Not found", bio: "No profile available." });
+          setGuestMode(true);
+          console.log(
+            "dont exist"
+          );
+        }
+      } else if (user) {
+        // 2. Show currently logged in user's details
+        setProfileUser({ displayName: user.displayName || user.email, email: user.email, bio: "No bio yet." });
+        setGuestMode(false);
+      } else {
+        // 3. Show guest view
+        setProfileUser({ displayName: "Guest", email: "Not logged in", bio: "No bio available." });
+        setGuestMode(true);
+      }
+    };
+    fetchProfile();
+  }, [uidFromParams, user]);
+
+ console.log(uidFromParams)
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
       Alert.alert("Logged out successfully");
       setUser(null);
+      navigation.navigate("Login");
     } catch (err) {
       console.error("Logout error:", err);
       Alert.alert("Error", "Unable to logout");
     }
   };
 
+  // Only allow edit/logout for own profile (not when viewing another user's profile or guest)
+  const isOwnProfile = !uidFromParams && !!user;
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Profile Picture */}
-      <Image
-        source={{ uri: user?.photoURL || 'https://via.placeholder.com/120' }}
-        style={styles.avatar}
-      />
+      <View style={styles.avatar} />
+      <Text style={styles.name}>{profileUser?.displayName}</Text>
+      <Text style={styles.email}>{profileUser?.email}</Text>
 
-      {/* User Info */}
-      <Text style={styles.name}>{user?.displayName || "Guest"}</Text>
-      <Text style={styles.email}>{user?.email || "Not logged in"}</Text>
-
-      {/* Action Buttons */}
-      {user ? (
+      {isOwnProfile && (
         <>
           <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('EditProfile')}>
             <Text style={styles.buttonText}>Edit Profile</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.button, styles.logoutButton]} 
-            onPress={handleLogout}
-          >
+          <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
             <Text style={styles.buttonText}>Logout</Text>
-          </TouchableOpacity>
-        </>
-      ) : (
-        <>
-          <TouchableOpacity 
-            style={styles.button} 
-            onPress={() => navigation.navigate("Login")}
-          >
-            <Text style={styles.buttonText}>Login</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.button, styles.logoutButton]} 
-            onPress={() => navigation.navigate("Signup")}
-          >
-            <Text style={styles.buttonText}>Sign Up</Text>
           </TouchableOpacity>
         </>
       )}
 
-      {/* About Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>About Me</Text>
-        <Text style={styles.sectionContent}>
-          Hello! I love building mobile apps with React Native and exploring UI design.
-        </Text>
+        <Text style={styles.sectionContent}>{profileUser?.bio}</Text>
       </View>
     </ScrollView>
   );
