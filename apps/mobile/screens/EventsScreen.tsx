@@ -62,10 +62,8 @@ function EventsScreen() {
           ...(doc.data() as Omit<Event, "id">),
         }));
 
-        console.log("Fetched events:", eventsData);
         setEvents(eventsData);
       } catch (error) {
-        console.log("Error fetching events:", error);
       }
     };
 

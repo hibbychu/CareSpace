@@ -25,7 +25,6 @@ function EventDetails() {
   const [event, setEvent] = useState<Event | null>(null);
 
   useEffect(() => {
-    console.log("EventDetails received eventID:", eventID);
     async function fetchEvent() {
       try {
         const docRef = doc(db, "events", eventID);
