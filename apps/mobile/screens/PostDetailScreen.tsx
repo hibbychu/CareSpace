@@ -161,7 +161,7 @@ const PostDetailScreen = ({ route, navigation }) => {
 
   return (
     <FlatList
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.background }]}
       data={comments}
       keyExtractor={(i) => i.id}
       renderItem={renderComment}
@@ -212,7 +212,20 @@ const PostDetailScreen = ({ route, navigation }) => {
           </Text>
 
           <View style={styles.actionsRow}>
-            {/* Like, Share, Report buttons */}
+
+            <TouchableOpacity onPress={() => likePost()} style={[styles.actionBtn, { backgroundColor: theme.text2 }]} >
+              <Ionicons name="heart" size={20} color="white" />
+              <Text style={styles.actionText}>{postData.likes}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.actionBtn, { backgroundColor: theme.text2 }]} onPress={handleShare}>
+              <Ionicons name="share-social" size={20} color="white" />
+              <Text style={styles.actionText}>Share</Text>
+            </TouchableOpacity>
+            <View style={{ flex: 1 }} />
+            <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#d32f2f" }]} onPress={handleReport}>
+              <MaterialIcons name="report" size={20} color="white" />
+              <Text style={styles.actionText}>Report</Text>
+            </TouchableOpacity>
           </View>
 
           <Text style={[styles.commentsTitle, { color: theme.text }]}>
@@ -220,7 +233,25 @@ const PostDetailScreen = ({ route, navigation }) => {
           </Text>
 
           <View style={styles.commentInputRow}>
-            {/* Comment input + send button */}
+            <View style={styles.commentInputRow}>
+              <TextInput
+                style={[
+                  styles.commentInput,
+                  {
+                    backgroundColor: theme.background,
+                    color: theme.text,
+                    borderColor: theme.bottomBorder,
+                  },
+                ]}
+                placeholder="Add a comment..."
+                placeholderTextColor={theme.dateGrey}
+                value={commentText}
+                onChangeText={setCommentText}
+              />
+              <TouchableOpacity onPress={addComment}>
+                <Ionicons name="send" size={24} color={theme.text2} style={{ marginLeft: 8 }} />
+              </TouchableOpacity>
+            </View>
           </View>
         </>
       }
@@ -262,7 +293,7 @@ const styles = StyleSheet.create({
   commentTime: { marginLeft: 8, fontSize: 12 },
   commentText: { fontSize: 14, marginBottom: 6 },
   commentsTitle: { fontWeight: "bold", fontSize: 16, marginBottom: 6 },
-  commentInputRow: { flexDirection: "row", alignItems: "center", marginTop: 8 },
+  commentInputRow: { flexDirection: "row", alignItems: "center", marginVertical: 8 },
   commentInput: { flex: 1, height: 40, borderRadius: 8, borderWidth: 1, paddingHorizontal: 10 },
   commentActionsRow: { flexDirection: "row" },
   commentActionBtn: { flexDirection: "row", alignItems: "center", marginRight: 12 },
