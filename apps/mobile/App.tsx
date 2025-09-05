@@ -56,7 +56,7 @@ function HomeStack() {
           headerTitle: () => (
                 <Image
                   source={require("./assets/logo-white.png")}
-                  style={{ width: 100, height: 60, resizeMode: "contain" }}
+                  style={{height: 45, resizeMode: "contain", marginLeft: 25}}
                 />
               ),          
           headerStyle: { backgroundColor: theme.primary },
@@ -178,7 +178,7 @@ function ProfileStack() {
           headerTitle: () => (
             <Image
               source={require('./assets/logo-white.png')}
-              style={{ width: 100, height: 60, resizeMode: 'contain' }}
+              style={{height: 45, resizeMode: "contain", marginLeft: 25}}
             />
           ),
           headerStyle: { backgroundColor: theme.primary },
