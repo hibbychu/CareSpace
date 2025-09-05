@@ -12,7 +12,7 @@ import { onAuthStateChanged } from "firebase/auth";
 // Screens
 import HomeScreen from "./screens/HomeScreen";
 import EventsScreen from "./screens/EventsScreen";
-import Profile from "./screens/ProfileScreen";
+import Profile from "./screens/Profile";
 import LoginScreen from "./screens/LoginScreen";
 import SignupScreen from "./screens/SignupScreen";
 import EventDetails from "./screens/EventDetails";

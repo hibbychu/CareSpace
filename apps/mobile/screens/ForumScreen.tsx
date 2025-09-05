@@ -82,6 +82,7 @@ export default function ForumScreen({ navigation }) {
                     likes: data.likes || 0,
                     image: data.image || null,
                     owner: data.ownerName || "Owner",
+                    ownerUid: data.ownerUid || "Owner",
                     createdAt: data.createdAt ? (data.createdAt as Timestamp).toDate() : new Date(),
                     postType: data.postType,
                 };

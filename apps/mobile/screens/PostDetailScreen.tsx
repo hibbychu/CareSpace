@@ -123,7 +123,7 @@ const PostDetailScreen = ({ route, navigation }) => {
     <View style={[styles.commentContainer, { backgroundColor: theme.commentBackground }]}>
       <TouchableOpacity
         style={styles.commentHeader}
-        onPress={() => navigation.navigate("Profile", { uid: post.owner })}
+        onPress={() => navigation.navigate("Profile", { uid: item.authorUid })}
       >
         <Ionicons name="person-circle" size={30} color={theme.text} />
         <Text style={[styles.commentAuthor, { color: theme.text }]}>{item.authorName}</Text>
@@ -147,6 +147,8 @@ const PostDetailScreen = ({ route, navigation }) => {
     </View>
   );
 
+
+  console.log(post.ownerUid + "hi");
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
 

@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "../firebase";
+import { db } from "../firebase";
+import { setDoc, doc, serverTimestamp } from "firebase/firestore";
 
 const SignupScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -14,14 +16,26 @@ const SignupScreen = ({ navigation }) => {
       return;
     }
     try {
+      // 1. Sign up & update display name in Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: name });
+      const uid = userCredential.user.uid;
+
+      // 2. Store additional details in Firestore (users collection)
+      await setDoc(doc(db, "users", uid), {
+        profileImage:"https://i.imgflip.com/12mv0n.jpg?a488040",
+        displayName: name,
+        createdAt: serverTimestamp(),
+        bio: "No bio yet." // you may customize or add more fields here
+      });
+
       Alert.alert("Success", "Account created!");
       navigation.navigate("Login");
-    } catch (err: any) {
+    } catch (err) {
       Alert.alert("Signup failed", err.message);
     }
   };
+
 
   return (
     <View style={styles.container}>
