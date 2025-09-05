@@ -1,6 +1,5 @@
-import { Image } from "react-native";
 import React, { useState, useContext } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth, db } from "../firebase";
 import { setDoc, doc, serverTimestamp } from "firebase/firestore";
@@ -69,6 +68,11 @@ const SignupScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <Image
+        source={require("../assets/logo.png")}
+        style={styles.logo}
+        resizeMode="cover"
+      />
       <Text style={styles.title}>Sign Up</Text>
 
       <View style={styles.imagePickerRow}>
@@ -146,9 +150,13 @@ const createStyles = (theme: any) =>
       padding: 20,
       backgroundColor: theme.background,
     },
+    logo: {
+      height: 200,
+      width: 200,
+    },
     title: {
       fontSize: 28,
-      marginBottom: 20,
+      marginBottom: 10,
       fontWeight: "bold",
       color: theme.text,
     },
