@@ -31,6 +31,15 @@ const SignupScreen = ({ navigation }) => {
 
   const [selectedProfileImage, setSelectedProfileImage] = useState(profileImages[0]); // Default to first image
 
+  const profileImages = [
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTNKPxf1kaLpjwwABj7hshow0GKt0iNRNsBQg&s",
+    "https://pngemoji.com/wp-content/uploads/2025/08/3d-red-beggar-emoji-holding-hat-money-crying-face.png",
+    "https://media.tenor.com/KJ_DW8BB-FIAAAAe/beggar-emoji-begging.png",
+    "https://i.imgflip.com/12mv0n.jpg?a488040"
+  ];
+
+  const [selectedProfileImage, setSelectedProfileImage] = useState(profileImages[0]); // Default to first image
+
   const handleSignup = async () => {
     if (!email || !password || !name) {
       customAlert("error", "Please fill in all the fields")
