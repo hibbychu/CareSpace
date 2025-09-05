@@ -37,6 +37,18 @@ function ThemeToggleButton() {
   );
 }
 
+function ForCenterLogo() {
+  const { theme, toggleTheme } = useContext(ThemeContext);
+  return (
+    <MaterialIcons
+      name={theme ? "light-mode" : "dark-mode"}
+      size={26}
+      color={theme.primary}
+      style={{ marginLeft: 12 }}
+    />
+  );
+}
+
 // Bottom Tab
 const Tab = createBottomTabNavigator();
 
@@ -48,18 +60,18 @@ function HomeStack() {
     <HomeStackNav.Navigator
       screenOptions={{
         headerRight: () => <ThemeToggleButton />,
-        headerLeft: () => <ThemeToggleButton />
+        headerLeft: () => <ForCenterLogo />
       }}>
       <HomeStackNav.Screen
         name="HomeMain"
         component={HomeScreen}
         options={{
           headerTitle: () => (
-                <Image
-                  source={require("./assets/logo-white.png")}
-                  style={{height: 45, resizeMode: "contain", marginLeft: 25}}
-                />
-              ),          
+            <Image
+              source={require("./assets/logo-white.png")}
+              style={{ height: 45, resizeMode: "contain" }}
+            />
+          ),
           headerStyle: { backgroundColor: theme.primary },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
@@ -171,6 +183,7 @@ function ProfileStack() {
     <ProfileStackNav.Navigator
       screenOptions={{
         headerRight: () => <ThemeToggleButton />,
+        headerLeft: () => <ForCenterLogo />
       }}>
       <ProfileStackNav.Screen
         name="ProfileMain"
@@ -179,7 +192,7 @@ function ProfileStack() {
           headerTitle: () => (
             <Image
               source={require('./assets/logo-white.png')}
-              style={{height: 45, resizeMode: "contain", marginLeft: 25}}
+              style={{ height: 45, resizeMode: "contain" }}
             />
           ),
           headerStyle: { backgroundColor: theme.primary },
