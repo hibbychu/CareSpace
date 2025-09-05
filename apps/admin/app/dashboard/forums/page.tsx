@@ -635,7 +635,7 @@ export default function ForumsPage() {
                                   placeholder="Add a comment..."
                                   value={commentText[post.id] || ''}
                                   onChange={(e) => setCommentText(prev => ({ ...prev, [post.id]: e.target.value }))}
-                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-sm"
+                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-sm text-gray-800 placeholder:text-gray-500"
                                   onKeyPress={(e) => {
                                     if (e.key === 'Enter') {
                                       addComment(post.id);
