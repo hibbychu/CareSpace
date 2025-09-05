@@ -18,13 +18,13 @@ export default function SettingsPage() {
         {/* General Settings */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center mb-4">
-            <Settings className="h-6 w-6 text-[#7C4DFF] mr-3" />
+            <Settings className="h-6 w-6 text-[var(--primary)] mr-3" />
             <h3 className="text-lg font-semibold text-gray-900">General</h3>
           </div>
           <p className="text-gray-600 text-sm mb-4">
             Basic configuration and platform settings
           </p>
-          <button className="w-full px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5">
+          <button className="w-full px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--text2)] hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5">
             Configure
           </button>
         </div>
@@ -38,7 +38,7 @@ export default function SettingsPage() {
           <p className="text-gray-600 text-sm mb-4">
             Database connection and backup settings
           </p>
-          <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-[#7C4DFF] hover:text-[#7C4DFF] transition-all duration-200">
+          <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all duration-200">
             Manage
           </button>
         </div>
@@ -52,7 +52,7 @@ export default function SettingsPage() {
           <p className="text-gray-600 text-sm mb-4">
             Authentication and access control settings
           </p>
-          <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-[#7C4DFF] hover:text-[#7C4DFF] transition-all duration-200">
+          <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all duration-200">
             Configure
           </button>
         </div>
@@ -66,7 +66,7 @@ export default function SettingsPage() {
           <p className="text-gray-600 text-sm mb-4">
             Email and push notification preferences
           </p>
-          <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-[#7C4DFF] hover:text-[#7C4DFF] transition-all duration-200">
+          <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all duration-200">
             Setup
           </button>
         </div>
@@ -80,7 +80,7 @@ export default function SettingsPage() {
           <p className="text-gray-600 text-sm mb-4">
             Theme, layout, and UI customization
           </p>
-          <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-[#7C4DFF] hover:text-[#7C4DFF] transition-all duration-200">
+          <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all duration-200">
             Customize
           </button>
         </div>
@@ -94,7 +94,7 @@ export default function SettingsPage() {
           <p className="text-gray-600 text-sm mb-4">
             Language and regional settings
           </p>
-          <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-[#7C4DFF] hover:text-[#7C4DFF] transition-all duration-200">
+          <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all duration-200">
             Configure
           </button>
         </div>

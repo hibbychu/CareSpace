@@ -50,9 +50,9 @@ export default function DashboardLayout({
   const getNavLinkClass = (route: string) => {
     const baseClass = "flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 transform hover:scale-105";
     if (isActiveRoute(route)) {
-      return `${baseClass} bg-[#7C4DFF] text-white shadow-lg`;
+      return `${baseClass} bg-[var(--primary)] text-white shadow-lg`;
     }
-    return `${baseClass} text-gray-700 hover:bg-[#7C4DFF]/10 hover:text-[#7C4DFF]`;
+    return `${baseClass} text-gray-700 hover:bg-[var(--primary)]/10 hover:text-[var(--primary)]`;
   };
 
   // Show loading while checking auth
@@ -61,8 +61,8 @@ export default function DashboardLayout({
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-[#7C4DFF] mx-auto mb-4"></div>
-            <div className="absolute inset-0 rounded-full h-12 w-12 border-4 border-transparent border-t-[#7C4DFF]/30 animate-pulse mx-auto"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-[var(--primary)] mx-auto mb-4"></div>
+            <div className="absolute inset-0 rounded-full h-12 w-12 border-4 border-transparent border-t-[var(--primary)]/30 animate-pulse mx-auto"></div>
           </div>
           <p className="text-gray-600 animate-pulse">Loading dashboard...</p>
         </div>
@@ -84,7 +84,7 @@ export default function DashboardLayout({
             {/* Mobile menu button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 text-gray-400 hover:text-[#7C4DFF] hover:bg-[#7C4DFF]/10 rounded-lg transition-all duration-200"
+              className="lg:hidden p-2 text-gray-400 hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-all duration-200"
             >
               {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
@@ -107,12 +107,12 @@ export default function DashboardLayout({
               <input
                 type="text"
                 placeholder="Search..."
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-[#7C4DFF] w-48 lg:w-64"
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] w-48 lg:w-64"
               />
             </div>
             
             {/* Notifications */}
-            <button className="p-2 text-gray-400 hover:text-[#7C4DFF] hover:bg-[#7C4DFF]/10 rounded-lg transition-all duration-200 transform hover:scale-110 relative">
+            <button className="p-2 text-gray-400 hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-all duration-200 transform hover:scale-110 relative">
               <Bell className="h-5 w-5" />
               <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full animate-pulse"></span>
             </button>

@@ -1,26 +1,47 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* CareSpace Light Theme */
+  --background: #fff;
+  --foreground: #000;
+  --primary: #7b2cbf;
+  --secondary: #9688B2;
+  --text2: #7b2cbf;
+  --search-bar-background: #f0f0f0;
+  --search-bar-placeholder: #aaa;
+  --post-body-text: #555;
+  --bottom-border: gray;
+  --icons-grey: grey;
+  --comment-background: #DADADA;
+  --card-background: #fff;
+  --shadow: #1A1A1A;
+  --date-grey: #aaa;
+  --report-red: #d32f2f;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* CareSpace Dark Theme */
+    --background: #121212;
+    --foreground: #ffffff;
+    --primary: #9c4dcc;
+    --secondary: #b39ddb;
+    --text2: #9c4dcc;
+    --search-bar-background: #2a2a2a;
+    --search-bar-placeholder: #888;
+    --post-body-text: #cccccc;
+    --bottom-border: #444;
+    --icons-grey: #888;
+    --comment-background: #3a3a3a;
+    --card-background: #1e1e1e;
+    --shadow: #000000;
+    --date-grey: #888;
+    --report-red: #f44336;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans, Arial, Helvetica, sans-serif);
 }

@@ -329,7 +329,7 @@ export default function EventsPage() {
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
+            className="inline-flex items-center px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--text2)] hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
           >
             <Plus className="h-5 w-5 mr-2" />
             Create Event
@@ -350,7 +350,7 @@ export default function EventsPage() {
                   placeholder="Search events..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
                 />
               </div>
             </div>
@@ -361,7 +361,7 @@ export default function EventsPage() {
       {/* Loading State */}
       {loading && (
         <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7C4DFF] mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading events...</p>
         </div>
       )}
@@ -392,7 +392,7 @@ export default function EventsPage() {
                         e.stopPropagation();
                         openEditModal(event);
                       }}
-                      className="p-2 text-gray-500 hover:text-[#7C4DFF] hover:bg-[#7C4DFF]/10 rounded-lg transition-all duration-200 transform hover:scale-110"
+                      className="p-2 text-gray-500 hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-all duration-200 transform hover:scale-110"
                     >
                       <Edit className="h-4 w-4" />
                     </button>
@@ -448,7 +448,7 @@ export default function EventsPage() {
                 <div className="flex gap-2">
                   <button 
                     onClick={() => openViewModal(event)}
-                    className="flex-1 px-3 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] hover:shadow-md transition-all duration-200 transform hover:-translate-y-0.5 text-sm font-medium"
+                    className="flex-1 px-3 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--text2)] hover:shadow-md transition-all duration-200 transform hover:-translate-y-0.5 text-sm font-medium"
                   >
                     View Details
                   </button>
@@ -470,7 +470,7 @@ export default function EventsPage() {
           </p>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
+            className="inline-flex items-center px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--text2)] hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
           >
             <Plus className="h-5 w-5 mr-2" />
             Create {events.length === 0 ? 'First' : ''} Event
@@ -514,7 +514,7 @@ export default function EventsPage() {
                     value={newEvent.eventName}
                     onChange={(e) => setNewEvent({ ...newEvent, eventName: e.target.value })}
                     placeholder="Enter event name..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                   />
                 </div>
 
@@ -528,7 +528,7 @@ export default function EventsPage() {
                     value={newEvent.organiser}
                     onChange={(e) => setNewEvent({ ...newEvent, organiser: e.target.value })}
                     placeholder="Who is organizing this event..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                   />
                 </div>
 
@@ -542,7 +542,7 @@ export default function EventsPage() {
                       type="date"
                       value={newEvent.date}
                       onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black"
                     />
                   </div>
                   <div>
@@ -553,7 +553,7 @@ export default function EventsPage() {
                       type="time"
                       value={newEvent.time}
                       onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black"
                     />
                   </div>
                 </div>
@@ -568,7 +568,7 @@ export default function EventsPage() {
                     value={newEvent.address}
                     onChange={(e) => setNewEvent({ ...newEvent, address: e.target.value })}
                     placeholder="Event location address..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                   />
                 </div>
 
@@ -582,7 +582,7 @@ export default function EventsPage() {
                     value={newEvent.imageUrl}
                     onChange={(e) => setNewEvent({ ...newEvent, imageUrl: e.target.value })}
                     placeholder="https://example.com/image.jpg"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                   />
                 </div>
 
@@ -596,7 +596,7 @@ export default function EventsPage() {
                     onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
                     placeholder="Describe the event..."
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent resize-none text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent resize-none text-black placeholder:text-gray-500"
                   />
                 </div>
               </div>
@@ -612,7 +612,7 @@ export default function EventsPage() {
                 <button
                   onClick={createEvent}
                   disabled={creating || !newEvent.eventName.trim() || !newEvent.description.trim() || !newEvent.organiser.trim() || !newEvent.address.trim() || !newEvent.date || !newEvent.time}
-                  className="flex-1 px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--text2)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {creating ? 'Creating...' : 'Create Event'}
                 </button>
@@ -658,7 +658,7 @@ export default function EventsPage() {
                     value={editEvent.eventName}
                     onChange={(e) => setEditEvent({ ...editEvent, eventName: e.target.value })}
                     placeholder="Enter event name..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                   />
                 </div>
 
@@ -672,7 +672,7 @@ export default function EventsPage() {
                     value={editEvent.organiser}
                     onChange={(e) => setEditEvent({ ...editEvent, organiser: e.target.value })}
                     placeholder="Who is organizing this event..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                   />
                 </div>
 
@@ -686,7 +686,7 @@ export default function EventsPage() {
                       type="date"
                       value={editEvent.date}
                       onChange={(e) => setEditEvent({ ...editEvent, date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black"
                     />
                   </div>
                   <div>
@@ -697,7 +697,7 @@ export default function EventsPage() {
                       type="time"
                       value={editEvent.time}
                       onChange={(e) => setEditEvent({ ...editEvent, time: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black"
                     />
                   </div>
                 </div>
@@ -712,7 +712,7 @@ export default function EventsPage() {
                     value={editEvent.address}
                     onChange={(e) => setEditEvent({ ...editEvent, address: e.target.value })}
                     placeholder="Event location address..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                   />
                 </div>
 
@@ -726,7 +726,7 @@ export default function EventsPage() {
                     value={editEvent.imageUrl}
                     onChange={(e) => setEditEvent({ ...editEvent, imageUrl: e.target.value })}
                     placeholder="https://example.com/image.jpg"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                   />
                 </div>
 
@@ -740,7 +740,7 @@ export default function EventsPage() {
                     onChange={(e) => setEditEvent({ ...editEvent, description: e.target.value })}
                     placeholder="Describe the event..."
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent resize-none text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent resize-none text-black placeholder:text-gray-500"
                   />
                 </div>
               </div>
@@ -756,7 +756,7 @@ export default function EventsPage() {
                 <button
                   onClick={updateEvent}
                   disabled={editing || !editEvent.eventName.trim() || !editEvent.description.trim() || !editEvent.organiser.trim() || !editEvent.address.trim() || !editEvent.date || !editEvent.time}
-                  className="flex-1 px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--text2)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {editing ? 'Updating...' : 'Update Event'}
                 </button>
@@ -880,7 +880,7 @@ export default function EventsPage() {
                     setShowViewModal(false);
                     openEditModal(viewingEvent);
                   }}
-                  className="flex-1 px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] transition-colors"
+                  className="flex-1 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--text2)] transition-colors"
                 >
                   Edit Event
                 </button>

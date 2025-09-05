@@ -207,7 +207,7 @@ export default function DashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-[#7C4DFF]/30 transition-all duration-200 transform hover:-translate-y-1 cursor-pointer">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-[var(--primary)]/30 transition-all duration-200 transform hover:-translate-y-1 cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Users</p>
@@ -215,12 +215,12 @@ export default function DashboardPage() {
                 {loading ? '...' : stats.totalUsers}
               </p>
             </div>
-            <Users className="h-8 w-8 text-[#7C4DFF]" />
+            <Users className="h-8 w-8 text-[var(--primary)]" />
           </div>
           <p className="text-sm text-blue-600 mt-2">→ Platform users</p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-[#7C4DFF]/30 transition-all duration-200 transform hover:-translate-y-1 cursor-pointer">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-[var(--primary)]/30 transition-all duration-200 transform hover:-translate-y-1 cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Events</p>
@@ -228,14 +228,14 @@ export default function DashboardPage() {
                 {loading ? '...' : stats.totalEvents}
               </p>
             </div>
-            <Calendar className="h-8 w-8 text-[#7C4DFF]" />
+            <Calendar className="h-8 w-8 text-[var(--primary)]" />
           </div>
           <p className="text-sm text-green-600 mt-2">
             {loading ? '...' : stats.upcomingEvents} upcoming
           </p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-[#7C4DFF]/30 transition-all duration-200 transform hover:-translate-y-1 cursor-pointer">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-[var(--primary)]/30 transition-all duration-200 transform hover:-translate-y-1 cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Forum Posts</p>
@@ -243,14 +243,14 @@ export default function DashboardPage() {
                 {loading ? '...' : stats.totalPosts}
               </p>
             </div>
-            <MessageSquare className="h-8 w-8 text-[#7C4DFF]" />
+            <MessageSquare className="h-8 w-8 text-[var(--primary)]" />
           </div>
           <p className="text-sm text-blue-600 mt-2">
             {loading ? '...' : `${stats.publicPosts} public, ${stats.anonymousReports} reports`}
           </p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-[#7C4DFF]/30 transition-all duration-200 transform hover:-translate-y-1 cursor-pointer">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-[var(--primary)]/30 transition-all duration-200 transform hover:-translate-y-1 cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Engagement</p>
@@ -258,7 +258,7 @@ export default function DashboardPage() {
                 {loading ? '...' : stats.totalLikes}
               </p>
             </div>
-            <ThumbsUp className="h-8 w-8 text-[#7C4DFF]" />
+            <ThumbsUp className="h-8 w-8 text-[var(--primary)]" />
           </div>
           <p className="text-sm text-green-600 mt-2">
             {loading ? '...' : `${stats.totalComments} comments`}
@@ -274,7 +274,7 @@ export default function DashboardPage() {
         <div className="p-6">
           {loading ? (
             <div className="flex justify-center py-4">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#7C4DFF]"></div>
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[var(--primary)]"></div>
             </div>
           ) : recentActivity.length > 0 ? (
             <div className="space-y-4">

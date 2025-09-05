@@ -21,7 +21,7 @@ export default function UsersPage() {
               <p className="text-sm font-medium text-gray-600">Total Users</p>
               <p className="text-3xl font-bold text-gray-900">1,234</p>
             </div>
-            <Users className="h-8 w-8 text-[#7C4DFF]" />
+            <Users className="h-8 w-8 text-[var(--primary)]" />
           </div>
           <p className="text-sm text-green-600 mt-2">↗ 12% from last month</p>
         </div>
@@ -70,10 +70,10 @@ export default function UsersPage() {
             role management, and access control.
           </p>
           <div className="flex justify-center gap-4">
-            <button className="px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5">
+            <button className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--text2)] hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5">
               View User List
             </button>
-            <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-[#7C4DFF] hover:text-[#7C4DFF] transition-all duration-200">
+            <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all duration-200">
               Manage Roles
             </button>
           </div>

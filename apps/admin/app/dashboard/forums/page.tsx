@@ -425,7 +425,7 @@ export default function ForumsPage() {
   };
 
   const getPostTypeColor = (postType: string) => {
-    return postType === 'report' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800';
+    return postType === 'report' ? 'bg-red-100 text-[var(--report-red)]' : 'bg-purple-100 text-[var(--primary)]';
   };
 
   const nextImage = (postId: string, totalImages: number) => {
@@ -620,7 +620,7 @@ export default function ForumsPage() {
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
+            className="inline-flex items-center px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--text2)] hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
           >
             <Plus className="h-5 w-5 mr-2" />
             Create Post
@@ -691,7 +691,7 @@ export default function ForumsPage() {
                   placeholder="Search posts, users, or content..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                 />
               </div>
             </div>
@@ -701,7 +701,7 @@ export default function ForumsPage() {
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value as 'all' | 'post' | 'report')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black"
               >
                 <option value="all">All Types</option>
                 <option value="post">Public Posts</option>
@@ -714,7 +714,7 @@ export default function ForumsPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'date' | 'likes')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black"
               >
                 <option value="date">Sort by Date</option>
                 <option value="likes">Sort by Likes</option>
@@ -728,7 +728,7 @@ export default function ForumsPage() {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         {loading ? (
           <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C4DFF]"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)]"></div>
           </div>
         ) : filteredPosts.length === 0 ? (
           <div className="text-center py-12">
@@ -745,7 +745,7 @@ export default function ForumsPage() {
                 <div className="flex items-start gap-4">
                   {/* User Avatar */}
                   <div className="flex-shrink-0">
-                    <div className="w-10 h-10 bg-[#7C4DFF] rounded-full flex items-center justify-center">
+                    <div className="w-10 h-10 bg-[var(--primary)] rounded-full flex items-center justify-center">
                       <span className="text-white font-medium">
                         {post.postType === 'report' 
                           ? 'AN' 
@@ -761,7 +761,7 @@ export default function ForumsPage() {
                       <div className="flex-1">
                         {/* Title */}
                         <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900 hover:text-[#7C4DFF] cursor-pointer">
+                          <h3 className="text-lg font-semibold text-gray-900 hover:text-[var(--primary)] cursor-pointer">
                             {post.title}
                           </h3>
                         </div>
@@ -793,14 +793,14 @@ export default function ForumsPage() {
                               e.stopPropagation();
                               likePost(post.id);
                             }}
-                            className="flex items-center gap-1 hover:text-[#7C4DFF] transition-colors"
+                            className="flex items-center gap-1 hover:text-[var(--primary)] transition-colors"
                           >
                             <ThumbsUp className="h-4 w-4" />
                             <span>{post.likes || 0} likes</span>
                           </button>
                           <button
                             onClick={() => toggleComments(post.id)}
-                            className="flex items-center gap-1 hover:text-[#7C4DFF] transition-colors"
+                            className="flex items-center gap-1 hover:text-[var(--primary)] transition-colors"
                           >
                             <MessageCircle className="h-4 w-4" />
                             <span>{post.commentsCount || 0} comments</span>
@@ -814,7 +814,7 @@ export default function ForumsPage() {
                         {canEditPost(post) && (
                           <button 
                             onClick={() => openEditModal(post)}
-                            className="p-2 text-gray-500 hover:text-[#7C4DFF] hover:bg-[#7C4DFF]/10 rounded-lg transition-all duration-200 transform hover:scale-110"
+                            className="p-2 text-gray-500 hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-all duration-200 transform hover:scale-110"
                             title="Edit post"
                           >
                             <Edit className="h-4 w-4" />
@@ -822,7 +822,7 @@ export default function ForumsPage() {
                         )}
                         <button 
                           onClick={() => console.log('View post:', post.id)}
-                          className="p-2 text-gray-500 hover:text-[#7C4DFF] hover:bg-[#7C4DFF]/10 rounded-lg transition-all duration-200 transform hover:scale-110"
+                          className="p-2 text-gray-500 hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-all duration-200 transform hover:scale-110"
                         >
                           <Eye className="h-4 w-4" />
                         </button>
@@ -845,7 +845,7 @@ export default function ForumsPage() {
                         <div className="mb-4">
                           <div className="flex gap-3">
                             <div className="flex-shrink-0">
-                              <div className="w-8 h-8 bg-[#7C4DFF] rounded-full flex items-center justify-center">
+                              <div className="w-8 h-8 bg-[var(--primary)] rounded-full flex items-center justify-center">
                                 <User className="h-4 w-4 text-white" />
                               </div>
                             </div>
@@ -856,7 +856,7 @@ export default function ForumsPage() {
                                   placeholder="Add a comment..."
                                   value={commentText[post.id] || ''}
                                   onChange={(e) => setCommentText(prev => ({ ...prev, [post.id]: e.target.value }))}
-                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-sm text-gray-800 placeholder:text-gray-500"
+                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-sm text-gray-800 placeholder:text-gray-500"
                                   onKeyPress={(e) => {
                                     if (e.key === 'Enter') {
                                       addComment(post.id);
@@ -866,7 +866,7 @@ export default function ForumsPage() {
                                 <button
                                   onClick={() => addComment(post.id)}
                                   disabled={!commentText[post.id]?.trim()}
-                                  className="px-3 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                                  className="px-3 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--text2)] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                                 >
                                   <Send className="h-4 w-4" />
                                 </button>
@@ -878,7 +878,7 @@ export default function ForumsPage() {
                         {/* Comments List */}
                         {loadingComments[post.id] ? (
                           <div className="flex justify-center py-4">
-                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#7C4DFF]"></div>
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[var(--primary)]"></div>
                           </div>
                         ) : post.comments && post.comments.length > 0 ? (
                           <div className="space-y-3">
@@ -917,7 +917,7 @@ export default function ForumsPage() {
                                         e.stopPropagation();
                                         likeComment(post.id, comment.id);
                                       }}
-                                      className="flex items-center gap-1 hover:text-[#7C4DFF] transition-colors"
+                                      className="flex items-center gap-1 hover:text-[var(--primary)] transition-colors"
                                     >
                                       <ThumbsUp className="h-3 w-3" />
                                       <span>{comment.likes || 0}</span>
@@ -976,7 +976,7 @@ export default function ForumsPage() {
                   <select
                     value={newPost.postType}
                     onChange={(e) => setNewPost({ ...newPost, postType: e.target.value as 'post' | 'report' })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black"
                   >
                     <option value="post">Public Post</option>
                     <option value="report">Anonymous Report</option>
@@ -993,7 +993,7 @@ export default function ForumsPage() {
                     value={newPost.title}
                     onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
                     placeholder="Enter post title..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                   />
                 </div>
 
@@ -1007,7 +1007,7 @@ export default function ForumsPage() {
                     onChange={(e) => setNewPost({ ...newPost, body: e.target.value })}
                     placeholder="Write your post content..."
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent resize-none text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent resize-none text-black placeholder:text-gray-500"
                   />
                 </div>
 
@@ -1024,7 +1024,7 @@ export default function ForumsPage() {
                           value={imageUrl}
                           onChange={(e) => updateImageField(index, e.target.value)}
                           placeholder="https://example.com/image.jpg"
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                         />
                         {newPost.images.length > 1 && (
                           <button
@@ -1041,7 +1041,7 @@ export default function ForumsPage() {
                       <button
                         type="button"
                         onClick={addImageField}
-                        className="text-sm text-[#7C4DFF] hover:text-[#6C3CE7] transition-colors"
+                        className="text-sm text-[var(--primary)] hover:text-[var(--text2)] transition-colors"
                       >
                         + Add another image
                       </button>
@@ -1061,7 +1061,7 @@ export default function ForumsPage() {
                 <button
                   onClick={createPost}
                   disabled={creating || !newPost.title.trim() || !newPost.body.trim()}
-                  className="flex-1 px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--text2)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {creating ? 'Creating...' : 'Create Post'}
                 </button>
@@ -1105,7 +1105,7 @@ export default function ForumsPage() {
                   <select
                     value={editPost.postType}
                     onChange={(e) => setEditPost({ ...editPost, postType: e.target.value as 'post' | 'report' })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black"
                   >
                     <option value="post">Public Post</option>
                     <option value="report">Anonymous Report</option>
@@ -1122,7 +1122,7 @@ export default function ForumsPage() {
                     value={editPost.title}
                     onChange={(e) => setEditPost({ ...editPost, title: e.target.value })}
                     placeholder="Enter post title..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                   />
                 </div>
 
@@ -1136,7 +1136,7 @@ export default function ForumsPage() {
                     onChange={(e) => setEditPost({ ...editPost, body: e.target.value })}
                     placeholder="Write your post content..."
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent resize-none text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent resize-none text-black placeholder:text-gray-500"
                   />
                 </div>
 
@@ -1153,7 +1153,7 @@ export default function ForumsPage() {
                           value={imageUrl}
                           onChange={(e) => updateEditImageField(index, e.target.value)}
                           placeholder="https://example.com/image.jpg"
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                         />
                         {editPost.images.length > 1 && (
                           <button
@@ -1170,7 +1170,7 @@ export default function ForumsPage() {
                       <button
                         type="button"
                         onClick={addEditImageField}
-                        className="text-sm text-[#7C4DFF] hover:text-[#6C3CE7] transition-colors"
+                        className="text-sm text-[var(--primary)] hover:text-[var(--text2)] transition-colors"
                       >
                         + Add another image
                       </button>
@@ -1190,7 +1190,7 @@ export default function ForumsPage() {
                 <button
                   onClick={updatePost}
                   disabled={editing || !editPost.title.trim() || !editPost.body.trim()}
-                  className="flex-1 px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--text2)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {editing ? 'Updating...' : 'Update Post'}
                 </button>
