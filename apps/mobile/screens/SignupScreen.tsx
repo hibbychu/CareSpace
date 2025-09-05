@@ -4,15 +4,26 @@ import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "../firebase";
 import { db } from "../firebase";
 import { setDoc, doc, serverTimestamp } from "firebase/firestore";
+import CustomAlert from "./CustomAlert";
 
 const SignupScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState<"success" | "error" | "info" | "warning">("info");
+
+
+  const customAlert = async (alertType: "success" | "error" | "info" | "warning", alertText: string,) => {
+    setAlertMessage(alertText);
+    setAlertType(alertType);
+    setAlertVisible(true);
+  };
 
   const handleSignup = async () => {
     if (!email || !password || !name) {
-      Alert.alert("Error", "Please fill all fields");
+      customAlert("error", "Please fill in all the fields")
       return;
     }
     try {
@@ -23,16 +34,17 @@ const SignupScreen = ({ navigation }) => {
 
       // 2. Store additional details in Firestore (users collection)
       await setDoc(doc(db, "users", uid), {
-        profileImage:"https://i.imgflip.com/12mv0n.jpg?a488040",
+        profileImage: "https://i.imgflip.com/12mv0n.jpg?a488040",
         displayName: name,
         createdAt: serverTimestamp(),
-        bio: "No bio yet." // you may customize or add more fields here
+        bio: "No bio yet."
       });
 
-      Alert.alert("Success", "Account created!");
+      customAlert("success", "Account created successfully")
       navigation.navigate("Login");
     } catch (err) {
-      Alert.alert("Signup failed", err.message);
+      customAlert("error", "Signup failed");
+      console.log(err);
     }
   };
 
@@ -49,6 +61,13 @@ const SignupScreen = ({ navigation }) => {
       <TouchableOpacity onPress={() => navigation.navigate("Login")}>
         <Text style={{ marginTop: 15 }}>Already have an account? Login</Text>
       </TouchableOpacity>
+
+      <CustomAlert
+        message={alertMessage}
+        visible={alertVisible}
+        onHide={() => setAlertVisible(false)}
+        type={alertType}
+      />
     </View>
   );
 };
