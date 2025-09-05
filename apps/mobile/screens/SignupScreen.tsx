@@ -26,10 +26,10 @@ const SignupScreen = ({ navigation }) => {
   };
 
   const profileImages = [
-    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTNKPxf1kaLpjwwABj7hshow0GKt0iNRNsBQg&s",
-    "https://pngemoji.com/wp-content/uploads/2025/08/3d-red-beggar-emoji-holding-hat-money-crying-face.png",
-    "https://media.tenor.com/KJ_DW8BB-FIAAAAe/beggar-emoji-begging.png",
-    "https://i.imgflip.com/12mv0n.jpg?a488040"
+    "https://cdn-icons-png.freepik.com/512/11748/11748483.png",
+    "https://cdn-icons-png.freepik.com/512/6833/6833605.png",
+    "https://cdn.pixabay.com/photo/2021/01/04/10/37/icon-5887113_1280.png",
+    "https://cdn-icons-png.freepik.com/256/6997/6997484.png"
   ];
 
   const [selectedProfileImage, setSelectedProfileImage] = useState(profileImages[0]); // Default
