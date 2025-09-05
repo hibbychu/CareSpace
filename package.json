@@ -7,10 +7,23 @@
     "packages/*"
   ],
   "dependencies": {
-    "@react-navigation/native-stack": "^7.3.26",
+    "@hookform/resolvers": "^5.2.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.542.0",
+    "react-hook-form": "^7.62.0",
+    "tailwind-merge": "^3.3.1",
+    "zod": "^4.1.5",
+    "firebase": "^12.2.1"
+  },
+  "devDependencies": {
+    "npm-check-updates": "^17.0.0"
+  },
+  "overrides": {
     "react": "19.0.0",
-    "react-native": "0.79.5",
-    "react-native-safe-area-context": "5.4.0",
-    "react-native-screens": "~4.11.1"
+    "react-dom": "19.0.0"
+  },
+  "resolutions": {
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
   }
 }

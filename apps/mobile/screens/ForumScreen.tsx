@@ -1,32 +1,28 @@
-// ForumScreen.tsx
-import React, { useState, useContext } from "react";
-import { Share } from "react-native";
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, TextInput, useColorScheme } from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { Picker } from '@react-native-picker/picker';
+import React, { useState, useContext, useEffect } from "react";
+import { View, Text, FlatList, Image, TouchableOpacity, TextInput, Share, StyleSheet, Dimensions } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Menu } from "react-native-paper";
 import { ThemeContext } from "../ThemeContext";
+import { db } from "../firebase";
+import { collection, query, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
+import RenderHTML from "react-native-render-html";
 
-const posts = [
-    { id: "1", title: "Looking for cricket mates! Anyone keen for ...", body: "Hi everyone, I'm new here and looking to find some friends to play cricket with on the weekends. I'm keen to get a regular group together for some friendly matches.", likes: 24, image: null, createdAt: new Date("2025-09-01T10:00:00"), },
-    { id: "2", title: "The food at this hawker is good. Reminds m...", body: "", likes: 69, image: "https://picsum.photos/400/250", createdAt: new Date("2025-09-03T09:15:00"), },
-    { id: "3", title: "What's the best way to send money to India...", body: "Just wanted to get some advice from those of you who regularly send money back home. What's the best way to do it now? My old method seems not to be working...", likes: 11, image: null, createdAt: new Date("2025-09-02T15:30:00"), },
-];
-
-const pickerOptions = [
-    { label: "Latest", value: "latest" },
-    { label: "Popular Today", value: "popular_today" },
-    { label: "Popular Week", value: "popular_week" },
-    { label: "Popular Month", value: "popular_month" },
-];
-
-const ForumScreen = ({ navigation }) => {
-    const { isDarkTheme } = useContext(ThemeContext); // ← use the context
-    const isDark = isDarkTheme;
-
+export default function ForumScreen({ navigation }) {
+    const { theme } = useContext(ThemeContext);
+    const { width } = Dimensions.get("window");
+    const [posts, setPosts] = useState<any[]>([]);
+    const [menuVisible, setMenuVisible] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState("latest");
     const [selectedFilterLabel, setSelectedFilterLabel] = useState("Latest");
     const [isSearchMode, setIsSearchMode] = useState(false);
     const [searchText, setSearchText] = useState("");
+
+    const pickerOptions = [
+        { label: "Latest", value: "latest" },
+        { label: "Popular Today", value: "popular_today" },
+        { label: "Popular Week", value: "popular_week" },
+        { label: "Popular Month", value: "popular_month" },
+    ];
 
     const getFilteredPosts = () => {
         let filteredPosts = posts.filter(post =>
@@ -63,36 +59,67 @@ const ForumScreen = ({ navigation }) => {
             default:
                 break;
         }
-
         return filteredPosts;
     };
 
-    // helper function to get week number
     const getWeekNumber = (date: Date) => {
         const onejan = new Date(date.getFullYear(), 0, 1);
         const millisecsInDay = 86400000;
         return Math.ceil(((date.getTime() - onejan.getTime()) / millisecsInDay + onejan.getDay() + 1) / 7);
     };
 
+
+    // fetch posts from Firestore
+    useEffect(() => {
+        const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+        const unsub = onSnapshot(q, (snap) => {
+            const arr = snap.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    title: data.title,
+                    body: data.body || "",
+                    likes: data.likes || 0,
+                    image: data.image || null,
+                    owner: data.ownerName || "Owner",
+                    createdAt: data.createdAt ? (data.createdAt as Timestamp).toDate() : new Date(),
+                    postType: data.postType,
+                };
+            });
+            setPosts(arr);
+        });
+        return () => unsub();
+    }, []);
+
     const handleShare = async (post: any) => {
         try {
-            const message = post.title + (post.body ? `\n\n${post.body}` : "");
-            await Share.share({
-                message,
-            });
-        } catch (error) {
-            console.log("Error sharing post:", error);
-        }
+            await Share.share({ message: post.title + (post.body ? `\n\n${post.body}` : "") });
+        } catch (err) { console.log(err); }
     };
 
     const renderPost = ({ item }: any) => (
         <TouchableOpacity onPress={() => navigation.navigate("PostDetail", { post: item })}>
-            <View style={[styles.postContainer, { backgroundColor: isDark ? "#1c1c1c" : "#fff" }]}>
+            <View style={[styles.postContainer, { backgroundColor: theme.background }]}>
                 {item.image && <Image source={{ uri: item.image }} style={styles.postImage} />}
-                <Text style={[styles.postTitle, { color: isDark ? "#fff" : "#000" }]} numberOfLines={1}>{item.title}</Text>
-                {item.body ? <Text style={[styles.postBody, { color: isDark ? "#ccc" : "#555" }]}>{item.body}</Text> : null}
+                <Text style={[styles.postTitle, { color: theme.text }]} numberOfLines={1}>
+                    {item.title}
+                </Text>
 
-                <View style={[styles.actionsRow, { backgroundColor: "#9688B2" }]}>
+                {item.body ? (
+                    <RenderHTML
+                        contentWidth={width - 40}
+                        source={{ html: item.body }}
+                        baseStyle={{ color: theme.postBodyText, fontSize: 14 }}
+                        tagsStyles={{
+                            b: { fontWeight: "bold" },
+                            strong: { fontWeight: "bold" },
+                            u: { textDecorationLine: "underline" },
+                            i: { fontStyle: "italic" },
+                        }}
+                    />
+                ) : null}
+
+                <View style={[styles.actionsRow, { backgroundColor: theme.secondary }]}>
                     <TouchableOpacity style={styles.actionBtn}>
                         <Ionicons name="heart" size={20} color="white" />
                         <Text style={styles.actionText}>{item.likes}</Text>
@@ -102,54 +129,64 @@ const ForumScreen = ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
             </View>
-            <View style={[styles.bottomBorder, { backgroundColor: isDark ? "#444" : "gray" }]} />
+            <View style={[styles.bottomBorder, { backgroundColor: theme.bottomBorder }]} />
         </TouchableOpacity>
     );
 
     return (
-        <View style={[styles.container, { backgroundColor: isDark ? "#121212" : "#fff" }]}>
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
             {/* Filter/Search Bar */}
             <View style={styles.filterSearchBarBg}>
                 {!isSearchMode ? (
                     <>
-                        <Picker
-                            selectedValue={selectedFilter}
-                            onValueChange={(itemValue) => {
-                                setSelectedFilter(itemValue);
-                                const label = pickerOptions.find(opt => opt.value === itemValue)?.label || "";
-                                setSelectedFilterLabel(label);
-                            }}
-                            style={[styles.picker, { color: isDark ? "#fff" : "#000" }]}
-                            dropdownIconColor={isDark ? "#fff" : "gray"}
+                        <Menu
+                            visible={menuVisible}
+                            onDismiss={() => setMenuVisible(false)}
+                            anchor={
+                                <TouchableOpacity onPress={() => setMenuVisible(true)}>
+                                    <Text style={{ color: theme.text, fontSize: 16 }}>
+                                        {selectedFilterLabel} ▾
+                                    </Text>
+                                </TouchableOpacity>
+                            }
+                            contentStyle={{ backgroundColor: "#9688B2" }}
                         >
                             {pickerOptions.map(opt => (
-                                <Picker.Item key={opt.value} label={opt.label} value={opt.value} />
+                                <Menu.Item
+                                    key={opt.value}
+                                    onPress={() => {
+                                        setSelectedFilter(opt.value);
+                                        setSelectedFilterLabel(opt.label);
+                                        setMenuVisible(false);
+                                    }}
+                                    title={opt.label}
+                                    titleStyle={{ color: "white" }}
+                                />
                             ))}
-                        </Picker>
-
+                        </Menu>
                         <View style={{ flex: 1 }} />
 
                         <TouchableOpacity onPress={() => setIsSearchMode(true)}>
-                            <Ionicons name="search" size={30} color={isDark ? "#fff" : "grey"} style={{ marginLeft: 15 }} />
+                            <Ionicons name="search" size={30} color={theme.iconsGrey} style={{ marginLeft: 15 }} />
                         </TouchableOpacity>
                     </>
                 ) : (
                     <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
                         <TextInput
-                            style={[styles.searchInput, { backgroundColor: isDark ? "#333" : "#f0f0f0", color: isDark ? "#fff" : "#000" }]}
+                            style={[styles.searchInput, { backgroundColor: theme.searchBarBackground, color: theme.text }]}
                             placeholder="Search posts..."
-                            placeholderTextColor={isDark ? "#aaa" : "#888"}
+                            placeholderTextColor={theme.searchBarPlaceHolderText}
                             value={searchText}
                             onChangeText={setSearchText}
                             autoFocus
                         />
                         <TouchableOpacity onPress={() => setIsSearchMode(false)}>
-                            <Ionicons name="close" size={30} color={isDark ? "#fff" : "grey"} style={{ marginLeft: 10 }} />
+                            <Ionicons name="close" size={30} color={theme.iconsGrey} style={{ marginLeft: 10 }} />
                         </TouchableOpacity>
                     </View>
                 )}
 
-                <View style={[styles.bottomBorder, { backgroundColor: isDark ? "#444" : "gray" }]} />
+                <View style={[styles.bottomBorder, { backgroundColor: theme.bottomBorder }]} />
             </View>
 
             {/* Post Feed */}
@@ -173,6 +210,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         paddingVertical: 8,
         position: "relative",
+        height: 50,
     },
     bottomBorder: {
         height: 1,
@@ -180,11 +218,6 @@ const styles = StyleSheet.create({
         left: 10,
         right: 10,
         bottom: 0,
-    },
-    picker: {
-        width: 180,
-        height: 50,
-        fontSize: 14
     },
     searchInput: {
         flex: 1,
