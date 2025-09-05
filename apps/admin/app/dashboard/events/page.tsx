@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { collection, getDocs, query, orderBy, deleteDoc, doc, Timestamp, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
 import { Plus, Calendar, MapPin, Users, Edit, Trash2, Search } from 'lucide-react';
@@ -12,6 +13,7 @@ interface Event {
   organiser: string;
   address: string;
   description: string;
+  imageUrl?: string;
 }
 
 export default function EventsPage() {
@@ -27,6 +29,7 @@ export default function EventsPage() {
     description: '',
     organiser: '',
     address: '',
+    imageUrl: '',
     date: '',
     time: ''
   });
@@ -40,6 +43,7 @@ export default function EventsPage() {
     description: '',
     organiser: '',
     address: '',
+    imageUrl: '',
     date: '',
     time: ''
   });
@@ -86,6 +90,7 @@ export default function EventsPage() {
           organiser: data.organiser || 'Unknown Organizer',
           address: data.address || 'No address provided',
           description: data.description || 'No description available',
+          imageUrl: data.imageUrl || '',
         };
       });
 
@@ -132,6 +137,7 @@ export default function EventsPage() {
         description: newEvent.description.trim(),
         organiser: newEvent.organiser.trim(),
         address: newEvent.address.trim(),
+        imageUrl: newEvent.imageUrl.trim(),
         dateTime: dateTime,
         createdAt: serverTimestamp(),
       };
@@ -144,6 +150,7 @@ export default function EventsPage() {
         description: '',
         organiser: '',
         address: '',
+        imageUrl: '',
         date: '',
         time: ''
       });
@@ -187,6 +194,7 @@ export default function EventsPage() {
       description: event.description || '',
       organiser: event.organiser || '',
       address: event.address || '',
+      imageUrl: event.imageUrl || '',
       date: dateStr,
       time: timeStr
     });
@@ -213,6 +221,7 @@ export default function EventsPage() {
         description: editEvent.description.trim(),
         organiser: editEvent.organiser.trim(),
         address: editEvent.address.trim(),
+        imageUrl: editEvent.imageUrl.trim(),
         dateTime: dateTime,
         updatedAt: serverTimestamp(),
       };
@@ -227,6 +236,7 @@ export default function EventsPage() {
         description: '',
         organiser: '',
         address: '',
+        imageUrl: '',
         date: '',
         time: ''
       });
@@ -360,7 +370,11 @@ export default function EventsPage() {
       {!loading && (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredEvents.map((event) => (
-            <div key={event.eventID} className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <div 
+              key={event.eventID} 
+              className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02]"
+              onClick={() => openViewModal(event)}
+            >
               <div className="p-6">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
@@ -374,19 +388,42 @@ export default function EventsPage() {
                   </div>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => openEditModal(event)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openEditModal(event);
+                      }}
                       className="p-2 text-gray-500 hover:text-[#7C4DFF] hover:bg-[#7C4DFF]/10 rounded-lg transition-all duration-200 transform hover:scale-110"
                     >
                       <Edit className="h-4 w-4" />
                     </button>
                     <button 
-                      onClick={() => handleDelete(event.eventID)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(event.eventID);
+                      }}
                       className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 transform hover:scale-110"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
+
+                {/* Event Image */}
+                {event.imageUrl && (
+                  <div className="mb-4 relative h-40 rounded-lg overflow-hidden">
+                    <Image 
+                      src={event.imageUrl} 
+                      alt={event.eventName}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
 
                 {/* Description */}
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">{event.description}</p>
@@ -414,9 +451,6 @@ export default function EventsPage() {
                     className="flex-1 px-3 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] hover:shadow-md transition-all duration-200 transform hover:-translate-y-0.5 text-sm font-medium"
                   >
                     View Details
-                  </button>
-                  <button className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-[#7C4DFF] hover:text-[#7C4DFF] transition-all duration-200 text-sm font-medium">
-                    Manage
                   </button>
                 </div>
               </div>
@@ -534,6 +568,20 @@ export default function EventsPage() {
                     value={newEvent.address}
                     onChange={(e) => setNewEvent({ ...newEvent, address: e.target.value })}
                     placeholder="Event location address..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                  />
+                </div>
+
+                {/* Image URL */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Image URL
+                  </label>
+                  <input
+                    type="url"
+                    value={newEvent.imageUrl}
+                    onChange={(e) => setNewEvent({ ...newEvent, imageUrl: e.target.value })}
+                    placeholder="https://example.com/image.jpg"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
                   />
                 </div>
@@ -668,6 +716,20 @@ export default function EventsPage() {
                   />
                 </div>
 
+                {/* Image URL */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Image URL
+                  </label>
+                  <input
+                    type="url"
+                    value={editEvent.imageUrl}
+                    onChange={(e) => setEditEvent({ ...editEvent, imageUrl: e.target.value })}
+                    placeholder="https://example.com/image.jpg"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                  />
+                </div>
+
                 {/* Description */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -734,6 +796,26 @@ export default function EventsPage() {
                   {getEventStatus(viewingEvent.dateTime).toUpperCase()}
                 </span>
               </div>
+
+              {/* Event Image */}
+              {viewingEvent.imageUrl && (
+                <div className="mb-6">
+                  <div className="relative h-64 rounded-lg overflow-hidden">
+                    <Image 
+                      src={viewingEvent.imageUrl} 
+                      alt={viewingEvent.eventName}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 80vw"
+                      priority
+                      className="object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Event Details */}
               <div className="space-y-6">
