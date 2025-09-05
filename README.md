@@ -63,7 +63,7 @@ npm run android
 
 ---
 ## 👥 Authors & Contributions  
-- Team/Author Name(s)  
+- Team/Author Name(s)  : Chu Jing Yong, Coben Yap, Jaden Toh Ying Heng, Nicholas Tan Jun Ming, Andrea Natasha Lim Hui Qi, Lee Bing Ren
 - GitHub repo: [https://github.com/hibbychu/CareSpace.git]
 - Additional contributors acknowledged in commit history.  
 
