@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
-import { View, Text, FlatList, Image, TouchableOpacity, TextInput, Share, StyleSheet, Dimensions } from "react-native";
+import { View, Text, FlatList, Image, TouchableOpacity, TextInput, Share, StyleSheet, Dimensions, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Menu } from "react-native-paper";
 import { ThemeContext } from "../ThemeContext";
@@ -79,7 +79,7 @@ export default function ForumScreen({ navigation }) {
                     title: data.title,
                     body: data.body || "",
                     likes: data.likes || 0,
-                    image: data.image || null,
+                    images: data.images || [],
                     owner: data.ownerName || "Owner",
                     ownerUid: data.ownerUid || "Owner",
                     createdAt: data.createdAt ? (data.createdAt as Timestamp).toDate() : new Date(),
@@ -107,41 +107,67 @@ export default function ForumScreen({ navigation }) {
         } catch (err) { console.log(err); }
     };
 
-    const renderPost = ({ item }: any) => (
-        <TouchableOpacity onPress={() => navigation.navigate("PostDetail", { post: item })}>
-            <View style={[styles.postContainer, { backgroundColor: theme.background }]}>
-                {item.image && <Image source={{ uri: item.image }} style={styles.postImage} />}
-                <Text style={[styles.postTitle, { color: theme.text }]} numberOfLines={1}>
-                    {item.title}
-                </Text>
+    const renderPost = ({ item }: any) => {
+        return (
+            <TouchableOpacity onPress={() => navigation.navigate("PostDetail", { post: item })}>
+                <View style={[styles.postContainer, { backgroundColor: theme.background }]}>
 
-                {item.body ? (
-                    <RenderHTML
-                        contentWidth={width - 40}
-                        source={{ html: item.body }}
-                        baseStyle={{ color: theme.postBodyText, fontSize: 14 }}
-                        tagsStyles={{
-                            b: { fontWeight: "bold" },
-                            strong: { fontWeight: "bold" },
-                            u: { textDecorationLine: "underline" },
-                            i: { fontStyle: "italic" },
-                        }}
-                    />
-                ) : null}
+                    {/* Image Slider */}
+                    {Array.isArray(item.images) && item.images.length > 0 ? (
+                        <ScrollView
+                            horizontal
+                            pagingEnabled
+                            showsHorizontalScrollIndicator={false}
+                            style={styles.postImageSlider}
+                            onStartShouldSetResponderCapture={() => true}
+                        >
+                            {item.images.map((imgUrl: string, index: number) => (
+                                imgUrl ? (
+                                    <Image
+                                        key={index}
+                                        source={{ uri: imgUrl }}
+                                        style={styles.postImage}
+                                    />
+                                ) : null
+                            ))}
+                        </ScrollView>
+                    ) : null}
 
-                <View style={[styles.actionsRow, { backgroundColor: theme.secondary }]}>
-                    <TouchableOpacity style={styles.actionBtn} onPress={() => likePost(item.id)} >
-                        <Ionicons name="heart" size={20} color="white" />
-                        <Text style={styles.actionText}>{item.likes}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionBtn} onPress={() => handleShare(item)}>
-                        <Ionicons name="share-social" size={20} color="white" />
-                    </TouchableOpacity>
+                    {/* Post Title */}
+                    <Text style={[styles.postTitle, { color: theme.text }]} numberOfLines={1}>
+                        {item.title}
+                    </Text>
+
+                    {/* Post Body */}
+                    {item.body ? (
+                        <RenderHTML
+                            contentWidth={width - 40}
+                            source={{ html: item.body }}
+                            baseStyle={{ color: theme.postBodyText, fontSize: 14 }}
+                            tagsStyles={{
+                                b: { fontWeight: "bold" },
+                                strong: { fontWeight: "bold" },
+                                u: { textDecorationLine: "underline" },
+                                i: { fontStyle: "italic" },
+                            }}
+                        />
+                    ) : null}
+
+                    {/* Actions */}
+                    <View style={[styles.actionsRow, { backgroundColor: theme.secondary }]}>
+                        <TouchableOpacity style={styles.actionBtn} onPress={() => likePost(item.id)}>
+                            <Ionicons name="heart" size={20} color="white" />
+                            <Text style={styles.actionText}>{item.likes}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.actionBtn} onPress={() => handleShare(item)}>
+                            <Ionicons name="share-social" size={20} color="white" />
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            </View>
-            <View style={[styles.bottomBorder, { backgroundColor: theme.bottomBorder }]} />
-        </TouchableOpacity>
-    );
+                <View style={[styles.bottomBorder, { backgroundColor: theme.bottomBorder }]} />
+            </TouchableOpacity>
+        )
+    };
 
     return (
         <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -241,7 +267,7 @@ const styles = StyleSheet.create({
     },
     postTitle: { fontWeight: "bold", fontSize: 18, marginBottom: 4 },
     postBody: { fontSize: 14, marginBottom: 8 },
-    postImage: { width: "100%", height: 180, borderRadius: 6, marginBottom: 8 },
+    postImage: { width: Dimensions.get("window").width - 24, height: 180, borderRadius: 6, marginRight: 8 },
     actionsRow: {
         flexDirection: "row",
         marginTop: 4,
@@ -256,4 +282,7 @@ const styles = StyleSheet.create({
         marginRight: 8,
     },
     actionText: { color: "white", marginLeft: 4, fontSize: 12 },
+    postImageSlider: {
+        marginBottom: 8,
+    },
 });
