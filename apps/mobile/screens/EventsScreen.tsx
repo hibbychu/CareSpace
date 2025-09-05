@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, createContext } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   View,
   Text,
@@ -12,27 +12,12 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { db } from "../firebase";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
-
-type Theme = {
-  background: string;
-  text: string;
-  primary: string;
-  dateGrey: string;
-};
-
-export const ThemeContext = createContext<{ theme: Theme }>({
-  theme: {
-    background: "#fff",
-    text: "#000",
-    primary: "#007bff",
-    dateGrey: "#999",
-  },
-});
+import { ThemeContext } from "../ThemeContext";
 
 type HomeStackParamList = {
   HomeMain: undefined;
   Events: undefined;
-  EventDetails: { eventID: string }; // 👈 pass eventID as param
+  EventDetails: { eventID: string };
 };
 
 type Event = {
@@ -42,7 +27,7 @@ type Event = {
   organiser: string;
   address: string;
   description: string;
-  imageUrl?: string;  // new
+  imageUrl?: string;
 };
 
 function EventsScreen() {
@@ -50,6 +35,7 @@ function EventsScreen() {
     useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const [events, setEvents] = useState<Event[]>([]);
   const { theme } = useContext(ThemeContext);
+  const styles = createStyles(theme);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -64,6 +50,7 @@ function EventsScreen() {
 
         setEvents(eventsData);
       } catch (error) {
+        console.log("Error fetching events:", error);
       }
     };
 
@@ -71,7 +58,7 @@ function EventsScreen() {
   }, []);
 
   return (
-    <ScrollView style={{ flex: 1, padding: 20 }}>
+    <ScrollView style={styles.container}>
       <View style={styles.titleRow}>
         <TouchableOpacity style={styles.filterButton}>
           <Text style={styles.filterText}>Filter</Text>
@@ -82,27 +69,20 @@ function EventsScreen() {
         {events.map((event) => (
           <View key={event.id} style={styles.card}>
             <Image
-              source={event.imageUrl ? { uri: event.imageUrl } : temp} // fallback to temp if no imageUrl
+              source={event.imageUrl ? { uri: event.imageUrl } : temp}
               style={styles.cardImage}
             />
             <View style={styles.cardContent}>
-              <Text style={[styles.cardTitle, { color: theme.text }]}>
-                {event.eventName}
-              </Text>
+              <Text style={styles.cardTitle}>{event.eventName}</Text>
               <Text style={styles.cardDate}>
                 {event.dateTime?.seconds
                   ? new Date(event.dateTime.seconds * 1000).toLocaleString()
                   : ""}
               </Text>
-              <Text style={{ color: theme.text, marginBottom: 4 }}>
-                Organiser: {event.organiser}
-              </Text>
-              <Text style={{ color: theme.text, marginBottom: 4 }}>
-                Address: {event.address}
-              </Text>
-              <Text style={{ color: theme.text }}>{event.description}</Text>
+              <Text style={styles.cardText}>Organiser: {event.organiser}</Text>
+              <Text style={styles.cardText}>Address: {event.address}</Text>
+              <Text style={styles.cardText}>{event.description}</Text>
 
-              {/* 👇 More Details button */}
               <TouchableOpacity
                 style={styles.cardButton}
                 onPress={() =>
@@ -119,66 +99,77 @@ function EventsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  titleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  filterButton: {
-    backgroundColor: "#fff",
-    borderWidth: 2,
-    borderColor: "#7b2cbf",
-    borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-  },
-  filterText: {
-    color: "#7b2cbf",
-    fontSize: 14,
-  },
-  cardsContainer: {
-    marginTop: 10,
-  },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    marginBottom: 16,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  cardImage: {
-    width: "100%",
-    height: 150,
-  },
-  cardContent: {
-    padding: 12,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  cardDate: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 8,
-  },
-  cardButton: {
-    marginTop: 10,
-    backgroundColor: "#7b2cbf",
-    paddingVertical: 8,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  cardButtonText: {
-    color: "#fff",
-    fontSize: 14,
-  },
-});
-
 export default EventsScreen;
+
+const createStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 20,
+      backgroundColor: theme.background,
+    },
+    titleRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 16,
+    },
+    filterButton: {
+      borderWidth: 2,
+      borderColor: theme.primary,
+      borderRadius: 8,
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      backgroundColor: theme.background,
+    },
+    filterText: {
+      color: theme.primary,
+      fontSize: 14,
+    },
+    cardsContainer: {
+      marginTop: 10,
+    },
+    card: {
+      backgroundColor: theme.cardBackground,
+      borderRadius: 12,
+      marginBottom: 16,
+      overflow: "hidden",
+      shadowColor: "#000",
+      shadowOpacity: 0.1,
+      shadowRadius: 6,
+      elevation: 3,
+    },
+    cardImage: {
+      width: "100%",
+      height: 150,
+    },
+    cardContent: {
+      padding: 12,
+    },
+    cardTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      marginBottom: 4,
+      color: theme.text,
+    },
+    cardDate: {
+      fontSize: 14,
+      color: theme.dateGrey,
+      marginBottom: 8,
+    },
+    cardText: {
+      color: theme.text,
+      marginBottom: 4,
+    },
+    cardButton: {
+      marginTop: 10,
+      paddingVertical: 8,
+      borderRadius: 8,
+      alignItems: "center",
+      backgroundColor: theme.primary,
+    },
+    cardButtonText: {
+      color: "#fff",
+      fontSize: 14,
+    },
+  });
