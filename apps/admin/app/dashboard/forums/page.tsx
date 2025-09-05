@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { collection, getDocs, query, orderBy, where, deleteDoc, doc, Timestamp, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { collection, getDocs, query, orderBy, deleteDoc, doc, Timestamp, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
-import { Plus, MessageSquare, Eye, MoreVertical, Search, AlertTriangle, Trash2, ThumbsUp, MessageCircle, Send, User, Edit, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, MessageSquare, Search, AlertTriangle, Trash2, ThumbsUp, MessageCircle, Send, Edit, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Comment {
   id: string;
@@ -60,6 +60,10 @@ export default function ForumsPage() {
     images: ['']
   });
 
+  // View Post Modal State
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewingPost, setViewingPost] = useState<Post | null>(null);
+
   // Current admin UID (in a real app, this would come from auth)
   const currentAdminUid = 'admin-uid';
 
@@ -69,17 +73,18 @@ export default function ForumsPage() {
       if (event.key === 'Escape') {
         if (showCreateModal) setShowCreateModal(false);
         if (showEditModal) setShowEditModal(false);
+        if (showViewModal) setShowViewModal(false);
       }
     };
 
-    if (showCreateModal || showEditModal) {
+    if (showCreateModal || showEditModal || showViewModal) {
       document.addEventListener('keydown', handleEscKey);
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscKey);
     };
-  }, [showCreateModal, showEditModal]);
+  }, [showCreateModal, showEditModal, showViewModal]);
 
   const fetchComments = async (postId: string) => {
     try {
@@ -112,6 +117,41 @@ export default function ForumsPage() {
     } finally {
       setLoadingComments(prev => ({ ...prev, [postId]: false }));
     }
+  };
+
+  // Preload comments for the first few posts
+  const preloadComments = async (posts: Post[]) => {
+    const firstFewPosts = posts.slice(0, 3); // Preload comments for first 3 posts
+    
+    const commentPromises = firstFewPosts.map(async (post) => {
+      try {
+        const commentsQuery = query(
+          collection(db, 'posts', post.id, 'comments'),
+          orderBy('createdAt', 'desc')
+        );
+        
+        const querySnapshot = await getDocs(commentsQuery);
+        const comments: Comment[] = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        } as Comment));
+
+        return { postId: post.id, comments };
+      } catch (error) {
+        console.error('❌ Error preloading comments for post:', post.id, error);
+        return { postId: post.id, comments: [] };
+      }
+    });
+
+    const commentResults = await Promise.all(commentPromises);
+    
+    // Update posts with preloaded comments
+    setPosts(prevPosts => 
+      prevPosts.map(post => {
+        const result = commentResults.find(r => r.postId === post.id);
+        return result ? { ...post, comments: result.comments } : post;
+      })
+    );
   };
 
   const toggleComments = async (postId: string) => {
@@ -373,6 +413,9 @@ export default function ForumsPage() {
 
       console.log('🔥 Final posts array:', postsWithCommentCounts);
       setPosts(postsWithCommentCounts);
+      
+      // Preload comments for the first few posts to improve UX
+      await preloadComments(postsWithCommentCounts);
     } catch (error) {
       console.error('❌ Error fetching posts:', error);
     } finally {
@@ -395,12 +438,14 @@ export default function ForumsPage() {
     }
   };
 
-  const filteredPosts = posts.filter(post => {
-    const matchesSearch = (post.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (post.body || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (post.owner || '').toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
-  });
+  const filteredPosts = useMemo(() => {
+    return posts.filter(post => {
+      const matchesSearch = (post.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (post.body || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (post.owner || '').toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesSearch;
+    });
+  }, [posts, searchTerm]);
 
   const formatTimeAgo = (timestamp: Timestamp | Date | null) => {
     if (!timestamp) return 'Unknown';
@@ -609,6 +654,21 @@ export default function ForumsPage() {
     }
   };
 
+  const openViewModal = async (post: Post) => {
+    setViewingPost(post);
+    setShowViewModal(true);
+    // Only load comments if they haven't been loaded yet
+    if (!post.comments || post.comments.length === 0) {
+      await fetchComments(post.id);
+    } else {
+      // Update the viewing post with the latest comment data
+      const updatedPost = posts.find(p => p.id === post.id);
+      if (updatedPost && updatedPost.comments) {
+        setViewingPost(updatedPost);
+      }
+    }
+  };
+
   return (
     <div>
       {/* Page Header */}
@@ -741,7 +801,11 @@ export default function ForumsPage() {
         ) : (
           <div className="divide-y divide-gray-200">
             {filteredPosts.map((post) => (
-              <div key={post.id} className="p-6 hover:bg-gray-50 transition-colors">
+              <div 
+                key={post.id} 
+                className="p-6 hover:bg-gray-50 transition-colors cursor-pointer"
+                onClick={() => openViewModal(post)}
+              >
                 <div className="flex items-start gap-4">
                   {/* User Avatar */}
                   <div className="flex-shrink-0">
@@ -777,9 +841,10 @@ export default function ForumsPage() {
                         <ImageSlider images={post.images || []} postId={post.id} />
 
                         {/* Content Preview */}
-                        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                          {(post.body || '').replace(/<[^>]*>/g, '')} {/* Strip HTML tags for preview */}
-                        </p>
+                        <div 
+                          className="text-gray-600 text-sm mb-3 line-clamp-3 [&>h1]:text-lg [&>h1]:font-bold [&>h1]:mb-2 [&>h2]:text-base [&>h2]:font-semibold [&>h2]:mb-2 [&>h3]:text-sm [&>h3]:font-medium [&>h3]:mb-1 [&>p]:mb-2 [&>ul]:list-disc [&>ul]:ml-4 [&>ul]:mb-2 [&>ol]:list-decimal [&>ol]:ml-4 [&>ol]:mb-2 [&>li]:mb-1 [&>blockquote]:border-l-2 [&>blockquote]:border-gray-300 [&>blockquote]:pl-2 [&>blockquote]:italic [&>blockquote]:mb-2 [&>strong]:font-semibold [&>em]:italic [&>a]:text-blue-600 [&>a]:underline [&>code]:bg-gray-100 [&>code]:px-1 [&>code]:rounded [&>code]:text-xs"
+                          dangerouslySetInnerHTML={{ __html: post.body || '' }}
+                        />
 
                         {/* Author and Stats */}
                         <div className="flex items-center gap-4 text-sm text-gray-500">
@@ -799,11 +864,17 @@ export default function ForumsPage() {
                             <span>{post.likes || 0} likes</span>
                           </button>
                           <button
-                            onClick={() => toggleComments(post.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleComments(post.id);
+                            }}
                             className="flex items-center gap-1 hover:text-[var(--primary)] transition-colors"
                           >
                             <MessageCircle className="h-4 w-4" />
                             <span>{post.commentsCount || 0} comments</span>
+                            {post.comments && post.comments.length > 0 && (
+                              <span className="text-xs text-green-600">●</span>
+                            )}
                           </button>
                           <span>Posted {formatTimeAgo(post.createdAt || null)}</span>
                         </div>
@@ -813,7 +884,10 @@ export default function ForumsPage() {
                       <div className="flex items-center gap-2">
                         {canEditPost(post) && (
                           <button 
-                            onClick={() => openEditModal(post)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openEditModal(post);
+                            }}
                             className="p-2 text-gray-500 hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-all duration-200 transform hover:scale-110"
                             title="Edit post"
                           >
@@ -821,119 +895,16 @@ export default function ForumsPage() {
                           </button>
                         )}
                         <button 
-                          onClick={() => console.log('View post:', post.id)}
-                          className="p-2 text-gray-500 hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-all duration-200 transform hover:scale-110"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(post.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(post.id);
+                          }}
                           className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 transform hover:scale-110"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
-                        <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 transform hover:scale-110">
-                          <MoreVertical className="h-4 w-4" />
-                        </button>
                       </div>
                     </div>
-
-                    {/* Comments Section */}
-                    {post.showComments && (
-                      <div className="mt-4 pt-4 border-t border-gray-200">
-                        {/* Add Comment Form */}
-                        <div className="mb-4">
-                          <div className="flex gap-3">
-                            <div className="flex-shrink-0">
-                              <div className="w-8 h-8 bg-[var(--primary)] rounded-full flex items-center justify-center">
-                                <User className="h-4 w-4 text-white" />
-                              </div>
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex gap-2">
-                                <input
-                                  type="text"
-                                  placeholder="Add a comment..."
-                                  value={commentText[post.id] || ''}
-                                  onChange={(e) => setCommentText(prev => ({ ...prev, [post.id]: e.target.value }))}
-                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-sm text-gray-800 placeholder:text-gray-500"
-                                  onKeyPress={(e) => {
-                                    if (e.key === 'Enter') {
-                                      addComment(post.id);
-                                    }
-                                  }}
-                                />
-                                <button
-                                  onClick={() => addComment(post.id)}
-                                  disabled={!commentText[post.id]?.trim()}
-                                  className="px-3 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--text2)] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                                >
-                                  <Send className="h-4 w-4" />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Comments List */}
-                        {loadingComments[post.id] ? (
-                          <div className="flex justify-center py-4">
-                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[var(--primary)]"></div>
-                          </div>
-                        ) : post.comments && post.comments.length > 0 ? (
-                          <div className="space-y-3">
-                            {post.comments.map((comment) => (
-                              <div key={comment.id} className="flex gap-3">
-                                <div className="flex-shrink-0">
-                                  <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
-                                    <span className="text-white text-xs font-medium">
-                                      {(comment.authorName || 'A').substring(0, 2).toUpperCase()}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-sm font-medium text-gray-900">
-                                        {comment.authorName || 'Anonymous'}
-                                      </span>
-                                      <span className="text-xs text-gray-500">
-                                        {formatTimeAgo(comment.createdAt)}
-                                      </span>
-                                    </div>
-                                    <button
-                                      onClick={() => deleteComment(post.id, comment.id)}
-                                      className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                                    >
-                                      <Trash2 className="h-3 w-3" />
-                                    </button>
-                                  </div>
-                                  <p className="text-sm text-gray-700 mt-1">{comment.text}</p>
-                                  <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                                    <button 
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        likeComment(post.id, comment.id);
-                                      }}
-                                      className="flex items-center gap-1 hover:text-[var(--primary)] transition-colors"
-                                    >
-                                      <ThumbsUp className="h-3 w-3" />
-                                      <span>{comment.likes || 0}</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-500 text-center py-4">
-                            No comments yet. Be the first to comment!
-                          </p>
-                        )}
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -1005,10 +976,13 @@ export default function ForumsPage() {
                   <textarea
                     value={newPost.body}
                     onChange={(e) => setNewPost({ ...newPost, body: e.target.value })}
-                    placeholder="Write your post content..."
-                    rows={4}
+                    placeholder="Write your post content... (HTML tags supported)"
+                    rows={6}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent resize-none text-black placeholder:text-gray-500"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    You can use HTML tags for formatting.
+                  </p>
                 </div>
 
                 {/* Image URLs */}
@@ -1134,10 +1108,13 @@ export default function ForumsPage() {
                   <textarea
                     value={editPost.body}
                     onChange={(e) => setEditPost({ ...editPost, body: e.target.value })}
-                    placeholder="Write your post content..."
-                    rows={4}
+                    placeholder="Write your post content... (HTML tags supported)"
+                    rows={6}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent resize-none text-black placeholder:text-gray-500"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    You can use HTML tags for formatting.
+                  </p>
                 </div>
 
                 {/* Image URLs */}
@@ -1194,6 +1171,187 @@ export default function ForumsPage() {
                 >
                   {editing ? 'Updating...' : 'Update Post'}
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Post Modal */}
+      {showViewModal && viewingPost && (
+        <div 
+          className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowViewModal(false)}
+        >
+          <div 
+            className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex">
+              {/* Left side - Post content */}
+              <div className="flex-1 p-6 border-r border-gray-200">
+                {/* Modal Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-gray-900">Post Details</h2>
+                  <button
+                    onClick={() => setShowViewModal(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Post Header */}
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-[var(--primary)] rounded-full flex items-center justify-center">
+                    <span className="text-white font-medium text-lg">
+                      {viewingPost.postType === 'report' 
+                        ? 'AN' 
+                        : (viewingPost.owner || 'AN').substring(0, 2).toUpperCase()
+                      }
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {viewingPost.postType !== 'report' ? viewingPost.owner || 'Anonymous' : 'Anonymous User'}
+                    </h3>
+                    <p className="text-sm text-gray-500">{formatTimeAgo(viewingPost.createdAt || null)}</p>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPostTypeColor(viewingPost.postType || 'post')}`}>
+                    {(viewingPost.postType === 'report' ? 'REPORT' : 'POST')}
+                  </span>
+                </div>
+
+                {/* Post Title */}
+                <h1 className="text-2xl font-bold text-gray-900 mb-4">{viewingPost.title}</h1>
+
+                {/* Post Images */}
+                <ImageSlider images={viewingPost.images || []} postId={viewingPost.id} />
+
+                {/* Post Content */}
+                <div 
+                  className="text-gray-700 leading-relaxed mb-6 [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-semibold [&>h2]:mb-3 [&>h3]:text-lg [&>h3]:font-medium [&>h3]:mb-2 [&>p]:mb-3 [&>ul]:list-disc [&>ul]:ml-6 [&>ul]:mb-3 [&>ol]:list-decimal [&>ol]:ml-6 [&>ol]:mb-3 [&>li]:mb-1 [&>blockquote]:border-l-4 [&>blockquote]:border-gray-300 [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:mb-3 [&>strong]:font-semibold [&>em]:italic [&>a]:text-blue-600 [&>a]:underline [&>code]:bg-gray-100 [&>code]:px-1 [&>code]:rounded"
+                  dangerouslySetInnerHTML={{ __html: viewingPost.body || '' }}
+                />
+
+                {/* Post Stats */}
+                <div className="flex items-center gap-6 text-sm text-gray-500 border-t pt-4">
+                  <button 
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      likePost(viewingPost.id);
+                    }}
+                    className="flex items-center gap-2 hover:text-[var(--primary)] transition-colors"
+                  >
+                    <ThumbsUp className="h-5 w-5" />
+                    <span>{viewingPost.likes || 0} likes</span>
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <MessageCircle className="h-5 w-5" />
+                    <span>{viewingPost.commentsCount || 0} comments</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right side - Comments */}
+              <div className="w-96 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Comments</h3>
+                
+                {/* Add Comment Form */}
+                <div className="mb-6">
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0">
+                      <div className="w-8 h-8 bg-[var(--primary)] rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-medium">AD</span>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Add a comment..."
+                          value={commentText[viewingPost.id] || ''}
+                          onChange={(e) => setCommentText(prev => ({ ...prev, [viewingPost.id]: e.target.value }))}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-sm text-gray-800 placeholder:text-gray-500"
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              addComment(viewingPost.id);
+                            }
+                          }}
+                        />
+                        <button
+                          onClick={() => addComment(viewingPost.id)}
+                          disabled={!commentText[viewingPost.id]?.trim()}
+                          className="px-3 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--text2)] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                        >
+                          <Send className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Comments List */}
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {loadingComments[viewingPost.id] ? (
+                    <div className="flex justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[var(--primary)]"></div>
+                    </div>
+                  ) : viewingPost.comments && viewingPost.comments.length > 0 ? (
+                    viewingPost.comments.map((comment) => (
+                      <div key={comment.id} className="flex gap-3">
+                        <div className="flex-shrink-0">
+                          <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs font-medium">
+                              {(comment.authorName || 'A').substring(0, 2).toUpperCase()}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-gray-900">
+                                {comment.authorName || 'Anonymous'}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {formatTimeAgo(comment.createdAt)}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => deleteComment(viewingPost.id, comment.id)}
+                              className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
+                          <p className="text-sm text-gray-700 mt-1">{comment.text}</p>
+                          <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                            <button 
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                likeComment(viewingPost.id, comment.id);
+                              }}
+                              className="flex items-center gap-1 hover:text-[var(--primary)] transition-colors"
+                            >
+                              <ThumbsUp className="h-3 w-3" />
+                              <span>{comment.likes || 0}</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500 text-center py-8">
+                      No comments yet. Be the first to comment!
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
