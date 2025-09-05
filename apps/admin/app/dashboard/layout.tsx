@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
@@ -13,7 +13,9 @@ import {
   Settings, 
   LogOut,
   Bell,
-  Search
+  Search,
+  Menu,
+  X
 } from 'lucide-react';
 
 export default function DashboardLayout({
@@ -24,6 +26,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const { user, logout, isAuthenticated, isLoading } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -76,10 +79,18 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="flex items-center justify-between px-6 py-4">
+        <div className="flex items-center justify-between px-4 lg:px-6 py-4">
           <div className="flex items-center space-x-4">
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden p-2 text-gray-400 hover:text-[#7C4DFF] hover:bg-[#7C4DFF]/10 rounded-lg transition-all duration-200"
+            >
+              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+            
             <BrandLogo variant="icon" size="sm" />
-            <div>
+            <div className="hidden sm:block">
               <h1 className="text-xl font-semibold text-gray-900">
                 CareSpace Admin
               </h1>
@@ -89,14 +100,14 @@ export default function DashboardLayout({
             </div>
           </div>
           
-          <div className="flex items-center space-x-4">
-            {/* Search */}
-            <div className="relative">
+          <div className="flex items-center space-x-2 lg:space-x-4">
+            {/* Search - hidden on mobile */}
+            <div className="relative hidden md:block">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search..."
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-[#7C4DFF] w-64"
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-[#7C4DFF] w-48 lg:w-64"
               />
             </div>
             
@@ -108,7 +119,7 @@ export default function DashboardLayout({
             
             {/* User Menu */}
             <div className="flex items-center space-x-2">
-              <div className="text-right">
+              <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium text-gray-900">{user?.name || 'Admin User'}</p>
                 <p className="text-xs text-gray-500">{user?.email || 'admin@carespace.com'}</p>
               </div>
@@ -124,13 +135,27 @@ export default function DashboardLayout({
         </div>
       </header>
 
-      <div className="flex">
+      <div className="flex h-[calc(100vh-73px)] relative">
+        {/* Mobile Sidebar Overlay */}
+        {isMobileMenuOpen && (
+          <div 
+            className="lg:hidden fixed inset-0 z-40"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+
         {/* Sidebar */}
-        <aside className="w-64 bg-white shadow-sm h-[calc(100vh-73px)]">
-          <nav className="p-4 space-y-2">
+        <aside className={`
+          bg-white shadow-sm flex-shrink-0 z-50
+          lg:relative lg:translate-x-0 lg:w-64
+          ${isMobileMenuOpen ? 'fixed inset-y-0 left-0 w-64 translate-x-0' : 'fixed inset-y-0 left-0 w-64 -translate-x-full'}
+          transition-transform duration-300 ease-in-out
+        `}>
+          <nav className="p-4 space-y-2 h-full overflow-y-auto">
             <Link
               href="/dashboard"
               className={getNavLinkClass('/dashboard')}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               <BarChart3 className="h-5 w-5" />
               <span>Dashboard</span>
@@ -138,6 +163,7 @@ export default function DashboardLayout({
             <Link
               href="/dashboard/events"
               className={getNavLinkClass('/dashboard/events')}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               <Calendar className="h-5 w-5" />
               <span>Events</span>
@@ -145,6 +171,7 @@ export default function DashboardLayout({
             <Link
               href="/dashboard/forums"
               className={getNavLinkClass('/dashboard/forums')}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               <MessageSquare className="h-5 w-5" />
               <span>Forums</span>
@@ -152,6 +179,7 @@ export default function DashboardLayout({
             <Link
               href="/dashboard/users"
               className={getNavLinkClass('/dashboard/users')}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               <Users className="h-5 w-5" />
               <span>Users</span>
@@ -159,6 +187,7 @@ export default function DashboardLayout({
             <Link
               href="/dashboard/settings"
               className={getNavLinkClass('/dashboard/settings')}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               <Settings className="h-5 w-5" />
               <span>Settings</span>
@@ -167,8 +196,10 @@ export default function DashboardLayout({
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-6">
-          {children}
+        <main className="flex-1 overflow-y-auto lg:ml-0">
+          <div className="p-4 lg:p-6">
+            {children}
+          </div>
         </main>
       </div>
     </div>
