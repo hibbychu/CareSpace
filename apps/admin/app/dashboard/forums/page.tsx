@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { collection, getDocs, query, orderBy, where, deleteDoc, doc, Timestamp, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, where, deleteDoc, doc, Timestamp, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
-import { Plus, MessageSquare, Eye, MoreVertical, Search, AlertTriangle, Trash2, ThumbsUp, MessageCircle, Send, User } from 'lucide-react';
+import { Plus, MessageSquare, Eye, MoreVertical, Search, AlertTriangle, Trash2, ThumbsUp, MessageCircle, Send, User, Edit } from 'lucide-react';
 
 interface Comment {
   id: string;
@@ -21,10 +21,12 @@ interface Post {
   images?: string[];
   type?: 'public' | 'anonymous';
   owner?: string;
+  ownerUid?: string;
   createdAt?: Timestamp | Date | null;
   likes?: number;
   comments?: Comment[];
   showComments?: boolean;
+  commentsCount?: number;
 }
 
 export default function ForumsPage() {
@@ -45,22 +47,36 @@ export default function ForumsPage() {
     type: 'public' as 'public' | 'anonymous'
   });
 
+  // Edit Post Modal State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
+  const [editPost, setEditPost] = useState({
+    title: '',
+    body: '',
+    type: 'public' as 'public' | 'anonymous'
+  });
+
+  // Current admin UID (in a real app, this would come from auth)
+  const currentAdminUid = 'admin-uid';
+
   // Handle ESC key to close modal
   useEffect(() => {
     const handleEscKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && showCreateModal) {
-        setShowCreateModal(false);
+      if (event.key === 'Escape') {
+        if (showCreateModal) setShowCreateModal(false);
+        if (showEditModal) setShowEditModal(false);
       }
     };
 
-    if (showCreateModal) {
+    if (showCreateModal || showEditModal) {
       document.addEventListener('keydown', handleEscKey);
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscKey);
     };
-  }, [showCreateModal]);
+  }, [showCreateModal, showEditModal]);
 
   const fetchComments = async (postId: string) => {
     try {
@@ -132,6 +148,16 @@ export default function ForumsPage() {
       // Clear the comment text
       setCommentText(prev => ({ ...prev, [postId]: '' }));
       
+      // Update comment count and refresh comments for this post
+      const newCommentCount = await fetchCommentCount(postId);
+      setPosts(prevPosts => 
+        prevPosts.map(p => 
+          p.id === postId 
+            ? { ...p, commentsCount: newCommentCount }
+            : p
+        )
+      );
+      
       // Refresh comments for this post
       await fetchComments(postId);
     } catch (error) {
@@ -143,6 +169,17 @@ export default function ForumsPage() {
     if (confirm('Are you sure you want to delete this comment?')) {
       try {
         await deleteDoc(doc(db, 'posts', postId, 'comments', commentId));
+        
+        // Update comment count and refresh comments for this post
+        const newCommentCount = await fetchCommentCount(postId);
+        setPosts(prevPosts => 
+          prevPosts.map(p => 
+            p.id === postId 
+              ? { ...p, commentsCount: newCommentCount }
+              : p
+          )
+        );
+        
         // Refresh comments for this post
         await fetchComments(postId);
       } catch (error) {
@@ -166,6 +203,7 @@ export default function ForumsPage() {
         body: newPost.body.trim(),
         type: newPost.type,
         owner: 'Admin User', // In a real app, this would come from auth
+        ownerUid: currentAdminUid, // Add the UID for authorization
         likes: 0,
         createdAt: serverTimestamp(),
         images: [] // Empty array for now
@@ -186,6 +224,76 @@ export default function ForumsPage() {
       alert('Failed to create post. Please try again.');
     } finally {
       setCreating(false);
+    }
+  };
+
+  const openEditModal = (post: Post) => {
+    setEditingPost(post);
+    setEditPost({
+      title: post.title || '',
+      body: post.body || '',
+      type: post.type || 'public'
+    });
+    setShowEditModal(true);
+  };
+
+  const updatePost = async () => {
+    if (!editingPost || !editPost.title.trim() || !editPost.body.trim()) {
+      alert('Please fill in both title and content');
+      return;
+    }
+
+    try {
+      setEditing(true);
+      console.log('🔥 Updating post...', editingPost.id);
+      
+      const postData = {
+        title: editPost.title.trim(),
+        body: editPost.body.trim(),
+        type: editPost.type,
+        updatedAt: serverTimestamp(),
+      };
+
+      await updateDoc(doc(db, 'posts', editingPost.id), postData);
+      
+      // Close modal and reset
+      setShowEditModal(false);
+      setEditingPost(null);
+      setEditPost({ title: '', body: '', type: 'public' });
+      
+      // Refresh posts
+      await fetchPosts();
+      
+      console.log('✅ Post updated successfully!');
+    } catch (error) {
+      console.error('❌ Error updating post:', error);
+      alert('Failed to update post. Please try again.');
+    } finally {
+      setEditing(false);
+    }
+  };
+
+  const canEditPost = (post: Post) => {
+    // For debugging - log the comparison
+    console.log('🔍 Checking edit permission:', {
+      postId: post.id,
+      postOwnerUid: post.ownerUid,
+      currentAdminUid: currentAdminUid,
+      canEdit: post.ownerUid === currentAdminUid
+    });
+    
+    // Allow editing if the post belongs to current admin, or if post doesn't have ownerUid (legacy posts)
+    return post.ownerUid === currentAdminUid || !post.ownerUid;
+  };
+
+  const fetchCommentCount = async (postId: string): Promise<number> => {
+    try {
+      const commentsQuery = collection(db, 'posts', postId, 'comments');
+      const querySnapshot = await getDocs(commentsQuery);
+      return querySnapshot.size;
+    } catch (error) {
+      console.error('❌ Error fetching comment count for post:', postId, error);
+      return 0;
     }
   };
 
@@ -227,8 +335,20 @@ export default function ForumsPage() {
         };
       }) as Post[];
 
-      console.log('🔥 Final posts array:', postsData);
-      setPosts(postsData);
+      // Fetch comment counts for all posts
+      console.log('🔥 Fetching comment counts...');
+      const postsWithCommentCounts = await Promise.all(
+        postsData.map(async (post) => {
+          const commentsCount = await fetchCommentCount(post.id);
+          return {
+            ...post,
+            commentsCount
+          };
+        })
+      );
+
+      console.log('🔥 Final posts array:', postsWithCommentCounts);
+      setPosts(postsWithCommentCounts);
     } catch (error) {
       console.error('❌ Error fetching posts:', error);
     } finally {
@@ -462,7 +582,7 @@ export default function ForumsPage() {
                             className="flex items-center gap-1 hover:text-[#7C4DFF] transition-colors"
                           >
                             <MessageCircle className="h-4 w-4" />
-                            <span>{post.comments?.length || 0} comments</span>
+                            <span>{post.commentsCount || 0} comments</span>
                           </button>
                           <span>Posted {formatTimeAgo(post.createdAt || null)}</span>
                         </div>
@@ -470,6 +590,15 @@ export default function ForumsPage() {
 
                       {/* Actions */}
                       <div className="flex items-center gap-2">
+                        {canEditPost(post) && (
+                          <button 
+                            onClick={() => openEditModal(post)}
+                            className="p-2 text-gray-500 hover:text-[#7C4DFF] hover:bg-[#7C4DFF]/10 rounded-lg transition-all duration-200 transform hover:scale-110"
+                            title="Edit post"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                        )}
                         <button 
                           onClick={() => console.log('View post:', post.id)}
                           className="p-2 text-gray-500 hover:text-[#7C4DFF] hover:bg-[#7C4DFF]/10 rounded-lg transition-all duration-200 transform hover:scale-110"
@@ -668,6 +797,97 @@ export default function ForumsPage() {
                   className="flex-1 px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {creating ? 'Creating...' : 'Create Post'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Post Modal */}
+      {showEditModal && editingPost && (
+        <div 
+          className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowEditModal(false)}
+        >
+          <div 
+            className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Edit Post</h2>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Form */}
+              <div className="space-y-4">
+                {/* Post Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Post Type
+                  </label>
+                  <select
+                    value={editPost.type}
+                    onChange={(e) => setEditPost({ ...editPost, type: e.target.value as 'public' | 'anonymous' })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
+                  >
+                    <option value="public">Public Post</option>
+                    <option value="anonymous">Anonymous Report</option>
+                  </select>
+                </div>
+
+                {/* Title */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    value={editPost.title}
+                    onChange={(e) => setEditPost({ ...editPost, title: e.target.value })}
+                    placeholder="Enter post title..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                  />
+                </div>
+
+                {/* Content */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Content
+                  </label>
+                  <textarea
+                    value={editPost.body}
+                    onChange={(e) => setEditPost({ ...editPost, body: e.target.value })}
+                    placeholder="Write your post content..."
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent resize-none text-black placeholder:text-gray-500"
+                  />
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={updatePost}
+                  disabled={editing || !editPost.title.trim() || !editPost.body.trim()}
+                  className="flex-1 px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {editing ? 'Updating...' : 'Update Post'}
                 </button>
               </div>
             </div>
