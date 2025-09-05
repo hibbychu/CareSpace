@@ -108,65 +108,71 @@ export default function ForumScreen({ navigation }) {
     };
 
     const renderPost = ({ item }: any) => {
-        return (
-            <TouchableOpacity onPress={() => navigation.navigate("PostDetail", { post: item })}>
-                <View style={[styles.postContainer, { backgroundColor: theme.background }]}>
+    return (
+        <TouchableOpacity onPress={() => navigation.navigate("PostDetail", { post: item })}>
+        <View style={[styles.postContainer, { backgroundColor: theme.background }]}>
+            {/* Image Slider */}
+            {Array.isArray(item.images) && item.images.length > 0 ? (
+            <ScrollView
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                style={styles.postImageSlider}
+                onStartShouldSetResponderCapture={() => true}
+            >
+                {item.images.map((imgUrl: string, index: number) =>
+                imgUrl ? (
+                    <Image
+                    key={index}
+                    source={{ uri: imgUrl }}
+                    style={styles.postImage}
+                    />
+                ) : null
+                )}
+            </ScrollView>
+            ) : null}
 
-                    {/* Image Slider */}
-                    {Array.isArray(item.images) && item.images.length > 0 ? (
-                        <ScrollView
-                            horizontal
-                            pagingEnabled
-                            showsHorizontalScrollIndicator={false}
-                            style={styles.postImageSlider}
-                            onStartShouldSetResponderCapture={() => true}
-                        >
-                            {item.images.map((imgUrl: string, index: number) => (
-                                imgUrl ? (
-                                    <Image
-                                        key={index}
-                                        source={{ uri: imgUrl }}
-                                        style={styles.postImage}
-                                    />
-                                ) : null
-                            ))}
-                        </ScrollView>
-                    ) : null}
-
-                    {/* Post Title */}
-                    <Text style={[styles.postTitle, { color: theme.text }]} numberOfLines={1}>
-                        {item.title}
-                    </Text>
-
-                    {/* Post Body */}
-                    {item.body ? (
-                        <RenderHTML
-                            contentWidth={width - 40}
-                            source={{ html: item.body }}
-                            baseStyle={{ color: theme.postBodyText, fontSize: 14 }}
-                            tagsStyles={{
-                                b: { fontWeight: "bold" },
-                                strong: { fontWeight: "bold" },
-                                u: { textDecorationLine: "underline" },
-                                i: { fontStyle: "italic" },
-                            }}
-                        />
-                    ) : null}
-
-                    {/* Actions */}
-                    <View style={[styles.actionsRow, { backgroundColor: theme.secondary }]}>
-                        <TouchableOpacity style={styles.actionBtn} onPress={() => likePost(item.id)}>
-                            <Ionicons name="heart" size={20} color="white" />
-                            <Text style={styles.actionText}>{item.likes}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.actionBtn} onPress={() => handleShare(item)}>
-                            <Ionicons name="share-social" size={20} color="white" />
-                        </TouchableOpacity>
-                    </View>
+            {/* Post Title with REPORT tag */}
+            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
+            <Text style={[styles.postTitle, { color: theme.text }]} numberOfLines={1}>
+                {item.title}
+            </Text>
+            {item.postType === "report" && (
+                <View style={styles.reportTag}>
+                <Text style={styles.reportTagText}>REPORT</Text>
                 </View>
-                <View style={[styles.bottomBorder, { backgroundColor: theme.bottomBorder }]} />
+            )}
+            </View>
+
+            {/* Post Body */}
+            {item.body ? (
+            <RenderHTML
+                contentWidth={width - 40}
+                source={{ html: item.body }}
+                baseStyle={{ color: theme.postBodyText, fontSize: 14 }}
+                tagsStyles={{
+                b: { fontWeight: "bold" },
+                strong: { fontWeight: "bold" },
+                u: { textDecorationLine: "underline" },
+                i: { fontStyle: "italic" },
+                }}
+            />
+            ) : null}
+
+            {/* Actions */}
+            <View style={[styles.actionsRow, { backgroundColor: theme.secondary }]}>
+            <TouchableOpacity style={styles.actionBtn} onPress={() => likePost(item.id)}>
+                <Ionicons name="heart" size={20} color="white" />
+                <Text style={styles.actionText}>{item.likes}</Text>
             </TouchableOpacity>
-        )
+            <TouchableOpacity style={styles.actionBtn} onPress={() => handleShare(item)}>
+                <Ionicons name="share-social" size={20} color="white" />
+            </TouchableOpacity>
+            </View>
+        </View>
+        <View style={[styles.bottomBorder, { backgroundColor: theme.bottomBorder }]} />
+        </TouchableOpacity>
+    );
     };
 
     return (
@@ -239,6 +245,18 @@ export default function ForumScreen({ navigation }) {
 export default ForumScreen;
 
 const styles = StyleSheet.create({
+    reportTag: {
+        backgroundColor: "red",
+        borderRadius: 4,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        marginLeft: 8,
+        },
+        reportTagText: {
+        color: "white",
+        fontWeight: "bold",
+        fontSize: 12,
+        },
     container: { flex: 1 },
     filterSearchBarBg: {
         flexDirection: "row",
