@@ -108,71 +108,71 @@ export default function ForumScreen({ navigation }) {
     };
 
     const renderPost = ({ item }: any) => {
-    return (
-        <TouchableOpacity onPress={() => navigation.navigate("PostDetail", { post: item })}>
-        <View style={[styles.postContainer, { backgroundColor: theme.background }]}>
-            {/* Image Slider */}
-            {Array.isArray(item.images) && item.images.length > 0 ? (
-            <ScrollView
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                style={styles.postImageSlider}
-                onStartShouldSetResponderCapture={() => true}
-            >
-                {item.images.map((imgUrl: string, index: number) =>
-                imgUrl ? (
-                    <Image
-                    key={index}
-                    source={{ uri: imgUrl }}
-                    style={styles.postImage}
-                    />
-                ) : null
-                )}
-            </ScrollView>
-            ) : null}
+        return (
+            <TouchableOpacity onPress={() => navigation.navigate("PostDetail", { post: item })}>
+                <View style={[styles.postContainer, { backgroundColor: theme.background }]}>
+                    {/* Image Slider */}
+                    {Array.isArray(item.images) && item.images.length > 0 ? (
+                        <ScrollView
+                            horizontal
+                            pagingEnabled
+                            showsHorizontalScrollIndicator={false}
+                            style={styles.postImageSlider}
+                            onStartShouldSetResponderCapture={() => true}
+                        >
+                            {item.images.map((imgUrl: string, index: number) =>
+                                imgUrl ? (
+                                    <Image
+                                        key={index}
+                                        source={{ uri: imgUrl }}
+                                        style={styles.postImage}
+                                    />
+                                ) : null
+                            )}
+                        </ScrollView>
+                    ) : null}
 
-            {/* Post Title */}
-            <Text style={[styles.postTitle, { color: theme.text }]} numberOfLines={1}>
-            {item.title}
-            </Text>
+                    {/* Post Title */}
+                    <Text style={[styles.postTitle, { color: theme.text }]} numberOfLines={1}>
+                        {item.title}
+                    </Text>
 
-            {/* Post Body */}
-            {item.body ? (
-            <RenderHTML
-                contentWidth={width - 40}
-                source={{ html: item.body }}
-                baseStyle={{ color: theme.postBodyText, fontSize: 14 }}
-                tagsStyles={{
-                b: { fontWeight: "bold" },
-                strong: { fontWeight: "bold" },
-                u: { textDecorationLine: "underline" },
-                i: { fontStyle: "italic" },
-                }}
-            />
-            ) : null}
+                    {/* Post Body */}
+                    {item.body ? (
+                        <RenderHTML
+                            contentWidth={width - 40}
+                            source={{ html: item.body }}
+                            baseStyle={{ color: theme.postBodyText, fontSize: 14 }}
+                            tagsStyles={{
+                                b: { fontWeight: "bold" },
+                                strong: { fontWeight: "bold" },
+                                u: { textDecorationLine: "underline" },
+                                i: { fontStyle: "italic" },
+                            }}
+                        />
+                    ) : null}
 
-            {/* REPORT Tag RIGHT BEFORE Actions */}
-            {item.postType === "report" && (
-            <View style={styles.reportTagContainer}>
-                <Text style={styles.reportTagText}>REPORT</Text>
-            </View>
-            )}
+                    {/* REPORT Tag RIGHT BEFORE Actions */}
+                    {item.postType === "report" && (
+                        <View style={styles.reportTagContainer}>
+                            <Text style={styles.reportTagText}>REPORT</Text>
+                        </View>
+                    )}
 
-            {/* Actions */}
-            <View style={[styles.actionsRow, { backgroundColor: theme.secondary }]}>
-            <TouchableOpacity style={styles.actionBtn} onPress={() => likePost(item.id)}>
-                <Ionicons name="heart" size={20} color="white" />
-                <Text style={styles.actionText}>{item.likes}</Text>
+                    {/* Actions */}
+                    <View style={[styles.actionsRow, { backgroundColor: theme.secondary }]}>
+                        <TouchableOpacity style={styles.actionBtn} onPress={() => likePost(item.id)}>
+                            <Ionicons name="heart" size={20} color="white" />
+                            <Text style={styles.actionText}>{item.likes}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.actionBtn} onPress={() => handleShare(item)}>
+                            <Ionicons name="share-social" size={20} color="white" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                <View style={[styles.bottomBorder, { backgroundColor: theme.bottomBorder }]} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionBtn} onPress={() => handleShare(item)}>
-                <Ionicons name="share-social" size={20} color="white" />
-            </TouchableOpacity>
-            </View>
-        </View>
-        <View style={[styles.bottomBorder, { backgroundColor: theme.bottomBorder }]} />
-        </TouchableOpacity>
-    );
+        );
     };
 
     return (
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
         alignSelf: "flex-start",
         marginBottom: 6,
     },
-        reportTagText: {
+    reportTagText: {
         color: "white",
         fontWeight: "bold",
         fontSize: 12,
