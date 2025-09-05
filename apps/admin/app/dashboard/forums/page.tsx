@@ -379,9 +379,6 @@ export default function ForumsPage() {
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPostTypeColor(post.type || 'public')}`}>
                             {(post.type || 'public').toUpperCase()}
                           </span>
-                          <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
-                            ID: {post.id}
-                          </span>
                         </div>
 
                         {/* Content Preview */}
