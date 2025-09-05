@@ -182,12 +182,12 @@ const PostDetailScreen = ({ route, navigation }) => {
       </Text>
 
       <View style={styles.actionsRow}>
-        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#7b2cbf" }]} >
+        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: theme.text2 }]} >
           <Ionicons name="heart" size={20} color="white" />
           <Text style={styles.actionText}>{post.likes}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#7b2cbf" }]} onPress={handleShare}>
+        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: theme.text2 }]} onPress={handleShare}>
           <Ionicons name="share-social" size={20} color="white" />
           <Text style={styles.actionText}>Share</Text>
         </TouchableOpacity>

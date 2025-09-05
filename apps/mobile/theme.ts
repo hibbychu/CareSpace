@@ -27,7 +27,7 @@ export const darkTheme = {
   postBodyText: "#ccc",
   bottomBorder: "#444",
   iconsGrey: "#fff",
-  commentBackground: "#1c1c1c",
+  commentBackground: "#2A2A2A",
   cardBackground: "#2A2A2A",
   shadow: null,
   dateGrey: "#aaa",
