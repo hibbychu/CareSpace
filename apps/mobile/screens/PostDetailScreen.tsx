@@ -30,7 +30,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import RenderHTML from "react-native-render-html";
 import CustomAlert from "./CustomAlert";
 
-const PostDetailScreen = ({ route }) => {
+const PostDetailScreen = ({ route, navigation }) => {
   const { post } = route.params;
   const { theme } = useContext(ThemeContext);
   const { width } = Dimensions.get("window");
@@ -118,15 +118,16 @@ const PostDetailScreen = ({ route }) => {
     setAlertType("success");
     setAlertVisible(true);
   };
-  
+
   const renderComment = ({ item }) => (
     <View style={[styles.commentContainer, { backgroundColor: theme.commentBackground }]}>
-      <TouchableOpacity style={styles.commentHeader} onPress={() => Alert.alert("Profile clicked", `Navigate to ${item.author}'s profile`)}>
+      <TouchableOpacity
+        style={styles.commentHeader}
+        onPress={() => navigation.navigate("Profile", { uid: post.owner })}
+      >
         <Ionicons name="person-circle" size={30} color={theme.text} />
         <Text style={[styles.commentAuthor, { color: theme.text }]}>{item.authorName}</Text>
-        <Text style={[styles.commentTime, { color: theme.dateGrey }]}>
-          {item.createdAt.toLocaleString()}
-        </Text>
+        <Text style={[styles.commentTime, { color: theme.dateGrey }]}>{item.createdAt.toLocaleString()}</Text>
       </TouchableOpacity>
 
       <Text style={[styles.commentText, { color: theme.postBodyText }]}>{item.text}</Text>
@@ -165,10 +166,13 @@ const PostDetailScreen = ({ route }) => {
 
       {/* Owner Section */}
       {post.postType !== "report" && (
-        <TouchableOpacity style={styles.ownerSection} onPress={() => Alert.alert("Owner clicked", `Navigate to ${post.owner || "Owner"}'s profile`)}>
+        <TouchableOpacity
+          style={styles.ownerSection}
+          onPress={() => navigation.navigate("Profile", { uid: post.ownerUid })}
+        >
           <Ionicons name="person-circle" size={40} color={theme.text} />
           <View style={{ marginLeft: 8 }}>
-            <Text style={[styles.ownerName, { color: theme.text }]}>{post.owner || "Owner of post"}</Text>
+            <Text style={[styles.ownerName, { color: theme.text }]}>{post.ownerName || "Owner"}</Text>
           </View>
         </TouchableOpacity>
       )}
