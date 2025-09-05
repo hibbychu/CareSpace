@@ -43,6 +43,10 @@ const PostDetailScreen = ({ route, navigation }) => {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState<"success" | "error" | "info" | "warning">("info");
   const [usersMap, setUsersMap] = useState<{ [uid: string]: { displayName: string; profileImage: string } }>({});
+  const [postOwner, setPostOwner] = useState<{ displayName: string; profileImage: string }>({
+    displayName: post.ownerName || "Owner of Post",
+    profileImage: "https://i.pinimg.com/236x/dd/f0/11/ddf0110aa19f445687b737679eec9cb2.jpg",
+  });
 
   //load commenters
   useEffect(() => {
@@ -96,6 +100,25 @@ const PostDetailScreen = ({ route, navigation }) => {
       unsubscribeComments();
     };
   }, [post.id, usersMap]);
+
+  useEffect(() => {
+    const fetchOwner = async () => {
+      try {
+        const docSnap = await getDoc(doc(db, "users", post.ownerUid));
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setPostOwner({
+            displayName: data.displayName || "Owner of Post",
+            profileImage: data.profileImage || "https://i.pinimg.com/236x/dd/f0/11/ddf0110aa19f445687b737679eec9cb2.jpg",
+          });
+        }
+      } catch (err) {
+        console.log("Error fetching post owner:", err);
+      }
+    };
+
+    if (post.ownerUid) fetchOwner();
+  }, [post.ownerUid]);
 
   // Load comments + auth listener
   useEffect(() => {
@@ -259,9 +282,12 @@ const PostDetailScreen = ({ route, navigation }) => {
               style={styles.ownerSection}
               onPress={() => navigation.navigate("Profile", { uid: post.ownerUid })}
             >
-              <Ionicons name="person-circle" size={40} color={theme.text} />
+              <Image
+                source={{ uri: postOwner.profileImage }}
+                style={{ width: 40, height: 40, borderRadius: 20 }}
+              />
               <View style={{ marginLeft: 8 }}>
-                <Text style={[styles.ownerName, { color: theme.text }]}>{post.ownerName || "Owner of Post"}</Text>
+                <Text style={[styles.ownerName, { color: theme.text }]}>{postOwner.displayName}</Text>
               </View>
             </TouchableOpacity>
           )}
