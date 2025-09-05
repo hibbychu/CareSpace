@@ -1,3 +1,4 @@
+import { Image } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -21,37 +22,35 @@ const Profile: React.FC = ({ navigation, route }) => {
   useEffect(() => {
     const fetchProfile = async () => {
       if (uidFromParams) {
-        // 1. Use UID from params -- show that user's Firestore profile
+        // 1. Profile for another user by UID param (from Firestore)
         const profileRef = doc(db, "users", uidFromParams);
         const profileSnap = await getDoc(profileRef);
         if (profileSnap.exists()) {
           setProfileUser(profileSnap.data());
           setGuestMode(false);
-          console.log(
-            "exist"
-          );
         } else {
-          // UID provided, but not found
           setProfileUser({ displayName: "Unknown User", email: "Not found", bio: "No profile available." });
           setGuestMode(true);
-          console.log(
-            "dont exist"
-          );
         }
       } else if (user) {
-        // 2. Show currently logged in user's details
-        setProfileUser({ displayName: user.displayName || user.email, email: user.email, bio: "No bio yet." });
-        setGuestMode(false);
+        // 2. Profile for currently logged-in user by their UID (from Firestore, not Auth info)
+        const profileRef = doc(db, "users", user.uid);
+        const profileSnap = await getDoc(profileRef);
+        if (profileSnap.exists()) {
+          setProfileUser(profileSnap.data());
+          setGuestMode(false);
+        } else {
+          setProfileUser({ displayName: user.displayName || user.email, email: user.email, bio: user.bio});
+          setGuestMode(false);
+        }
       } else {
-        // 3. Show guest view
+        // 3. Guest
         setProfileUser({ displayName: "Guest", email: "Not logged in", bio: "No bio available." });
         setGuestMode(true);
       }
     };
     fetchProfile();
   }, [uidFromParams, user]);
-
- console.log(uidFromParams)
 
   const handleLogout = async () => {
     try {
@@ -65,12 +64,28 @@ const Profile: React.FC = ({ navigation, route }) => {
     }
   };
 
+  console.log("Profile data!:", user);
+
   // Only allow edit/logout for own profile (not when viewing another user's profile or guest)
   const isOwnProfile = !uidFromParams && !!user;
-
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.avatar} />
+
+      {profileUser?.profileImage ? (
+        <Image
+          source={{ uri: profileUser.profileImage }}
+          style={styles.avatar}
+          resizeMode="cover"
+        />
+      ) : (
+        <Image
+          source={{ uri: '' }} // fallback image
+          style={styles.avatar}
+          resizeMode="cover"
+        />
+      )}
+
+
       <Text style={styles.name}>{profileUser?.displayName}</Text>
       <Text style={styles.email}>{profileUser?.email}</Text>
 

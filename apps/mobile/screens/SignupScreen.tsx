@@ -1,3 +1,4 @@
+import { Image } from 'react-native';
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
@@ -21,6 +22,15 @@ const SignupScreen = ({ navigation }) => {
     setAlertVisible(true);
   };
 
+  const profileImages = [
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTNKPxf1kaLpjwwABj7hshow0GKt0iNRNsBQg&s",
+    "https://pngemoji.com/wp-content/uploads/2025/08/3d-red-beggar-emoji-holding-hat-money-crying-face.png",
+    "https://media.tenor.com/KJ_DW8BB-FIAAAAe/beggar-emoji-begging.png",
+    "https://i.imgflip.com/12mv0n.jpg?a488040"
+  ];
+
+  const [selectedProfileImage, setSelectedProfileImage] = useState(profileImages[0]); // Default to first image
+
   const handleSignup = async () => {
     if (!email || !password || !name) {
       customAlert("error", "Please fill in all the fields")
@@ -34,7 +44,7 @@ const SignupScreen = ({ navigation }) => {
 
       // 2. Store additional details in Firestore (users collection)
       await setDoc(doc(db, "users", uid), {
-        profileImage: "https://i.imgflip.com/12mv0n.jpg?a488040",
+        profileImage: selectedProfileImage,
         displayName: name,
         createdAt: serverTimestamp(),
         bio: "No bio yet."
@@ -47,7 +57,6 @@ const SignupScreen = ({ navigation }) => {
       console.log(err);
     }
   };
-
 
   return (
     <View style={styles.container}>
@@ -68,6 +77,16 @@ const SignupScreen = ({ navigation }) => {
         onHide={() => setAlertVisible(false)}
         type={alertType}
       />
+      <View style={styles.imagePickerRow}>
+        {profileImages.map((url, idx) => (
+          <TouchableOpacity key={url} onPress={() => setSelectedProfileImage(url)}>
+            <Image
+              source={{ uri: url }}
+              style={[styles.profileThumb, selectedProfileImage === url && styles.selectedThumb]}
+            />
+          </TouchableOpacity>
+        ))}
+      </View>
     </View>
   );
 };
@@ -80,4 +99,7 @@ const styles = StyleSheet.create({
   input: { width: "100%", padding: 12, borderWidth: 1, borderColor: "#ccc", borderRadius: 8, marginBottom: 12 },
   button: { backgroundColor: "#4f46e5", padding: 15, borderRadius: 8, width: "100%", alignItems: "center" },
   buttonText: { color: "#fff", fontWeight: "bold" },
+  imagePickerRow: { flexDirection: "row", justifyContent: "center", marginVertical: 15 },
+  profileThumb: { width: 60, height: 60, borderRadius: 30, marginHorizontal: 8, borderWidth: 2, borderColor: "#ccc" },
+  selectedThumb: { borderColor: "#4f46e5", borderWidth: 3 },
 });
