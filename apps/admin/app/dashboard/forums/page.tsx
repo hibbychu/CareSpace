@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { collection, getDocs, query, orderBy, deleteDoc, doc, Timestamp, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
-import { Plus, MessageSquare, Search, AlertTriangle, Trash2, ThumbsUp, MessageCircle, Send, Edit, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, MessageSquare, Search, AlertTriangle, Trash2, ThumbsUp, MessageCircle, Send, Edit, ChevronLeft, ChevronRight, Bold, Underline } from 'lucide-react';
 
 interface Comment {
   id: string;
@@ -30,6 +30,51 @@ interface Post {
 }
 
 export default function ForumsPage() {
+  // Add CSS for contentEditable placeholders and rich text formatting
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      [contenteditable]:empty:before {
+        content: attr(data-placeholder);
+        color: #9CA3AF;
+        pointer-events: none;
+        font-style: italic;
+      }
+      [contenteditable]:focus:before {
+        content: '';
+      }
+      .rich-text-editor {
+        min-height: 120px;
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #D1D5DB;
+        border-radius: 0.5rem;
+        padding: 12px;
+        background: white;
+        line-height: 1.5;
+        color: #1F2937;
+      }
+      .rich-text-editor:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(124, 77, 255, 0.1);
+      }
+      .rich-text-editor b, .rich-text-editor strong {
+        font-weight: bold;
+        color: #1F2937;
+      }
+      .rich-text-editor u {
+        text-decoration: underline;
+        color: #1F2937;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -66,6 +111,82 @@ export default function ForumsPage() {
 
   // Current admin UID (in a real app, this would come from auth)
   const currentAdminUid = 'admin-uid';
+
+  // Helper function to insert HTML tags in contentEditable div (WYSIWYG style)
+  const insertHtmlTagRichText = (contentEditableId: string, tag: string) => {
+    const contentEditable = document.getElementById(contentEditableId) as HTMLDivElement;
+    if (!contentEditable) return;
+
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+    const selectedText = range.toString();
+    
+    if (selectedText) {
+      // Create the HTML element
+      const element = document.createElement(tag);
+      element.textContent = selectedText;
+      
+      // Replace the selection with our formatted element
+      range.deleteContents();
+      range.insertNode(element);
+      
+      // Clear selection and set cursor after the inserted element
+      selection.removeAllRanges();
+      const newRange = document.createRange();
+      newRange.setStartAfter(element);
+      newRange.setEndAfter(element);
+      selection.addRange(newRange);
+    } else {
+      // If no text is selected, just place cursor and add the tag for future typing
+      const element = document.createElement(tag);
+      element.textContent = '\u00A0'; // Non-breaking space to make the element visible
+      range.insertNode(element);
+      
+      // Place cursor inside the new element
+      selection.removeAllRanges();
+      const newRange = document.createRange();
+      newRange.setStart(element, 0);
+      newRange.setEnd(element, 1);
+      selection.addRange(newRange);
+    }
+    
+    // Update the state with the new HTML content
+    const setValue = contentEditableId === 'create-content' 
+      ? (value: string) => setNewPost(prev => ({ ...prev, body: value }))
+      : (value: string) => setEditPost(prev => ({ ...prev, body: value }));
+    
+    setValue(contentEditable.innerHTML);
+  };
+
+  // Helper function to handle content changes in rich text editor (WYSIWYG)
+  const handleRichTextChange = (contentEditableId: string, setValue: (value: string) => void) => {
+    const contentEditable = document.getElementById(contentEditableId) as HTMLDivElement;
+    if (contentEditable) {
+      // Always save the HTML content to maintain formatting
+      setValue(contentEditable.innerHTML);
+    }
+  };
+
+  // Sync contentEditable content with state (WYSIWYG)
+  useEffect(() => {
+    const createContentDiv = document.getElementById('create-content') as HTMLDivElement;
+    if (createContentDiv && showCreateModal) {
+      if (newPost.body !== createContentDiv.innerHTML) {
+        createContentDiv.innerHTML = newPost.body;
+      }
+    }
+  }, [newPost.body, showCreateModal]);
+
+  useEffect(() => {
+    const editContentDiv = document.getElementById('edit-content') as HTMLDivElement;
+    if (editContentDiv && showEditModal) {
+      if (editPost.body !== editContentDiv.innerHTML) {
+        editContentDiv.innerHTML = editPost.body;
+      }
+    }
+  }, [editPost.body, showEditModal]);
 
   // Handle ESC key to close modal
   useEffect(() => {
@@ -973,15 +1094,40 @@ export default function ForumsPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Content
                   </label>
-                  <textarea
-                    value={newPost.body}
-                    onChange={(e) => setNewPost({ ...newPost, body: e.target.value })}
-                    placeholder="Write your post content... (HTML tags supported)"
-                    rows={6}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent resize-none text-black placeholder:text-gray-500"
+                  
+                  {/* HTML Formatting Toolbar */}
+                  <div className="flex gap-2 mb-2 p-2 bg-gray-50 border border-gray-300 rounded-t-lg">
+                    <button
+                      type="button"
+                      onClick={() => insertHtmlTagRichText('create-content', 'b')}
+                      className="flex items-center gap-1 px-2 py-1 text-sm bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors text-black"
+                      title="Bold"
+                    >
+                      <Bold className="h-4 w-4 text-black" />
+                      <span className="text-black">Bold</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertHtmlTagRichText('create-content', 'u')}
+                      className="flex items-center gap-1 px-2 py-1 text-sm bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors text-black"
+                      title="Underline"
+                    >
+                      <Underline className="h-4 w-4 text-black" />
+                      <span className="text-black">Underline</span>
+                    </button>
+                  </div>
+                  
+                  <div
+                    id="create-content"
+                    contentEditable
+                    onInput={() => handleRichTextChange('create-content', (value: string) => setNewPost({ ...newPost, body: value }))}
+                    onBlur={() => handleRichTextChange('create-content', (value: string) => setNewPost({ ...newPost, body: value }))}
+                    className="rich-text-editor border-t-0 rounded-t-none"
+                    data-placeholder="Write your post content... (Use the buttons above for formatting)"
+                    suppressContentEditableWarning={true}
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    You can use HTML tags for formatting.
+                    Use the buttons above for formatting. Text will appear with real formatting (bold, underline) as you type - no HTML tags!
                   </p>
                 </div>
 
@@ -1105,15 +1251,40 @@ export default function ForumsPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Content
                   </label>
-                  <textarea
-                    value={editPost.body}
-                    onChange={(e) => setEditPost({ ...editPost, body: e.target.value })}
-                    placeholder="Write your post content... (HTML tags supported)"
-                    rows={6}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent resize-none text-black placeholder:text-gray-500"
+                  
+                  {/* HTML Formatting Toolbar */}
+                  <div className="flex gap-2 mb-2 p-2 bg-gray-50 border border-gray-300 rounded-t-lg">
+                    <button
+                      type="button"
+                      onClick={() => insertHtmlTagRichText('edit-content', 'b')}
+                      className="flex items-center gap-1 px-2 py-1 text-sm bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors text-black"
+                      title="Bold"
+                    >
+                      <Bold className="h-4 w-4 text-black" />
+                      <span className="text-black">Bold</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertHtmlTagRichText('edit-content', 'u')}
+                      className="flex items-center gap-1 px-2 py-1 text-sm bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors text-black"
+                      title="Underline"
+                    >
+                      <Underline className="h-4 w-4 text-black" />
+                      <span className="text-black">Underline</span>
+                    </button>
+                  </div>
+                  
+                  <div
+                    id="edit-content"
+                    contentEditable
+                    onInput={() => handleRichTextChange('edit-content', (value: string) => setEditPost({ ...editPost, body: value }))}
+                    onBlur={() => handleRichTextChange('edit-content', (value: string) => setEditPost({ ...editPost, body: value }))}
+                    className="rich-text-editor border-t-0 rounded-t-none"
+                    data-placeholder="Write your post content... (Use the buttons above for formatting)"
+                    suppressContentEditableWarning={true}
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    You can use HTML tags for formatting.
+                    Use the buttons above for formatting. Text will appear with real formatting (bold, underline) as you type - no HTML tags!
                   </p>
                 </div>
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { collection, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { 
@@ -27,6 +28,13 @@ interface Event {
   createdAt?: Timestamp | Date;
 }
 
+interface User {
+  id: string;
+  displayName?: string;
+  createdAt?: Timestamp | Date;
+  role?: string;
+}
+
 interface DashboardStats {
   totalUsers: number;
   totalEvents: number;
@@ -47,6 +55,7 @@ interface RecentActivity {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     totalEvents: 0,
@@ -64,6 +73,10 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       console.log('🔥 Fetching dashboard stats...');
+
+      // Fetch Users Stats
+      const usersSnapshot = await getDocs(collection(db, 'users'));
+      const users = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
 
       // Fetch Events Stats
       const eventsSnapshot = await getDocs(collection(db, 'events'));
@@ -98,8 +111,8 @@ export default function DashboardPage() {
         totalComments += commentsSnapshot.size;
       }
 
-      // For users, we'll use a placeholder since we don't have a users collection yet
-      const totalUsers = 156; // Placeholder - in real app, fetch from users collection
+      // Get real user count from Firebase
+      const totalUsers = usersSnapshot.size;
 
       setStats({
         totalUsers,
@@ -161,6 +174,29 @@ export default function DashboardPage() {
         }
       });
 
+      // Recent users
+      const recentUsers = users
+        .filter(user => user.createdAt)
+        .sort((a, b) => {
+          const aDate = a.createdAt instanceof Date ? a.createdAt : (a.createdAt as Timestamp).toDate();
+          const bDate = b.createdAt instanceof Date ? b.createdAt : (b.createdAt as Timestamp).toDate();
+          return bDate.getTime() - aDate.getTime();
+        })
+        .slice(0, 2);
+
+      recentUsers.forEach(user => {
+        if (user.createdAt) {
+          const timestamp = user.createdAt instanceof Date ? user.createdAt : (user.createdAt as Timestamp).toDate();
+          recentActivities.push({
+            id: Math.random().toString(),
+            type: 'user',
+            message: `New user joined: "${user.displayName || 'Anonymous User'}"`,
+            timestamp,
+            color: 'blue'
+          });
+        }
+      });
+
       // Sort all activities by timestamp
       recentActivities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
       setRecentActivity(recentActivities.slice(0, 5));
@@ -203,11 +239,31 @@ export default function DashboardPage() {
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Dashboard Overview</h2>
         <p className="text-gray-600">Welcome back! Here&apos;s what&apos;s happening with your platform.</p>
+        
+        {/* Quick Stats Summary */}
+        <div className="mt-4 p-4 bg-gradient-to-r from-[var(--primary)]/10 to-[var(--primary)]/5 rounded-lg border border-[var(--primary)]/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Platform Status</h3>
+              <p className="text-sm text-gray-600">
+                Managing {loading ? '...' : stats.totalUsers} users, {loading ? '...' : stats.totalEvents} events, and {loading ? '...' : stats.totalPosts} forum discussions
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
+                Active
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-[var(--primary)]/30 transition-all duration-200 transform hover:-translate-y-1 cursor-pointer">
+        <div 
+          className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-[var(--primary)]/30 transition-all duration-200 transform hover:-translate-y-1 cursor-pointer"
+          onClick={() => router.push('/dashboard/users')}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Users</p>
@@ -217,10 +273,13 @@ export default function DashboardPage() {
             </div>
             <Users className="h-8 w-8 text-[var(--primary)]" />
           </div>
-          <p className="text-sm text-blue-600 mt-2">→ Platform users</p>
+          <p className="text-sm text-blue-600 mt-2">→ Manage users</p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-[var(--primary)]/30 transition-all duration-200 transform hover:-translate-y-1 cursor-pointer">
+        <div 
+          className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-[var(--primary)]/30 transition-all duration-200 transform hover:-translate-y-1 cursor-pointer"
+          onClick={() => router.push('/dashboard/events')}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Events</p>
@@ -235,7 +294,10 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-[var(--primary)]/30 transition-all duration-200 transform hover:-translate-y-1 cursor-pointer">
+        <div 
+          className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-[var(--primary)]/30 transition-all duration-200 transform hover:-translate-y-1 cursor-pointer"
+          onClick={() => router.push('/dashboard/forums')}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Forum Posts</p>
