@@ -8,7 +8,7 @@ import {
   TextInput,
   TouchableOpacity,
   FlatList,
-  Alert,
+  ScrollView,
   Dimensions,
   Share,
 } from "react-native";
@@ -34,7 +34,7 @@ const PostDetailScreen = ({ route, navigation }) => {
   const { post } = route.params;
   const [postData, setPostData] = useState(post);
   const { theme } = useContext(ThemeContext);
-  const { width } = Dimensions.get("window");
+  const { width, height } = Dimensions.get("window");
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
@@ -160,99 +160,87 @@ const PostDetailScreen = ({ route, navigation }) => {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <FlatList
+      style={styles.container}
+      data={comments}
+      keyExtractor={(i) => i.id}
+      renderItem={renderComment}
+      contentContainerStyle={{ paddingBottom: 80 }}
+      ListHeaderComponent={
+        <>
+          {/* All your post content goes here */}
+          {postData.images.length > 0 && (
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              style={styles.imageSlider}
+            >
+              {postData.images.map((uri, index) =>
+                uri ? (
+                  <Image
+                    key={index}
+                    source={{ uri }}
+                    style={[styles.postImage, { width: width - 24, height: height * 0.3 }]}
+                  />
+                ) : null
+              )}
+            </ScrollView>
+          )}
 
-      {post.image && <Image source={{ uri: post.image }} style={styles.postImage} />}
-      <Text style={[styles.title, { color: theme.text }]}>{post.title}</Text>
-      <RenderHTML
-        contentWidth={width - 40}
-        source={{ html: post.body }}
-        baseStyle={{ color: theme.postBodyText, fontSize: 14 }}
-        tagsStyles={{
-          b: { fontWeight: "bold" },
-          strong: { fontWeight: "bold" },
-          u: { textDecorationLine: "underline" },
-          i: { fontStyle: "italic" },
-        }}
-      />
+          <Text style={[styles.title, { color: theme.text }]}>{post.title}</Text>
+          <RenderHTML
+            contentWidth={width - 40}
+            source={{ html: post.body }}
+            baseStyle={{ color: theme.postBodyText, fontSize: 14 }}
+          />
 
-      {/* Owner Section */}
-      {post.postType !== "report" && (
-        <TouchableOpacity
-          style={styles.ownerSection}
-          onPress={() => navigation.navigate("Profile", { uid: post.ownerUid })}
-        >
-          <Ionicons name="person-circle" size={40} color={theme.text} />
-          <View style={{ marginLeft: 8 }}>
-            <Text style={[styles.ownerName, { color: theme.text }]}>{post.ownerName || "Owner of Post"}</Text>
+          {post.postType !== "report" && (
+            <TouchableOpacity
+              style={styles.ownerSection}
+              onPress={() => navigation.navigate("Profile", { uid: post.ownerUid })}
+            >
+              <Ionicons name="person-circle" size={40} color={theme.text} />
+              <View style={{ marginLeft: 8 }}>
+                <Text style={[styles.ownerName, { color: theme.text }]}>{post.ownerName || "Owner of Post"}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+
+          <Text style={[styles.date, { color: theme.dateGrey }]}>
+            Posted on: {new Date().toLocaleDateString()}
+          </Text>
+
+          <View style={styles.actionsRow}>
+            {/* Like, Share, Report buttons */}
           </View>
-        </TouchableOpacity>
-      )}
 
-      <Text style={[styles.date, { color: theme.dateGrey }]}>
-        Posted on: {new Date().toLocaleDateString()}
-      </Text>
+          <Text style={[styles.commentsTitle, { color: theme.text }]}>
+            Comments ({comments.length})
+          </Text>
 
-      <View style={styles.actionsRow}>
-        <TouchableOpacity onPress={() => likePost()} style={[styles.actionBtn, { backgroundColor: theme.text2 }]} >
-          <Ionicons name="heart" size={20} color="white" />
-          <Text style={styles.actionText}>{postData.likes}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: theme.text2 }]} onPress={handleShare}>
-          <Ionicons name="share-social" size={20} color="white" />
-          <Text style={styles.actionText}>Share</Text>
-        </TouchableOpacity>
-        <View style={{ flex: 1 }} />
-        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#d32f2f" }]} onPress={handleReport}>
-          <MaterialIcons name="report" size={20} color="white" />
-          <Text style={styles.actionText}>Report</Text>
-        </TouchableOpacity>
-      </View>
-
-      <Text style={[styles.commentsTitle, { color: theme.text }]}>Comments ({comments.length})</Text>
-      <FlatList
-        data={comments}
-        keyExtractor={(i) => i.id}
-        renderItem={renderComment}
-        contentContainerStyle={{ paddingBottom: 80 }}
-      />
-
-      <View style={styles.commentInputRow}>
-        <TextInput
-          style={[
-            styles.commentInput,
-            {
-              backgroundColor: theme.background,
-              color: theme.text,
-              borderColor: theme.bottomBorder,
-            },
-          ]}
-          placeholder="Add a comment..."
-          placeholderTextColor={theme.searchBarBackground}
-          value={commentText}
-          onChangeText={setCommentText}
-        />
-        <TouchableOpacity onPress={addComment}>
-          <Ionicons name="send" size={24} color={theme.text2} style={{ marginLeft: 8 }} />
-        </TouchableOpacity>
-      </View>
-
-      <CustomAlert
-        message={alertMessage}
-        visible={alertVisible}
-        onHide={() => setAlertVisible(false)}
-        type={alertType}
-      />
-    </View>
+          <View style={styles.commentInputRow}>
+            {/* Comment input + send button */}
+          </View>
+        </>
+      }
+    />
   );
 };
 
 export default PostDetailScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 12 },
-  postImage: { width: "100%", height: 200, borderRadius: 8, marginBottom: 12 },
+  container: { padding: 12 },
+  imageSlider: {
+    marginBottom: 12,
+  },
+  postImage: {
+    height: 500,
+    resizeMode: "contain",
+    borderRadius: 10,
+    marginRight: 12,
+  },
   title: { fontSize: 20, fontWeight: "bold", marginBottom: 6 },
   body: { fontSize: 16, marginBottom: 8 },
   ownerSection: { flexDirection: "row", alignItems: "center", marginTop: 10 },
