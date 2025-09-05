@@ -233,6 +233,11 @@ export default function ForumsPage() {
             : post
         )
       );
+
+      // Also update viewingPost if it's the same post
+      if (viewingPost && viewingPost.id === postId) {
+        setViewingPost(prev => prev ? { ...prev, comments, showComments: true } : null);
+      }
     } catch (error) {
       console.error('❌ Error fetching comments:', error);
     } finally {
@@ -301,6 +306,9 @@ export default function ForumsPage() {
     try {
       console.log('🔥 Adding comment to post:', postId);
       
+      // Clear the comment text immediately for better UX
+      setCommentText(prev => ({ ...prev, [postId]: '' }));
+      
       await addDoc(collection(db, 'posts', postId, 'comments'), {
         text: text,
         authorName: 'Admin User', // In a real app, this would come from auth
@@ -308,9 +316,6 @@ export default function ForumsPage() {
         likes: 0,
         createdAt: serverTimestamp(),
       });
-
-      // Clear the comment text
-      setCommentText(prev => ({ ...prev, [postId]: '' }));
       
       // Update comment count and refresh comments for this post
       const newCommentCount = await fetchCommentCount(postId);
@@ -321,11 +326,18 @@ export default function ForumsPage() {
             : p
         )
       );
+
+      // Also update viewingPost comment count if it's the same post
+      if (viewingPost && viewingPost.id === postId) {
+        setViewingPost(prev => prev ? { ...prev, commentsCount: newCommentCount } : null);
+      }
       
-      // Refresh comments for this post
+      // Refresh comments for this post (this will update both posts state and viewingPost)
       await fetchComments(postId);
     } catch (error) {
       console.error('❌ Error adding comment:', error);
+      // Restore the comment text if there was an error
+      setCommentText(prev => ({ ...prev, [postId]: text }));
     }
   };
 
@@ -731,6 +743,11 @@ export default function ForumsPage() {
         )
       );
 
+      // Also update viewingPost if it's the same post
+      if (viewingPost && viewingPost.id === postId) {
+        setViewingPost(prev => prev ? { ...prev, likes: newLikes } : null);
+      }
+
       // Update in Firestore
       const postRef = doc(db, 'posts', postId);
       await updateDoc(postRef, {
@@ -740,6 +757,12 @@ export default function ForumsPage() {
       console.error('Error liking post:', error);
       // Revert optimistic update on error
       await fetchPosts();
+      if (viewingPost) {
+        const updatedPost = posts.find(p => p.id === viewingPost.id);
+        if (updatedPost) {
+          setViewingPost(updatedPost);
+        }
+      }
     }
   };
 
@@ -767,6 +790,18 @@ export default function ForumsPage() {
         )
       );
 
+      // Also update viewingPost if it's the same post
+      if (viewingPost && viewingPost.id === postId) {
+        setViewingPost(prev => prev ? {
+          ...prev,
+          comments: prev.comments?.map(c => 
+            c.id === commentId 
+              ? { ...c, likes: newLikes }
+              : c
+          ) || []
+        } : null);
+      }
+
       // Update in Firestore
       const commentRef = doc(db, 'posts', postId, 'comments', commentId);
       await updateDoc(commentRef, {
@@ -782,16 +817,9 @@ export default function ForumsPage() {
   const openViewModal = async (post: Post) => {
     setViewingPost(post);
     setShowViewModal(true);
-    // Only load comments if they haven't been loaded yet
-    if (!post.comments || post.comments.length === 0) {
-      await fetchComments(post.id);
-    } else {
-      // Update the viewing post with the latest comment data
-      const updatedPost = posts.find(p => p.id === post.id);
-      if (updatedPost && updatedPost.comments) {
-        setViewingPost(updatedPost);
-      }
-    }
+    
+    // Always load fresh comments when opening modal for better UX
+    await fetchComments(post.id);
   };
 
   return (

@@ -79,26 +79,6 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Temporary Login Info */}
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-purple-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-purple-800">
-                  Temporary Login (Development Mode)
-                </h3>
-                <div className="mt-2 text-sm text-purple-700">
-                  <p>Use any username (3+ characters) and password (4+ characters) to login.</p>
-                  <p className="mt-1">Default: <span className="font-mono bg-white px-1 rounded">admin</span> / <span className="font-mono bg-white px-1 rounded">demo123</span></p>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Login Form */}
           <LoginForm
             onSubmit={handleLogin}
@@ -142,10 +122,6 @@ export default function LoginPage() {
             <div className="flex items-center space-x-3">
               <Users className="h-6 w-6 text-purple-300" />
               <span className="text-purple-100">User Management & Analytics</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Shield className="h-6 w-6 text-purple-300" />
-              <span className="text-purple-100">Secure & HIPAA Compliant</span>
             </div>
           </div>
         </div>
