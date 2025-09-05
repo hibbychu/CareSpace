@@ -261,6 +261,16 @@ function ForumStack() {
           headerTitleAlign: "center",
         })}
       />
+      <ForumStackNav.Screen
+        name="Profile"
+        component={Profile}
+        options={{
+          headerTitle: "Post Details",
+          headerStyle: { backgroundColor: "#7b2cbf" },
+          headerTintColor: "#fff",
+          headerTitleAlign: "center",
+        }}
+      />
     </ForumStackNav.Navigator>
   );
 }
