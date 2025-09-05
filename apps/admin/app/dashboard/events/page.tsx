@@ -74,15 +74,12 @@ export default function EventsPage() {
   const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
-      console.log('🔥 Fetching events from Firestore...');
       
       const q = query(collection(db, "events"), orderBy("dateTime", "asc"));
       const querySnapshot = await getDocs(q);
-      console.log('🔥 Query executed! Document count:', querySnapshot.size);
       
       const eventsData: Event[] = querySnapshot.docs.map((doc) => {
         const data = doc.data();
-        console.log('🔥 Event document:', doc.id, data);
         return {
           eventID: doc.id,
           eventName: data.eventName || 'Untitled Event',
@@ -94,7 +91,6 @@ export default function EventsPage() {
         };
       });
 
-      console.log('🔥 Final events array:', eventsData);
       setEvents(eventsData);
     } catch (error) {
       console.error('❌ Error fetching events:', error);
@@ -126,7 +122,6 @@ export default function EventsPage() {
 
     try {
       setCreating(true);
-      console.log('🔥 Creating new event...');
       
       // Combine date and time into a proper Timestamp
       const dateTimeString = `${newEvent.date}T${newEvent.time}`;
@@ -159,7 +154,6 @@ export default function EventsPage() {
       // Refresh events
       await fetchEvents();
       
-      console.log('✅ Event created successfully!');
     } catch (error) {
       console.error('❌ Error creating event:', error);
       alert('Failed to create event. Please try again.');
@@ -210,7 +204,6 @@ export default function EventsPage() {
 
     try {
       setEditing(true);
-      console.log('🔥 Updating event...', editingEvent.eventID);
       
       // Combine date and time into a proper Timestamp
       const dateTimeString = `${editEvent.date}T${editEvent.time}`;
@@ -244,7 +237,6 @@ export default function EventsPage() {
       // Refresh events
       await fetchEvents();
       
-      console.log('✅ Event updated successfully!');
     } catch (error) {
       console.error('❌ Error updating event:', error);
       alert('Failed to update event. Please try again.');
@@ -313,23 +305,16 @@ export default function EventsPage() {
 
   return (
     <div>
-      {/* Debug Info */}
-      <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm text-blue-800">
-          🔥 Events fetched: {events.length} | Loading: {loading ? 'Yes' : 'No'}
-        </p>
-      </div>
-
       {/* Page Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Events Management</h1>
-            <p className="mt-2 text-gray-600">Create and manage healthcare events, workshops, and seminars</p>
+            <p className="mt-2 text-gray-600">Create and manage events, workshops, and seminars</p>
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
+            className="inline-flex items-center px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--text2)] hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
           >
             <Plus className="h-5 w-5 mr-2" />
             Create Event
@@ -350,7 +335,7 @@ export default function EventsPage() {
                   placeholder="Search events..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                 />
               </div>
             </div>
@@ -361,7 +346,7 @@ export default function EventsPage() {
       {/* Loading State */}
       {loading && (
         <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7C4DFF] mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading events...</p>
         </div>
       )}
@@ -372,83 +357,96 @@ export default function EventsPage() {
           {filteredEvents.map((event) => (
             <div 
               key={event.eventID} 
-              className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02]"
+              className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02] h-[500px] flex flex-col"
               onClick={() => openViewModal(event)}
             >
-              <div className="p-6">
-                {/* Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{event.eventName}</h3>
-                    <div className="flex gap-2 mb-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(getEventStatus(event.dateTime))}`}>
+              <div className="p-6 flex-1 flex flex-col overflow-hidden">
+                {/* Header - Fixed Height */}
+                <div className="flex items-start justify-between mb-4 h-16 flex-shrink-0">
+                  <div className="flex-1 pr-2 min-w-0">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 leading-tight break-words">{event.eventName}</h3>
+                    <div className="flex gap-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${getStatusColor(getEventStatus(event.dateTime))}`}>
                         {getEventStatus(event.dateTime)}
                       </span>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1 flex-shrink-0">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         openEditModal(event);
                       }}
-                      className="p-2 text-gray-500 hover:text-[#7C4DFF] hover:bg-[#7C4DFF]/10 rounded-lg transition-all duration-200 transform hover:scale-110"
+                      className="p-1.5 text-gray-500 hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-all duration-200 transform hover:scale-110"
                     >
-                      <Edit className="h-4 w-4" />
+                      <Edit className="h-3.5 w-3.5" />
                     </button>
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDelete(event.eventID);
                       }}
-                      className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 transform hover:scale-110"
+                      className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 transform hover:scale-110"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 </div>
 
-                {/* Event Image */}
-                {event.imageUrl && (
-                  <div className="mb-4 relative h-40 rounded-lg overflow-hidden">
+                {/* Event Image - Fixed Height */}
+                <div className="mb-4 h-32 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                  {event.imageUrl ? (
                     <Image 
                       src={event.imageUrl} 
                       alt={event.eventName}
-                      fill
+                      width={300}
+                      height={128}
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      className="object-cover"
+                      className="w-full h-full object-cover"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.style.display = 'none';
+                        target.parentElement!.innerHTML = '<div class="w-full h-full bg-gray-200 flex items-center justify-center"><svg class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div>';
                       }}
                     />
-                  </div>
-                )}
+                  ) : (
+                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                      <svg className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
 
-                {/* Description */}
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{event.description}</p>
+                {/* Description - Fixed Height with safe spacing */}
+                <div className="mb-4 h-12 flex-shrink-0 overflow-hidden">
+                  <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed break-words">{event.description}</p>
+                </div>
 
-                {/* Event Details */}
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                    {formatDateTime(event.dateTime)}
+                {/* Event Details - Fixed Height with better spacing */}
+                <div className="space-y-1 mb-4 h-16 flex-shrink-0 overflow-hidden">
+                  <div className="flex items-center text-xs text-gray-600 min-h-0">
+                    <Calendar className="h-3.5 w-3.5 mr-2 text-gray-400 flex-shrink-0" />
+                    <span className="line-clamp-1 break-words min-w-0">{formatDateTime(event.dateTime)}</span>
                   </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                    {event.address}
+                  <div className="flex items-center text-xs text-gray-600 min-h-0">
+                    <MapPin className="h-3.5 w-3.5 mr-2 text-gray-400 flex-shrink-0" />
+                    <span className="line-clamp-1 break-words min-w-0">{event.address}</span>
                   </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Users className="h-4 w-4 mr-2 text-gray-400" />
-                    Organized by {event.organiser}
+                  <div className="flex items-center text-xs text-gray-600 min-h-0">
+                    <Users className="h-3.5 w-3.5 mr-2 text-gray-400 flex-shrink-0" />
+                    <span className="line-clamp-1 break-words min-w-0">Organized by {event.organiser}</span>
                   </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex gap-2">
+                {/* Spacer to push button to bottom */}
+                <div className="flex-1 min-h-4"></div>
+
+                {/* Actions - Fixed at Bottom with safe spacing */}
+                <div className="flex gap-2 flex-shrink-0 pt-2">
                   <button 
                     onClick={() => openViewModal(event)}
-                    className="flex-1 px-3 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] hover:shadow-md transition-all duration-200 transform hover:-translate-y-0.5 text-sm font-medium"
+                    className="flex-1 px-3 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--text2)] hover:shadow-md transition-all duration-200 transform hover:-translate-y-0.5 text-sm font-medium"
                   >
                     View Details
                   </button>
@@ -470,7 +468,7 @@ export default function EventsPage() {
           </p>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
+            className="inline-flex items-center px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--text2)] hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
           >
             <Plus className="h-5 w-5 mr-2" />
             Create {events.length === 0 ? 'First' : ''} Event
@@ -514,7 +512,7 @@ export default function EventsPage() {
                     value={newEvent.eventName}
                     onChange={(e) => setNewEvent({ ...newEvent, eventName: e.target.value })}
                     placeholder="Enter event name..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                   />
                 </div>
 
@@ -528,7 +526,7 @@ export default function EventsPage() {
                     value={newEvent.organiser}
                     onChange={(e) => setNewEvent({ ...newEvent, organiser: e.target.value })}
                     placeholder="Who is organizing this event..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                   />
                 </div>
 
@@ -542,7 +540,7 @@ export default function EventsPage() {
                       type="date"
                       value={newEvent.date}
                       onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black"
                     />
                   </div>
                   <div>
@@ -553,7 +551,7 @@ export default function EventsPage() {
                       type="time"
                       value={newEvent.time}
                       onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black"
                     />
                   </div>
                 </div>
@@ -568,7 +566,7 @@ export default function EventsPage() {
                     value={newEvent.address}
                     onChange={(e) => setNewEvent({ ...newEvent, address: e.target.value })}
                     placeholder="Event location address..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                   />
                 </div>
 
@@ -582,7 +580,7 @@ export default function EventsPage() {
                     value={newEvent.imageUrl}
                     onChange={(e) => setNewEvent({ ...newEvent, imageUrl: e.target.value })}
                     placeholder="https://example.com/image.jpg"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                   />
                 </div>
 
@@ -596,7 +594,7 @@ export default function EventsPage() {
                     onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
                     placeholder="Describe the event..."
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent resize-none text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent resize-none text-black placeholder:text-gray-500"
                   />
                 </div>
               </div>
@@ -612,7 +610,7 @@ export default function EventsPage() {
                 <button
                   onClick={createEvent}
                   disabled={creating || !newEvent.eventName.trim() || !newEvent.description.trim() || !newEvent.organiser.trim() || !newEvent.address.trim() || !newEvent.date || !newEvent.time}
-                  className="flex-1 px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--text2)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {creating ? 'Creating...' : 'Create Event'}
                 </button>
@@ -658,7 +656,7 @@ export default function EventsPage() {
                     value={editEvent.eventName}
                     onChange={(e) => setEditEvent({ ...editEvent, eventName: e.target.value })}
                     placeholder="Enter event name..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                   />
                 </div>
 
@@ -672,7 +670,7 @@ export default function EventsPage() {
                     value={editEvent.organiser}
                     onChange={(e) => setEditEvent({ ...editEvent, organiser: e.target.value })}
                     placeholder="Who is organizing this event..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                   />
                 </div>
 
@@ -686,7 +684,7 @@ export default function EventsPage() {
                       type="date"
                       value={editEvent.date}
                       onChange={(e) => setEditEvent({ ...editEvent, date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black"
                     />
                   </div>
                   <div>
@@ -697,7 +695,7 @@ export default function EventsPage() {
                       type="time"
                       value={editEvent.time}
                       onChange={(e) => setEditEvent({ ...editEvent, time: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black"
                     />
                   </div>
                 </div>
@@ -712,7 +710,7 @@ export default function EventsPage() {
                     value={editEvent.address}
                     onChange={(e) => setEditEvent({ ...editEvent, address: e.target.value })}
                     placeholder="Event location address..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                   />
                 </div>
 
@@ -726,7 +724,7 @@ export default function EventsPage() {
                     value={editEvent.imageUrl}
                     onChange={(e) => setEditEvent({ ...editEvent, imageUrl: e.target.value })}
                     placeholder="https://example.com/image.jpg"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                   />
                 </div>
 
@@ -740,7 +738,7 @@ export default function EventsPage() {
                     onChange={(e) => setEditEvent({ ...editEvent, description: e.target.value })}
                     placeholder="Describe the event..."
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent resize-none text-black placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent resize-none text-black placeholder:text-gray-500"
                   />
                 </div>
               </div>
@@ -756,7 +754,7 @@ export default function EventsPage() {
                 <button
                   onClick={updateEvent}
                   disabled={editing || !editEvent.eventName.trim() || !editEvent.description.trim() || !editEvent.organiser.trim() || !editEvent.address.trim() || !editEvent.date || !editEvent.time}
-                  className="flex-1 px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--text2)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {editing ? 'Updating...' : 'Update Event'}
                 </button>
@@ -880,7 +878,7 @@ export default function EventsPage() {
                     setShowViewModal(false);
                     openEditModal(viewingEvent);
                   }}
-                  className="flex-1 px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] transition-colors"
+                  className="flex-1 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--text2)] transition-colors"
                 >
                   Edit Event
                 </button>
