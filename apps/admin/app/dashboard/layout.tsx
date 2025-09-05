@@ -35,9 +35,15 @@ export default function DashboardLayout({
     }
   }, [isAuthenticated, isLoading, router]);
 
-  const handleLogout = () => {
-    logout();
-    router.push('/login');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force navigation even if logout has an error
+      router.push('/login');
+    }
   };
 
   const isActiveRoute = (route: string) => {

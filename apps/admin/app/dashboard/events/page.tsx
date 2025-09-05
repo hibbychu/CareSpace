@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { collection, getDocs, query, orderBy, deleteDoc, doc, Timestamp, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
@@ -20,6 +20,8 @@ export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'upcoming' | 'ongoing' | 'completed'>('all');
+  const [sortBy, setSortBy] = useState<'date-asc' | 'date-desc' | 'name-asc' | 'name-desc'>('date-asc');
   
   // Create Event Modal State
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -250,12 +252,38 @@ export default function EventsPage() {
     setShowViewModal(true);
   };
 
-  const filteredEvents = events.filter(event => {
-    const matchesSearch = (event.eventName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (event.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (event.organiser || '').toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
-  });
+  const filteredEvents = useMemo(() => {
+    return events.filter(event => {
+      const matchesSearch = (event.eventName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (event.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (event.organiser || '').toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = statusFilter === 'all' || getEventStatus(event.dateTime) === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    }).sort((a, b) => {
+      switch (sortBy) {
+        case 'date-asc':
+          const aDate = a.dateTime instanceof Date ? a.dateTime : (a.dateTime as Timestamp)?.toDate() || new Date(0);
+          const bDate = b.dateTime instanceof Date ? b.dateTime : (b.dateTime as Timestamp)?.toDate() || new Date(0);
+          return aDate.getTime() - bDate.getTime();
+        
+        case 'date-desc':
+          const aDateDesc = a.dateTime instanceof Date ? a.dateTime : (a.dateTime as Timestamp)?.toDate() || new Date(0);
+          const bDateDesc = b.dateTime instanceof Date ? b.dateTime : (b.dateTime as Timestamp)?.toDate() || new Date(0);
+          return bDateDesc.getTime() - aDateDesc.getTime();
+        
+        case 'name-asc':
+          return (a.eventName || '').localeCompare(b.eventName || '');
+        
+        case 'name-desc':
+          return (b.eventName || '').localeCompare(a.eventName || '');
+        
+        default:
+          return 0;
+      }
+    });
+  }, [events, searchTerm, statusFilter, sortBy]);
 
   const formatDateTime = (timestamp: Timestamp | Date | null) => {
     if (!timestamp) return 'Date TBD';
@@ -322,6 +350,55 @@ export default function EventsPage() {
         </div>
       </div>
 
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Events</p>
+              <p className="text-2xl font-bold text-gray-900">{events.length}</p>
+            </div>
+            <Calendar className="h-8 w-8 text-[var(--primary)]" />
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Upcoming</p>
+              <p className="text-2xl font-bold text-blue-600">
+                {events.filter(e => getEventStatus(e.dateTime) === 'upcoming').length}
+              </p>
+            </div>
+            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Ongoing</p>
+              <p className="text-2xl font-bold text-green-600">
+                {events.filter(e => getEventStatus(e.dateTime) === 'ongoing').length}
+              </p>
+            </div>
+            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Completed</p>
+              <p className="text-2xl font-bold text-gray-600">
+                {events.filter(e => getEventStatus(e.dateTime) === 'completed').length}
+              </p>
+            </div>
+            <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+          </div>
+        </div>
+      </div>
+
       {/* Filters and Search */}
       <div className="mb-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -338,6 +415,34 @@ export default function EventsPage() {
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black placeholder:text-gray-500"
                 />
               </div>
+            </div>
+
+            {/* Status Filter */}
+            <div className="sm:w-48">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'upcoming' | 'ongoing' | 'completed')}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black"
+              >
+                <option value="all">All Events</option>
+                <option value="upcoming">Upcoming</option>
+                <option value="ongoing">Ongoing</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+
+            {/* Sort Filter */}
+            <div className="sm:w-48">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'date-asc' | 'date-desc' | 'name-asc' | 'name-desc')}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent text-black"
+              >
+                <option value="date-asc">Date: Earliest First</option>
+                <option value="date-desc">Date: Latest First</option>
+                <option value="name-asc">Name: A to Z</option>
+                <option value="name-desc">Name: Z to A</option>
+              </select>
             </div>
           </div>
         </div>

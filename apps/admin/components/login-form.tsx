@@ -32,8 +32,8 @@ export function LoginForm({ onSubmit, isLoading = false, error }: LoginFormProps
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: 'admin@carespace.com',
-      password: 'admin123',
+      email: '',
+      password: '',
     },
   });
 
@@ -53,7 +53,7 @@ export function LoginForm({ onSubmit, isLoading = false, error }: LoginFormProps
             type="email"
             id="email"
             className={cn(
-              'block w-full pl-10 pr-3 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#7C4DFF] focus:border-[#7C4DFF]',
+              'block w-full pl-10 pr-3 py-3 border rounded-lg shadow-sm placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#7C4DFF] focus:border-[#7C4DFF]',
               errors.email ? 'border-red-300' : 'border-gray-300'
             )}
             placeholder="admin@carespace.com"
@@ -82,7 +82,7 @@ export function LoginForm({ onSubmit, isLoading = false, error }: LoginFormProps
             type={showPassword ? 'text' : 'password'}
             id="password"
             className={cn(
-              'block w-full pl-10 pr-10 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#7C4DFF] focus:border-[#7C4DFF]',
+              'block w-full pl-10 pr-10 py-3 border rounded-lg shadow-sm placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#7C4DFF] focus:border-[#7C4DFF]',
               errors.password ? 'border-red-300' : 'border-gray-300'
             )}
             placeholder="Enter your password"
@@ -180,18 +180,6 @@ export function LoginForm({ onSubmit, isLoading = false, error }: LoginFormProps
         )}
       </button>
 
-      {/* Quick Dev Login */}
-      <div className="mt-4 text-center">
-        <p className="text-xs text-gray-500 mb-2">Development Quick Access:</p>
-        <button
-          type="button"
-          onClick={() => onSubmit({ email: 'admin@carespace.com', password: 'admin123' })}
-          disabled={isLoading}
-          className="text-xs text-[#7C4DFF] hover:text-purple-600 underline disabled:opacity-50"
-        >
-          🚀 Quick Login (admin@carespace.com)
-        </button>
-      </div>
     </form>
   );
 }

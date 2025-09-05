@@ -24,21 +24,19 @@ CareSpace/
 │  └─ functions/              # Firebase Cloud Functions (TS)
 ├─ .gitignore
 ├─ README.md
-├─ firestore.rules            # Firestore security rules (checked-in)
-└─ storage.rules              # Storage security rules (checked-in)
 ```
 ---
 Tech Stack
 - Frontend (Mobile): React Native (Expo) + TypeScript
 - Frontend (Admin): Next.js (App Router) + TailwindCSS
-- Backend: Firebase (Auth, Firestore, Storage, FCM, Functions)
+- Backend: Firebase (Auth, Firestore)
 
 ---
 ## ▶️ Running the Frontends
 
 ### Admin (Next.js)
 ```bash
-npm install
+cd apps/admin
 npm run dev
 # open http://localhost:3000
 ```
@@ -47,7 +45,7 @@ npm run dev
 
 **Option A: Expo Go (fastest)**  
 ```bash
-npm install
+cd apps/mobile
 npm run android
 # scan QR with Expo Go app on your phone
 ```
@@ -56,14 +54,24 @@ npm run android
 1. Open Android Studio and start a Pixel emulator (API 34 (Upsidedown Cake) recommended)  
 2. Run:
 ```bash
-npm install
 npm run android
 ```
 
-**Optional: Web preview (for devs without emulator/phone)**  
-```bash
-npm install
-npm run web
-```
+## 🔑 Deployment & Dependencies  
+- **Firebase:** Auth, Firestore
+- **Dependencies:** Listed in respective `package.json` files (`apps/admin`, `apps/mobile`, `services/functions`).  
 
 ---
+## 👥 Authors & Contributions  
+- Team/Author Name(s)  
+- GitHub repo: [https://github.com/hibbychu/CareSpace.git]
+- Additional contributors acknowledged in commit history.  
+
+---
+
+## 🗂️ Zipped Code Base  
+The full code base (including this README) is provided as a zipped archive, to be used as an offline reference.  
+
+---
+
+✅ **Note:** All commits were made before **Saturday, 6th September 2025, 6pm** as per hackathon rules.  
