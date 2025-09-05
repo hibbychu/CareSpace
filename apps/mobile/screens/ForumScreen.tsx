@@ -132,17 +132,10 @@ export default function ForumScreen({ navigation }) {
             </ScrollView>
             ) : null}
 
-            {/* Post Title with REPORT tag */}
-            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
+            {/* Post Title */}
             <Text style={[styles.postTitle, { color: theme.text }]} numberOfLines={1}>
-                {item.title}
+            {item.title}
             </Text>
-            {item.postType === "report" && (
-                <View style={styles.reportTag}>
-                <Text style={styles.reportTagText}>REPORT</Text>
-                </View>
-            )}
-            </View>
 
             {/* Post Body */}
             {item.body ? (
@@ -158,6 +151,13 @@ export default function ForumScreen({ navigation }) {
                 }}
             />
             ) : null}
+
+            {/* REPORT Tag RIGHT BEFORE Actions */}
+            {item.postType === "report" && (
+            <View style={styles.reportTagContainer}>
+                <Text style={styles.reportTagText}>REPORT</Text>
+            </View>
+            )}
 
             {/* Actions */}
             <View style={[styles.actionsRow, { backgroundColor: theme.secondary }]}>
@@ -245,18 +245,19 @@ export default function ForumScreen({ navigation }) {
 export default ForumScreen;
 
 const styles = StyleSheet.create({
-    reportTag: {
+    reportTagContainer: {
         backgroundColor: "red",
         borderRadius: 4,
         paddingHorizontal: 6,
         paddingVertical: 2,
-        marginLeft: 8,
-        },
+        alignSelf: "flex-start",
+        marginBottom: 6,
+    },
         reportTagText: {
         color: "white",
         fontWeight: "bold",
         fontSize: 12,
-        },
+    },
     container: { flex: 1 },
     filterSearchBarBg: {
         flexDirection: "row",
