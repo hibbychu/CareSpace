@@ -147,8 +147,6 @@ const PostDetailScreen = ({ route, navigation }) => {
     </View>
   );
 
-
-  console.log(post.ownerUid + "hi");
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
 

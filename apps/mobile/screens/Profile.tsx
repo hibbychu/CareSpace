@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import { Image } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import { auth } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
@@ -18,38 +19,53 @@ const Profile: React.FC = ({ navigation, route }) => {
     return unsubscribe;
   }, []);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (uidFromParams) {
-        // 1. Use UID from params -- show that user's Firestore profile
-        const profileRef = doc(db, "users", uidFromParams);
-        const profileSnap = await getDoc(profileRef);
-        if (profileSnap.exists()) {
-          setProfileUser(profileSnap.data());
-          setGuestMode(false);
-          console.log(
-            "exist"
-          );
+  useFocusEffect(
+    useCallback(() => {
+      const fetchProfile = async () => {
+        if (uidFromParams) {
+          // Viewing another user's profile
+          const profileRef = doc(db, "users", uidFromParams);
+          const profileSnap = await getDoc(profileRef);
+          if (profileSnap.exists()) {
+            setProfileUser(profileSnap.data());
+            setGuestMode(false);
+          } else {
+            setProfileUser({
+              displayName: "Unknown User",
+              email: "Not found",
+              bio: "No profile available.",
+            });
+            setGuestMode(true);
+          }
+        } else if (user) {
+          // Viewing logged-in user's profile
+          const profileRef = doc(db, "users", user.uid);
+          const profileSnap = await getDoc(profileRef);
+          if (profileSnap.exists()) {
+            setProfileUser(profileSnap.data());
+            setGuestMode(false);
+          } else {
+            setProfileUser({
+              displayName: user.displayName || user.email,
+              email: user.email,
+              bio: user.bio,
+            });
+            setGuestMode(false);
+          }
         } else {
-          // UID provided, but not found
-          setProfileUser({ displayName: "Unknown User", email: "Not found", bio: "No profile available." });
+          // Guest
+          setProfileUser({
+            displayName: "Guest",
+            email: "Not logged in",
+            bio: "No bio available.",
+          });
           setGuestMode(true);
-          console.log(
-            "dont exist"
-          );
         }
-      } else if (user) {
-        // 2. Show currently logged in user's details
-        setProfileUser({ displayName: user.displayName || user.email, email: user.email, bio: "No bio yet." });
-        setGuestMode(false);
-      } else {
-        // 3. Show guest view
-        setProfileUser({ displayName: "Guest", email: "Not logged in", bio: "No bio available." });
-        setGuestMode(true);
-      }
-    };
-    fetchProfile();
-  }, [uidFromParams, user]);
+      };
+
+      fetchProfile();
+    }, [uidFromParams, user])
+  );
 
   const handleLogout = async () => {
     try {
@@ -65,10 +81,24 @@ const Profile: React.FC = ({ navigation, route }) => {
 
   // Only allow edit/logout for own profile (not when viewing another user's profile or guest)
   const isOwnProfile = !uidFromParams && !!user;
-
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.avatar} />
+
+      {profileUser?.profileImage ? (
+        <Image
+          source={{ uri: profileUser.profileImage }}
+          style={styles.avatar}
+          resizeMode="cover"
+        />
+      ) : (
+        <Image
+          source={{ uri: '' }} // fallback image
+          style={styles.avatar}
+          resizeMode="cover"
+        />
+      )}
+
+
       <Text style={styles.name}>{profileUser?.displayName}</Text>
       <Text style={styles.email}>{profileUser?.email}</Text>
 
