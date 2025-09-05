@@ -15,7 +15,7 @@ interface Post {
   id: string;
   title?: string;
   body?: string;
-  type?: 'public' | 'anonymous';
+  postType?: 'post' | 'report';
   owner?: string;
   likes?: number;
   createdAt?: Timestamp | Date;
@@ -100,8 +100,8 @@ export default function DashboardPage() {
       const postsSnapshot = await getDocs(collection(db, 'posts'));
       const posts = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
       
-      const publicPosts = posts.filter(post => post.type === 'public').length;
-      const anonymousReports = posts.filter(post => post.type === 'anonymous').length;
+      const publicPosts = posts.filter(post => post.postType === 'post').length;
+      const anonymousReports = posts.filter(post => post.postType === 'report').length;
       const totalLikes = posts.reduce((sum, post) => sum + (post.likes || 0), 0);
 
       // Count total comments across all posts
@@ -144,9 +144,9 @@ export default function DashboardPage() {
           recentActivities.push({
             id: post.id,
             type: 'post',
-            message: `New ${post.type} post: "${post.title || 'Untitled'}"`,
+            message: `New ${post.postType === 'report' ? 'report' : 'post'}: "${post.title || 'Untitled'}"`,
             timestamp,
-            color: post.type === 'anonymous' ? 'yellow' : 'blue'
+            color: post.postType === 'report' ? 'yellow' : 'blue'
           });
         }
       });

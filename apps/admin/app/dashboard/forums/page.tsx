@@ -609,28 +609,32 @@ export default function ForumsPage() {
   };
 
   const ImageSlider = ({ images, postId }: { images: string[], postId: string }) => {
-    if (!images || images.length === 0) return null;
+    // Filter out empty strings and check if we have valid images
+    const validImages = images?.filter(img => img && img.trim() !== '') || [];
+    if (validImages.length === 0) return null;
     
     const currentIndex = currentImageIndex[postId] || 0;
+    const safeIndex = currentIndex < validImages.length ? currentIndex : 0;
     
     return (
       <div className="relative mb-4">
         <div className="relative h-64 rounded-lg overflow-hidden bg-gray-100">
           <img 
-            src={images[currentIndex]} 
-            alt={`Post image ${currentIndex + 1}`}
+            src={validImages[safeIndex]} 
+            alt={`Post image ${safeIndex + 1}`}
             className="w-full h-full object-cover"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
-              target.src = '/placeholder-image.png'; // Fallback image
+              target.style.display = 'none';
+              target.parentElement!.innerHTML = '<div class="w-full h-full bg-gray-200 flex items-center justify-center"><span class="text-gray-500 text-sm">Image failed to load</span></div>';
             }}
           />
           
-          {images.length > 1 && (
+          {validImages.length > 1 && (
             <>
               {/* Previous button */}
               <button
-                onClick={() => prevImage(postId, images.length)}
+                onClick={() => prevImage(postId, validImages.length)}
                 className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -638,7 +642,7 @@ export default function ForumsPage() {
               
               {/* Next button */}
               <button
-                onClick={() => nextImage(postId, images.length)}
+                onClick={() => nextImage(postId, validImages.length)}
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
               >
                 <ChevronRight className="h-4 w-4" />
@@ -646,12 +650,12 @@ export default function ForumsPage() {
               
               {/* Image indicators */}
               <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
-                {images.map((_, index) => (
+                {validImages.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentImageIndex(prev => ({ ...prev, [postId]: index }))}
                     className={`w-2 h-2 rounded-full transition-all ${
-                      index === currentIndex ? 'bg-white' : 'bg-white bg-opacity-50'
+                      index === safeIndex ? 'bg-white' : 'bg-white bg-opacity-50'
                     }`}
                   />
                 ))}
@@ -659,7 +663,7 @@ export default function ForumsPage() {
               
               {/* Image counter */}
               <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
-                {currentIndex + 1} / {images.length}
+                {safeIndex + 1} / {validImages.length}
               </div>
             </>
           )}
@@ -807,17 +811,6 @@ export default function ForumsPage() {
             Create Post
           </button>
         </div>
-      </div>
-
-      {/* Debug Info - Remove this later */}
-      <div className="mb-4 p-4 bg-gray-100 rounded-lg text-sm text-black">
-        <p><strong>Debug Info:</strong></p>
-        <p>Posts fetched: {posts.length}</p>
-        <p>Loading state: {loading ? 'Yes' : 'No'}</p>
-        <p>Filter: {typeFilter} | Sort: {sortBy}</p>
-        {posts.length > 0 && (
-          <p>Sample post: {posts[0]?.title || 'No title'} (Type: {posts[0]?.postType || 'Unknown'})</p>
-        )}
       </div>
 
       {/* Stats */}
