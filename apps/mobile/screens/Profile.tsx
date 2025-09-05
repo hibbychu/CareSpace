@@ -152,12 +152,12 @@ const Profile: React.FC = ({ navigation, route }) => {
           </TouchableOpacity>
         )}
 
-        {user && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>About Me</Text>
-            <Text style={styles.sectionContent}>{profileUser?.bio}</Text>
-          </View>
-        )}
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>About Me</Text>
+          <Text style={styles.sectionContent}>{profileUser?.bio}</Text>
+        </View>
+
       </ScrollView>
 
       <CustomAlert
