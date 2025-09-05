@@ -11,12 +11,13 @@ export const lightTheme = {
   iconsGrey: "grey",
   commentBackground: "#DADADA",
   cardBackground: "#fff",
+  shadow: "#1A1A1A",
   dateGrey: "#aaa",
   reportRed: "#d32f2f",
 };
 
 export const darkTheme = {
-  background: "#121212",
+  background: "#1A1A1A",
   text: "#fff",
   primary: "#7b2cbf",
   secondary: "#9688B2",
@@ -28,6 +29,7 @@ export const darkTheme = {
   iconsGrey: "#fff",
   commentBackground: "#1c1c1c",
   cardBackground: "#2A2A2A",
+  shadow: null,
   dateGrey: "#aaa",
   reportRed: "#ff6b6b",
 };
