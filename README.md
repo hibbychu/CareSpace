@@ -34,27 +34,31 @@ Tech Stack
 ---
 ## ▶️ Running the Frontends
 
-### Admin (Next.js)
+### 1 Install Dependencies
+
+At the project root:
+
+```bash
+cd CareSpace
+npm install
+```
+
+### 2 Start the Admin Panel (Next.js)
+
 ```bash
 cd apps/admin
 npm run dev
 # open http://localhost:3000
 ```
 
-### Mobile (Expo)
+### 3 Start the Mobile App (Expo)
+Start your Android emulator before this step
+Recommended: Piexl emulator with API 34 (Upsidedown Cake)
 
-**Option A: Expo Go (fastest)**  
 ```bash
 cd apps/mobile
-npm run android
+npm run android or npx expo start
 # scan QR with Expo Go app on your phone
-```
-
-**Option B: Android emulator**  
-1. Open Android Studio and start a Pixel emulator (API 34 (Upsidedown Cake) recommended)  
-2. Run:
-```bash
-npm run android
 ```
 
 ## 🔑 Deployment & Dependencies  
