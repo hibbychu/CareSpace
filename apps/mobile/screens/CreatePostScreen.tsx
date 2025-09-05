@@ -69,6 +69,7 @@ export default function CreatePostScreen() {
         title,
         body: bodyHtml,
         images,
+        likes: 0,
         postType: type === "public" ? "post" : "report",
         ownerUid: type === "public" ? auth.currentUser?.uid : "",
         owner: auth.currentUser?.email || "Anonymous",

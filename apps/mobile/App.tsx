@@ -201,7 +201,7 @@ function ProfileStack() {
         component={EditProfile}
         options={{
           headerTitle: "Sign Up",
-          headerStyle: { backgroundColor: "#4f46e5" },
+          headerStyle: { backgroundColor: theme.primary },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
         }}
@@ -256,7 +256,7 @@ function ForumStack() {
         component={PostDetailScreen}
         options={({ route }) => ({
           headerTitle: route.params?.post?.postType === "report" ? "Report Details" : "Post Details",
-          headerStyle: { backgroundColor: route.params?.post?.postType === "report" ? "#d32f2f" : "#7b2cbf",},
+          headerStyle: { backgroundColor: route.params?.post?.postType === "report" ? "#d32f2f" : "#7b2cbf", },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
         })}
