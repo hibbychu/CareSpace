@@ -28,7 +28,10 @@ const LoginScreen = ({ navigation }) => {
     }
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigation.replace("ProfileMain");
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "ProfileMain" }]
+      });
     } catch (err: any) {
       customAlert("error", "Login Failed");
     }

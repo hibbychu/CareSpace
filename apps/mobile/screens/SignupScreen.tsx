@@ -43,7 +43,6 @@ const SignupScreen = ({ navigation }) => {
       return;
     }
 
-
     try {
       // 1. Create user
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
