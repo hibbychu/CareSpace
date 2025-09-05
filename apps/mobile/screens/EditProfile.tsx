@@ -1,60 +1,65 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { getAuth } from "firebase/auth";
+import { db } from "../firebase";
+import { updateDoc, doc } from "firebase/firestore";
+
+// PRESET PROFILE IMAGE OPTIONS
+const profileImages = [
+  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTNKPxf1kaLpjwwABj7hshow0GKt0iNRNsBQg&s",
+  "https://pngemoji.com/wp-content/uploads/2025/08/3d-red-beggar-emoji-holding-hat-money-crying-face.png",
+  "https://media.tenor.com/KJ_DW8BB-FIAAAAe/beggar-emoji-begging.png",
+  "https://i.imgflip.com/12mv0n.jpg?a488040"
+];
 
 function EditProfile({ route }) {
   const navigation = useNavigation();
-  const initialName = route?.params?.initialName || '';
-  const initialEmail = route?.params?.initialEmail || '';
-  const initialAbout = route?.params?.initialAbout || '';
-  const initialAvatar = route?.params?.initialAvatar || '';
-  
-  const [name, setName] = useState(initialName);
-  const [email, setEmail] = useState(initialEmail);
-  const [about, setAbout] = useState(initialAbout);
-  const [avatar, setAvatar] = useState(initialAvatar); // profile pic
+  // initial values as passed by Profile
+  const initialBio = route?.params?.initialAbout || '';
+  const initialProfileImage = route?.params?.initialAvatar || profileImages[0];
+  const [bio, setBio] = useState(initialBio);
+  const [selectedProfileImage, setSelectedProfileImage] = useState(initialProfileImage);
 
-  // Function to pick image
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-    if (!result.canceled) {
-      setAvatar(result.assets[0].uri);
+  // On Save: Here you can add your Firestore update logic!
+const handleSave = async () => {
+  try {
+    const user = getAuth().currentUser;
+    if (!user) {
+      Alert.alert("You must be logged in to update your profile.");
+      return;
     }
-  };
-
-  const handleSave = () => {
-    alert('Profile updated!');
+    const uid = user.uid;
+    const userRef = doc(db, "users", uid);
+    await updateDoc(userRef, {
+      profileImage: selectedProfileImage,
+      bio: bio
+    });
+    Alert.alert("Profile updated!");
     navigation.goBack();
-  };
+  } catch (err) {
+    Alert.alert("Update failed!", err.message || String(err));
+  }
+};
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Edit Profile</Text>
 
-      {/* Avatar section */}
-      <View style={styles.avatarBorder}>
-        {avatar ? (
-          <Image source={{ uri: avatar }} style={styles.avatar} />
-        ) : (
-          <View style={styles.avatarPlaceholder} />
-        )}
+      {/* Avatar picker */}
+      <Text style={styles.label}>Select Profile Picture:</Text>
+      <View style={styles.imagePickerRow}>
+        {profileImages.map((url) => (
+          <TouchableOpacity key={url} onPress={() => setSelectedProfileImage(url)}>
+            <Image
+              source={{ uri: url }}
+              style={[styles.profileThumb, selectedProfileImage === url && styles.selectedThumb]}
+            />
+          </TouchableOpacity>
+        ))}
       </View>
-      <TouchableOpacity onPress={pickImage} style={styles.selectPicBtn}>
-        <Text style={styles.selectPicText}>Upload / Change Profile Picture</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.label}>Name</Text>
-      <TextInput style={styles.input} value={name} onChangeText={setName} />
-      {/* <Text style={styles.label}>Email</Text>
-      <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType='email-address' /> */}
       <Text style={styles.label}>About</Text>
-      <TextInput style={[styles.input, styles.textarea]} value={about} onChangeText={setAbout} multiline />
+      <TextInput style={[styles.input, styles.textarea]} value={bio} onChangeText={setBio} multiline />
       <TouchableOpacity style={styles.button} onPress={handleSave}>
         <Text style={styles.buttonText}>Save Changes</Text>
       </TouchableOpacity>
@@ -68,12 +73,10 @@ function EditProfile({ route }) {
 const styles = StyleSheet.create({
   container: { padding: 28, backgroundColor: '#f5f5f5', flexGrow: 1 },
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 18, marginTop: 20, textAlign: 'center' },
-  avatarBorder: { width: 120, height: 120, borderRadius: 60, borderWidth: 3, borderColor: '#7b2cbf', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', marginBottom: 12, backgroundColor: '#fff' },
-  avatar: { width: 110, height: 110, borderRadius: 55 },
-  avatarPlaceholder: { width: 110, height: 110, borderRadius: 55, backgroundColor: '#eee' },
-  selectPicBtn: { alignSelf: 'center', marginBottom: 10 },
-  selectPicText: { color: '#7b2cbf', fontSize: 16, textDecorationLine: 'underline' },
-  label: { fontSize: 17, fontWeight: '600', marginBottom: 5, marginTop: 11 },
+  label: { fontSize: 17, fontWeight: '600', marginBottom: 5, marginTop: 17 },
+  imagePickerRow: { flexDirection: "row", justifyContent: "center", marginVertical: 15 },
+  profileThumb: { width: 60, height: 60, borderRadius: 30, marginHorizontal: 8, borderWidth: 2, borderColor: "#ccc" },
+  selectedThumb: { borderColor: "#4f46e5", borderWidth: 3 },
   input: { backgroundColor: '#fff', borderRadius: 7, borderWidth: 1, borderColor: '#ccc', padding: 13, fontSize: 16, marginBottom: 6 },
   textarea: { minHeight: 80, textAlignVertical: 'top', marginBottom: 12 },
   button: { backgroundColor: '#7b2cbf', paddingVertical: 14, borderRadius: 9, marginTop: 16, alignItems: 'center' },
