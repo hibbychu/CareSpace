@@ -21,7 +21,6 @@ function EditProfile({ route }) {
   const [bio, setBio] = useState(initialBio);
   const [selectedProfileImage, setSelectedProfileImage] = useState(initialProfileImage);
 
-  // On Save: Here you can add your Firestore update logic!
 const handleSave = async () => {
   try {
     const user = getAuth().currentUser;
@@ -35,7 +34,7 @@ const handleSave = async () => {
       profileImage: selectedProfileImage,
       bio: bio
     });
-    Alert.alert("Profile updated!");
+    Alert.alert("Profile updated!", "");
     navigation.goBack();
   } catch (err) {
     Alert.alert("Update failed!", err.message || String(err));

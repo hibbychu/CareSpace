@@ -1,7 +1,7 @@
 import { Image } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import { auth } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
@@ -19,38 +19,53 @@ const Profile: React.FC = ({ navigation, route }) => {
     return unsubscribe;
   }, []);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (uidFromParams) {
-        // 1. Profile for another user by UID param (from Firestore)
-        const profileRef = doc(db, "users", uidFromParams);
-        const profileSnap = await getDoc(profileRef);
-        if (profileSnap.exists()) {
-          setProfileUser(profileSnap.data());
-          setGuestMode(false);
+  useFocusEffect(
+    useCallback(() => {
+      const fetchProfile = async () => {
+        if (uidFromParams) {
+          // Viewing another user's profile
+          const profileRef = doc(db, "users", uidFromParams);
+          const profileSnap = await getDoc(profileRef);
+          if (profileSnap.exists()) {
+            setProfileUser(profileSnap.data());
+            setGuestMode(false);
+          } else {
+            setProfileUser({
+              displayName: "Unknown User",
+              email: "Not found",
+              bio: "No profile available.",
+            });
+            setGuestMode(true);
+          }
+        } else if (user) {
+          // Viewing logged-in user's profile
+          const profileRef = doc(db, "users", user.uid);
+          const profileSnap = await getDoc(profileRef);
+          if (profileSnap.exists()) {
+            setProfileUser(profileSnap.data());
+            setGuestMode(false);
+          } else {
+            setProfileUser({
+              displayName: user.displayName || user.email,
+              email: user.email,
+              bio: user.bio,
+            });
+            setGuestMode(false);
+          }
         } else {
-          setProfileUser({ displayName: "Unknown User", email: "Not found", bio: "No profile available." });
+          // Guest
+          setProfileUser({
+            displayName: "Guest",
+            email: "Not logged in",
+            bio: "No bio available.",
+          });
           setGuestMode(true);
         }
-      } else if (user) {
-        // 2. Profile for currently logged-in user by their UID (from Firestore, not Auth info)
-        const profileRef = doc(db, "users", user.uid);
-        const profileSnap = await getDoc(profileRef);
-        if (profileSnap.exists()) {
-          setProfileUser(profileSnap.data());
-          setGuestMode(false);
-        } else {
-          setProfileUser({ displayName: user.displayName || user.email, email: user.email, bio: user.bio});
-          setGuestMode(false);
-        }
-      } else {
-        // 3. Guest
-        setProfileUser({ displayName: "Guest", email: "Not logged in", bio: "No bio available." });
-        setGuestMode(true);
-      }
-    };
-    fetchProfile();
-  }, [uidFromParams, user]);
+      };
+
+      fetchProfile();
+    }, [uidFromParams, user])
+  );
 
   const handleLogout = async () => {
     try {
@@ -63,8 +78,6 @@ const Profile: React.FC = ({ navigation, route }) => {
       Alert.alert("Error", "Unable to logout");
     }
   };
-
-  console.log("Profile data!:", user);
 
   // Only allow edit/logout for own profile (not when viewing another user's profile or guest)
   const isOwnProfile = !uidFromParams && !!user;
