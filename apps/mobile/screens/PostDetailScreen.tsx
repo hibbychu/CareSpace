@@ -32,6 +32,7 @@ import CustomAlert from "./CustomAlert";
 
 const PostDetailScreen = ({ route, navigation }) => {
   const { post } = route.params;
+  const [postData, setPostData] = useState(post);
   const { theme } = useContext(ThemeContext);
   const { width } = Dimensions.get("window");
   const [commentText, setCommentText] = useState("");
@@ -104,7 +105,18 @@ const PostDetailScreen = ({ route, navigation }) => {
     }
   };
 
-  const handleUpvote = async (commentId: string) => {
+  const likePost = async (commentId: string) => {
+    try {
+      const ref = doc(db, "posts", post.id);
+      await updateDoc(ref, { likes: increment(1) });
+
+      setPostData((prev) => ({ ...prev, likes: prev.likes + 1 }));
+    } catch (err) {
+      console.log("comment upvote error", err);
+    }
+  };
+
+  const likeComment = async (commentId: string) => {
     try {
       const ref = doc(db, "posts", post.id, "comments", commentId);
       await updateDoc(ref, { likes: increment(1) });
@@ -133,7 +145,7 @@ const PostDetailScreen = ({ route, navigation }) => {
       <Text style={[styles.commentText, { color: theme.postBodyText }]}>{item.text}</Text>
 
       <View style={styles.commentActionsRow}>
-        <TouchableOpacity style={styles.commentActionBtn} onPress={() => handleUpvote(item.id)}>
+        <TouchableOpacity style={styles.commentActionBtn} onPress={() => likeComment(item.id)}>
           <Ionicons name="heart" size={20} color={theme.text2} />
           <Text style={[styles.commentActionText, { color: theme.text }]}>{item.likes}</Text>
         </TouchableOpacity>
@@ -182,9 +194,9 @@ const PostDetailScreen = ({ route, navigation }) => {
       </Text>
 
       <View style={styles.actionsRow}>
-        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: theme.text2 }]} >
+        <TouchableOpacity onPress={() => likePost(post.id)} style={[styles.actionBtn, { backgroundColor: theme.text2 }]} >
           <Ionicons name="heart" size={20} color="white" />
-          <Text style={styles.actionText}>{post.likes}</Text>
+          <Text style={styles.actionText}>{postData.likes}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={[styles.actionBtn, { backgroundColor: theme.text2 }]} onPress={handleShare}>
