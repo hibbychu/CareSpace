@@ -29,6 +29,7 @@ type Event = {
   organiser: string;
   address: string;
   description: string;
+  imageUrl?: string;
 };
 
 const latestArticles = [
@@ -71,6 +72,7 @@ function HomeScreen() {
             organiser: data.organiser,
             address: data.address,
             description: data.description,
+            imageUrl: data.imageUrl || null,
           };
         });
 
@@ -103,7 +105,10 @@ function HomeScreen() {
         {/* Render Firestore events */}
         {events.slice(0, 1).map((event) => (
           <View key={event.eventID} style={styles.card}>
-            <Image source={temp} style={styles.cardImage} />
+            <Image
+              source={event.imageUrl ? { uri: event.imageUrl } : temp} // fallback to temp if no imageUrl
+              style={styles.cardImage}
+            />
             <View style={styles.cardContent}>
               <Text style={styles.cardTitle}>{event.eventName}</Text>
               <Text style={styles.cardDate}>

@@ -42,6 +42,7 @@ type Event = {
   organiser: string;
   address: string;
   description: string;
+  imageUrl?: string;  // new
 };
 
 function EventsScreen() {
@@ -82,7 +83,10 @@ function EventsScreen() {
       <View style={styles.cardsContainer}>
         {events.map((event) => (
           <View key={event.id} style={styles.card}>
-            <Image source={temp} style={styles.cardImage} />
+            <Image
+              source={event.imageUrl ? { uri: event.imageUrl } : temp} // fallback to temp if no imageUrl
+              style={styles.cardImage}
+            />
             <View style={styles.cardContent}>
               <Text style={[styles.cardTitle, { color: theme.text }]}>
                 {event.eventName}
