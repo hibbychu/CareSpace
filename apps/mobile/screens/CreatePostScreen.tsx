@@ -138,7 +138,7 @@ export default function CreatePostScreen() {
             backgroundColor: theme.background,
             color: theme.text,
             placeholderColor: theme.secondary,
-            contentCSSText: "font-size: 16px; min-height: 150px;",
+            contentCSSText: "font-size: 16px; min-height: 400px;",
           }}
         />
 
