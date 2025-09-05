@@ -25,6 +25,7 @@ import {
   updateDoc,
   doc,
   increment,
+  getDoc
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import RenderHTML from "react-native-render-html";
@@ -41,7 +42,60 @@ const PostDetailScreen = ({ route, navigation }) => {
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState<"success" | "error" | "info" | "warning">("info");
+  const [usersMap, setUsersMap] = useState<{ [uid: string]: { displayName: string; profileImage: string } }>({});
 
+  //load commenters
+  useEffect(() => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (u) => setUser(u));
+
+    const commentsQ = query(
+      collection(db, "posts", post.id, "comments"),
+      orderBy("createdAt", "desc")
+    );
+
+    const unsubscribeComments = onSnapshot(commentsQ, async (snap) => {
+      const commentsData = snap.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
+        createdAt: d.data().createdAt ? d.data().createdAt.toDate() : new Date(),
+      }));
+
+      setComments(commentsData);
+
+      // Fetch any new users that are not already in usersMap
+      const uidsToFetch = commentsData
+        .map((c) => c.authorUid)
+        .filter((uid) => uid && !usersMap[uid]);
+
+      if (uidsToFetch.length > 0) {
+        const newUsers: { [uid: string]: { displayName: string; profileImage: string } } = {};
+        await Promise.all(
+          uidsToFetch.map(async (uid) => {
+            const docSnap = await getDoc(doc(db, "users", uid));
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              newUsers[uid] = {
+                displayName: data.displayName || "Unknown",
+                profileImage: data.profileImage || ""
+              };
+            } else {
+              newUsers[uid] = { displayName: "Admin", profileImage: "https://cdn-icons-png.flaticon.com/512/9703/9703596.png" };
+            }
+          })
+        );
+        setUsersMap((prev) => {
+          const updatedMap = { ...prev, ...newUsers };
+          console.log("Updated usersMap:", updatedMap); // <-- log here
+          return updatedMap;
+        });
+      }
+    });
+
+    return () => {
+      unsubscribeAuth();
+      unsubscribeComments();
+    };
+  }, [post.id, usersMap]);
 
   // Load comments + auth listener
   useEffect(() => {
@@ -137,8 +191,13 @@ const PostDetailScreen = ({ route, navigation }) => {
         style={styles.commentHeader}
         onPress={() => navigation.navigate("Profile", { uid: item.authorUid })}
       >
-        <Ionicons name="person-circle" size={30} color={theme.text} />
-        <Text style={[styles.commentAuthor, { color: theme.text }]}>{item.authorName}</Text>
+        <Image
+          source={{ uri: usersMap[item.authorUid]?.profileImage || "https://i.pinimg.com/236x/dd/f0/11/ddf0110aa19f445687b737679eec9cb2.jpg" }}
+          style={{ width: 30, height: 30, borderRadius: 15 }}
+        />
+        <Text style={[styles.commentAuthor, { color: theme.text }]}>
+          {usersMap[item.authorUid]?.displayName || item.authorName || "Anonymous"}
+        </Text>
         <Text style={[styles.commentTime, { color: theme.dateGrey }]}>{item.createdAt.toLocaleString()}</Text>
       </TouchableOpacity>
 
@@ -253,6 +312,14 @@ const PostDetailScreen = ({ route, navigation }) => {
               </TouchableOpacity>
             </View>
           </View>
+
+          <CustomAlert
+            message={alertMessage}
+            visible={alertVisible}
+            onHide={() => setAlertVisible(false)}
+            type={alertType}
+          />
+
         </>
       }
     />
