@@ -72,12 +72,12 @@ function HomeStack() {
       <HomeStackNav.Screen
         name="EventDetails"
         component={EventDetails}
-        options={{
-          title: "Event Name",
+        options={({ route }) => ({
+          title: route.params?.event?.eventName || "Event Details",
           headerStyle: { backgroundColor: theme.primary },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
-        }}
+        })}
       />
       <HomeStackNav.Screen
         name="News"

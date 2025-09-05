@@ -18,7 +18,7 @@ import { collection, getDocs, query, orderBy } from "firebase/firestore";
 type HomeStackParamList = {
   HomeMain: undefined;
   Events: undefined;
-  EventDetails: undefined;
+  EventDetails: { eventID: string };
   News: undefined;
 };
 
@@ -65,8 +65,9 @@ function HomeScreen() {
         const eventsData: Event[] = querySnapshot.docs.map((doc) => {
           const data = doc.data();
           return {
+            eventID: doc.id, // <-- add this
             eventName: data.eventName,
-            dateTime: data.dateTime, // Firestore Timestamp
+            dateTime: data.dateTime,
             organiser: data.organiser,
             address: data.address,
             description: data.description,
@@ -100,7 +101,7 @@ function HomeScreen() {
 
       <View style={styles.cardsContainer}>
         {/* Render Firestore events */}
-        {events.map((event) => (
+        {events.slice(0, 1).map((event) => (
           <View key={event.eventID} style={styles.card}>
             <Image source={temp} style={styles.cardImage} />
             <View style={styles.cardContent}>

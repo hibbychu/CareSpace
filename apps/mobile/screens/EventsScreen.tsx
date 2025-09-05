@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext, createContext } from "react";
 import {
   View,
   Text,
@@ -10,17 +10,33 @@ import {
 import temp from "../assets/temp.png";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { db } from "../firebase"; // import your firebase config
+import { db } from "../firebase";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
+
+type Theme = {
+  background: string;
+  text: string;
+  primary: string;
+  dateGrey: string;
+};
+
+export const ThemeContext = createContext<{ theme: Theme }>({
+  theme: {
+    background: "#fff",
+    text: "#000",
+    primary: "#007bff",
+    dateGrey: "#999",
+  },
+});
 
 type HomeStackParamList = {
   HomeMain: undefined;
   Events: undefined;
-  EventDetails: undefined;
+  EventDetails: { eventID: string }; // 👈 pass eventID as param
 };
 
 type Event = {
-  eventID: string;
+  id: string;
   eventName: string;
   dateTime: any;
   organiser: string;
@@ -31,25 +47,21 @@ type Event = {
 function EventsScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
-
   const [events, setEvents] = useState<Event[]>([]);
+  const { theme } = useContext(ThemeContext);
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         const q = query(collection(db, "events"), orderBy("dateTime", "asc"));
         const querySnapshot = await getDocs(q);
-        const eventsData: Event[] = querySnapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            eventID: doc.id,
-            eventName: data.eventName,
-            dateTime: data.dateTime,
-            organiser: data.organiser,
-            address: data.address,
-            description: data.description,
-          };
-        });
+
+        const eventsData: Event[] = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...(doc.data() as Omit<Event, "id">),
+        }));
+
+        console.log("Fetched events:", eventsData);
         setEvents(eventsData);
       } catch (error) {
         console.log("Error fetching events:", error);
@@ -60,32 +72,40 @@ function EventsScreen() {
   }, []);
 
   return (
-    <ScrollView style={{ flex: 1, padding: 20 }}>
-      {/* Filter button row */}
+    <ScrollView style={{ flex: 1, padding: 20, backgroundColor: theme.background }}>
       <View style={styles.titleRow}>
         <TouchableOpacity style={styles.filterButton}>
           <Text style={styles.filterText}>Filter</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Event cards */}
       <View style={styles.cardsContainer}>
         {events.map((event) => (
-          <View key={event.eventID} style={styles.card}>
+          <View key={event.id} style={styles.card}>
             <Image source={temp} style={styles.cardImage} />
             <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>{event.eventName}</Text>
-              <Text style={styles.cardDate}>
-                {event.dateTime?.toDate
-                  ? event.dateTime.toDate().toLocaleString()
-                  : String(event.dateTime)}
+              <Text style={[styles.cardTitle, { color: theme.text }]}>
+                {event.eventName}
               </Text>
-              <Text style={{ marginBottom: 4 }}>Organiser: {event.organiser}</Text>
-              <Text style={{ marginBottom: 4 }}>Address: {event.address}</Text>
-              <Text style={{ marginBottom: 8 }}>{event.description}</Text>
+              <Text style={styles.cardDate}>
+                {event.dateTime?.seconds
+                  ? new Date(event.dateTime.seconds * 1000).toLocaleString()
+                  : ""}
+              </Text>
+              <Text style={{ color: theme.text, marginBottom: 4 }}>
+                Organiser: {event.organiser}
+              </Text>
+              <Text style={{ color: theme.text, marginBottom: 4 }}>
+                Address: {event.address}
+              </Text>
+              <Text style={{ color: theme.text }}>{event.description}</Text>
+
+              {/* 👇 More Details button */}
               <TouchableOpacity
                 style={styles.cardButton}
-                onPress={() => navigation.navigate("EventDetails", { eventID: event.eventID })}
+                onPress={() =>
+                  navigation.navigate("EventDetails", { eventID: event.id })
+                }
               >
                 <Text style={styles.cardButtonText}>More Details</Text>
               </TouchableOpacity>
@@ -147,6 +167,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   cardButton: {
+    marginTop: 10,
     backgroundColor: "#7b2cbf",
     paddingVertical: 8,
     borderRadius: 8,
