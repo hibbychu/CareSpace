@@ -55,8 +55,8 @@ function HomeStack() {
         options={{
           headerTitle: () => (
                 <Image
-                  source={require("./assets/logo.png")}
-                  style={{ width: 120, height: 40, resizeMode: "contain" }}
+                  source={require("./assets/logo-white.png")}
+                  style={{ width: 100, height: 60, resizeMode: "contain" }}
                 />
               ),          
           headerStyle: { backgroundColor: theme.primary },
@@ -177,8 +177,8 @@ function ProfileStack() {
         options={{
           headerTitle: () => (
             <Image
-              source={require('./assets/logo.png')}
-              style={{ width: 120, height: 40, resizeMode: 'contain' }}
+              source={require('./assets/logo-white.png')}
+              style={{ width: 100, height: 60, resizeMode: 'contain' }}
             />
           ),
           headerStyle: { backgroundColor: theme.primary },
