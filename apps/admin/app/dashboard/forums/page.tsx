@@ -35,6 +35,32 @@ export default function ForumsPage() {
   const [sortBy, setSortBy] = useState<'date' | 'likes'>('date');
   const [commentText, setCommentText] = useState<{[postId: string]: string}>({});
   const [loadingComments, setLoadingComments] = useState<{[postId: string]: boolean}>({});
+  
+  // Create Post Modal State
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newPost, setNewPost] = useState({
+    title: '',
+    body: '',
+    type: 'public' as 'public' | 'anonymous'
+  });
+
+  // Handle ESC key to close modal
+  useEffect(() => {
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && showCreateModal) {
+        setShowCreateModal(false);
+      }
+    };
+
+    if (showCreateModal) {
+      document.addEventListener('keydown', handleEscKey);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [showCreateModal]);
 
   const fetchComments = async (postId: string) => {
     try {
@@ -122,6 +148,44 @@ export default function ForumsPage() {
       } catch (error) {
         console.error('Error deleting comment:', error);
       }
+    }
+  };
+
+  const createPost = async () => {
+    if (!newPost.title.trim() || !newPost.body.trim()) {
+      alert('Please fill in both title and content');
+      return;
+    }
+
+    try {
+      setCreating(true);
+      console.log('🔥 Creating new post...');
+      
+      const postData = {
+        title: newPost.title.trim(),
+        body: newPost.body.trim(),
+        type: newPost.type,
+        owner: 'Admin User', // In a real app, this would come from auth
+        likes: 0,
+        createdAt: serverTimestamp(),
+        images: [] // Empty array for now
+      };
+
+      await addDoc(collection(db, 'posts'), postData);
+      
+      // Reset form and close modal
+      setNewPost({ title: '', body: '', type: 'public' });
+      setShowCreateModal(false);
+      
+      // Refresh posts
+      await fetchPosts();
+      
+      console.log('✅ Post created successfully!');
+    } catch (error) {
+      console.error('❌ Error creating post:', error);
+      alert('Failed to create post. Please try again.');
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -230,7 +294,7 @@ export default function ForumsPage() {
             <p className="mt-2 text-gray-600">Moderate community discussions and manage forum content</p>
           </div>
           <button
-            onClick={() => console.log('Create post modal')}
+            onClick={() => setShowCreateModal(true)}
             className="inline-flex items-center px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
           >
             <Plus className="h-5 w-5 mr-2" />
@@ -296,13 +360,13 @@ export default function ForumsPage() {
             {/* Search */}
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-600" />
                 <input
                   type="text"
                   placeholder="Search posts, users, or content..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
                 />
               </div>
             </div>
@@ -312,7 +376,7 @@ export default function ForumsPage() {
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value as 'all' | 'public' | 'anonymous')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
               >
                 <option value="all">All Types</option>
                 <option value="public">Public Posts</option>
@@ -325,7 +389,7 @@ export default function ForumsPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'date' | 'likes')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
               >
                 <option value="date">Sort by Date</option>
                 <option value="likes">Sort by Likes</option>
@@ -519,6 +583,97 @@ export default function ForumsPage() {
           </div>
         )}
       </div>
+
+      {/* Create Post Modal */}
+      {showCreateModal && (
+        <div 
+          className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowCreateModal(false)}
+        >
+          <div 
+            className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Create New Post</h2>
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Form */}
+              <div className="space-y-4">
+                {/* Post Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Post Type
+                  </label>
+                  <select
+                    value={newPost.type}
+                    onChange={(e) => setNewPost({ ...newPost, type: e.target.value as 'public' | 'anonymous' })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
+                  >
+                    <option value="public">Public Post</option>
+                    <option value="anonymous">Anonymous Report</option>
+                  </select>
+                </div>
+
+                {/* Title */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    value={newPost.title}
+                    onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
+                    placeholder="Enter post title..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                  />
+                </div>
+
+                {/* Content */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Content
+                  </label>
+                  <textarea
+                    value={newPost.body}
+                    onChange={(e) => setNewPost({ ...newPost, body: e.target.value })}
+                    placeholder="Write your post content..."
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent resize-none text-black placeholder:text-gray-500"
+                  />
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={createPost}
+                  disabled={creating || !newPost.title.trim() || !newPost.body.trim()}
+                  className="flex-1 px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {creating ? 'Creating...' : 'Create Post'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { collection, getDocs, query, orderBy, deleteDoc, doc, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, deleteDoc, doc, Timestamp, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
 import { Plus, Calendar, MapPin, Users, Edit, Trash2, Search } from 'lucide-react';
 
@@ -18,6 +18,54 @@ export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Create Event Modal State
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newEvent, setNewEvent] = useState({
+    eventName: '',
+    description: '',
+    organiser: '',
+    address: '',
+    date: '',
+    time: ''
+  });
+
+  // Edit Event Modal State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [editEvent, setEditEvent] = useState({
+    eventName: '',
+    description: '',
+    organiser: '',
+    address: '',
+    date: '',
+    time: ''
+  });
+
+  // View Details Modal State
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewingEvent, setViewingEvent] = useState<Event | null>(null);
+
+  // Handle ESC key to close modals
+  useEffect(() => {
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (showCreateModal) setShowCreateModal(false);
+        if (showEditModal) setShowEditModal(false);
+        if (showViewModal) setShowViewModal(false);
+      }
+    };
+
+    if (showCreateModal || showEditModal || showViewModal) {
+      document.addEventListener('keydown', handleEscKey);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [showCreateModal, showEditModal, showViewModal]);
 
   const fetchEvents = useCallback(async () => {
     try {
@@ -63,6 +111,141 @@ export default function EventsPage() {
         console.error('Error deleting event:', error);
       }
     }
+  };
+
+  const createEvent = async () => {
+    if (!newEvent.eventName.trim() || !newEvent.description.trim() || !newEvent.organiser.trim() || !newEvent.address.trim() || !newEvent.date || !newEvent.time) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    try {
+      setCreating(true);
+      console.log('🔥 Creating new event...');
+      
+      // Combine date and time into a proper Timestamp
+      const dateTimeString = `${newEvent.date}T${newEvent.time}`;
+      const dateTime = new Date(dateTimeString);
+      
+      const eventData = {
+        eventName: newEvent.eventName.trim(),
+        description: newEvent.description.trim(),
+        organiser: newEvent.organiser.trim(),
+        address: newEvent.address.trim(),
+        dateTime: dateTime,
+        createdAt: serverTimestamp(),
+      };
+
+      await addDoc(collection(db, 'events'), eventData);
+      
+      // Reset form and close modal
+      setNewEvent({
+        eventName: '',
+        description: '',
+        organiser: '',
+        address: '',
+        date: '',
+        time: ''
+      });
+      setShowCreateModal(false);
+      
+      // Refresh events
+      await fetchEvents();
+      
+      console.log('✅ Event created successfully!');
+    } catch (error) {
+      console.error('❌ Error creating event:', error);
+      alert('Failed to create event. Please try again.');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const openEditModal = (event: Event) => {
+    setEditingEvent(event);
+    
+    // Convert dateTime to date and time strings for the form
+    let dateStr = '';
+    let timeStr = '';
+    
+    if (event.dateTime) {
+      let date: Date;
+      if (event.dateTime instanceof Date) {
+        date = event.dateTime;
+      } else if ((event.dateTime as Timestamp).toDate) {
+        date = (event.dateTime as Timestamp).toDate();
+      } else {
+        date = new Date();
+      }
+      
+      dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD
+      timeStr = date.toTimeString().substring(0, 5); // HH:MM
+    }
+    
+    setEditEvent({
+      eventName: event.eventName || '',
+      description: event.description || '',
+      organiser: event.organiser || '',
+      address: event.address || '',
+      date: dateStr,
+      time: timeStr
+    });
+    
+    setShowEditModal(true);
+  };
+
+  const updateEvent = async () => {
+    if (!editingEvent || !editEvent.eventName.trim() || !editEvent.description.trim() || !editEvent.organiser.trim() || !editEvent.address.trim() || !editEvent.date || !editEvent.time) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    try {
+      setEditing(true);
+      console.log('🔥 Updating event...', editingEvent.eventID);
+      
+      // Combine date and time into a proper Timestamp
+      const dateTimeString = `${editEvent.date}T${editEvent.time}`;
+      const dateTime = new Date(dateTimeString);
+      
+      const eventData = {
+        eventName: editEvent.eventName.trim(),
+        description: editEvent.description.trim(),
+        organiser: editEvent.organiser.trim(),
+        address: editEvent.address.trim(),
+        dateTime: dateTime,
+        updatedAt: serverTimestamp(),
+      };
+
+      await updateDoc(doc(db, 'events', editingEvent.eventID), eventData);
+      
+      // Close modal and reset
+      setShowEditModal(false);
+      setEditingEvent(null);
+      setEditEvent({
+        eventName: '',
+        description: '',
+        organiser: '',
+        address: '',
+        date: '',
+        time: ''
+      });
+      
+      // Refresh events
+      await fetchEvents();
+      
+      console.log('✅ Event updated successfully!');
+    } catch (error) {
+      console.error('❌ Error updating event:', error);
+      alert('Failed to update event. Please try again.');
+    } finally {
+      setEditing(false);
+    }
+  };
+
+  const openViewModal = (event: Event) => {
+    setViewingEvent(event);
+    setShowViewModal(true);
   };
 
   const filteredEvents = events.filter(event => {
@@ -135,7 +318,7 @@ export default function EventsPage() {
             <p className="mt-2 text-gray-600">Create and manage healthcare events, workshops, and seminars</p>
           </div>
           <button
-            onClick={() => console.log('Create event modal')}
+            onClick={() => setShowCreateModal(true)}
             className="inline-flex items-center px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
           >
             <Plus className="h-5 w-5 mr-2" />
@@ -191,7 +374,7 @@ export default function EventsPage() {
                   </div>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => console.log('Edit event', event.eventID)}
+                      onClick={() => openEditModal(event)}
                       className="p-2 text-gray-500 hover:text-[#7C4DFF] hover:bg-[#7C4DFF]/10 rounded-lg transition-all duration-200 transform hover:scale-110"
                     >
                       <Edit className="h-4 w-4" />
@@ -226,7 +409,10 @@ export default function EventsPage() {
 
                 {/* Actions */}
                 <div className="flex gap-2">
-                  <button className="flex-1 px-3 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] hover:shadow-md transition-all duration-200 transform hover:-translate-y-0.5 text-sm font-medium">
+                  <button 
+                    onClick={() => openViewModal(event)}
+                    className="flex-1 px-3 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] hover:shadow-md transition-all duration-200 transform hover:-translate-y-0.5 text-sm font-medium"
+                  >
                     View Details
                   </button>
                   <button className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-[#7C4DFF] hover:text-[#7C4DFF] transition-all duration-200 text-sm font-medium">
@@ -249,12 +435,376 @@ export default function EventsPage() {
               : "Try adjusting your search criteria"}
           </p>
           <button
-            onClick={() => console.log('Create first event modal')}
+            onClick={() => setShowCreateModal(true)}
             className="inline-flex items-center px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
           >
             <Plus className="h-5 w-5 mr-2" />
             Create {events.length === 0 ? 'First' : ''} Event
           </button>
+        </div>
+      )}
+
+      {/* Create Event Modal */}
+      {showCreateModal && (
+        <div 
+          className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowCreateModal(false)}
+        >
+          <div 
+            className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Create New Event</h2>
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Form */}
+              <div className="space-y-4">
+                {/* Event Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Event Name
+                  </label>
+                  <input
+                    type="text"
+                    value={newEvent.eventName}
+                    onChange={(e) => setNewEvent({ ...newEvent, eventName: e.target.value })}
+                    placeholder="Enter event name..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                  />
+                </div>
+
+                {/* Organiser */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Organiser
+                  </label>
+                  <input
+                    type="text"
+                    value={newEvent.organiser}
+                    onChange={(e) => setNewEvent({ ...newEvent, organiser: e.target.value })}
+                    placeholder="Who is organizing this event..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                  />
+                </div>
+
+                {/* Date and Time */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Date
+                    </label>
+                    <input
+                      type="date"
+                      value={newEvent.date}
+                      onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Time
+                    </label>
+                    <input
+                      type="time"
+                      value={newEvent.time}
+                      onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
+                    />
+                  </div>
+                </div>
+
+                {/* Address */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Address
+                  </label>
+                  <input
+                    type="text"
+                    value={newEvent.address}
+                    onChange={(e) => setNewEvent({ ...newEvent, address: e.target.value })}
+                    placeholder="Event location address..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={newEvent.description}
+                    onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                    placeholder="Describe the event..."
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent resize-none text-black placeholder:text-gray-500"
+                  />
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={createEvent}
+                  disabled={creating || !newEvent.eventName.trim() || !newEvent.description.trim() || !newEvent.organiser.trim() || !newEvent.address.trim() || !newEvent.date || !newEvent.time}
+                  className="flex-1 px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {creating ? 'Creating...' : 'Create Event'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Event Modal */}
+      {showEditModal && editingEvent && (
+        <div 
+          className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowEditModal(false)}
+        >
+          <div 
+            className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Edit Event</h2>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Form */}
+              <div className="space-y-4">
+                {/* Event Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Event Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editEvent.eventName}
+                    onChange={(e) => setEditEvent({ ...editEvent, eventName: e.target.value })}
+                    placeholder="Enter event name..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                  />
+                </div>
+
+                {/* Organiser */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Organiser
+                  </label>
+                  <input
+                    type="text"
+                    value={editEvent.organiser}
+                    onChange={(e) => setEditEvent({ ...editEvent, organiser: e.target.value })}
+                    placeholder="Who is organizing this event..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                  />
+                </div>
+
+                {/* Date and Time */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Date
+                    </label>
+                    <input
+                      type="date"
+                      value={editEvent.date}
+                      onChange={(e) => setEditEvent({ ...editEvent, date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Time
+                    </label>
+                    <input
+                      type="time"
+                      value={editEvent.time}
+                      onChange={(e) => setEditEvent({ ...editEvent, time: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black"
+                    />
+                  </div>
+                </div>
+
+                {/* Address */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Address
+                  </label>
+                  <input
+                    type="text"
+                    value={editEvent.address}
+                    onChange={(e) => setEditEvent({ ...editEvent, address: e.target.value })}
+                    placeholder="Event location address..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent text-black placeholder:text-gray-500"
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={editEvent.description}
+                    onChange={(e) => setEditEvent({ ...editEvent, description: e.target.value })}
+                    placeholder="Describe the event..."
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent resize-none text-black placeholder:text-gray-500"
+                  />
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={updateEvent}
+                  disabled={editing || !editEvent.eventName.trim() || !editEvent.description.trim() || !editEvent.organiser.trim() || !editEvent.address.trim() || !editEvent.date || !editEvent.time}
+                  className="flex-1 px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {editing ? 'Updating...' : 'Update Event'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Details Modal */}
+      {showViewModal && viewingEvent && (
+        <div 
+          className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowViewModal(false)}
+        >
+          <div 
+            className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">{viewingEvent.eventName}</h2>
+                <button
+                  onClick={() => setShowViewModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Event Status Badge */}
+              <div className="mb-6">
+                <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(getEventStatus(viewingEvent.dateTime))}`}>
+                  {getEventStatus(viewingEvent.dateTime).toUpperCase()}
+                </span>
+              </div>
+
+              {/* Event Details */}
+              <div className="space-y-6">
+                {/* Date & Time */}
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Calendar className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">Date & Time</h3>
+                    <p className="text-gray-600">{formatDateTime(viewingEvent.dateTime)}</p>
+                  </div>
+                </div>
+
+                {/* Location */}
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <MapPin className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">Location</h3>
+                    <p className="text-gray-600">{viewingEvent.address}</p>
+                  </div>
+                </div>
+
+                {/* Organiser */}
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Users className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">Organiser</h3>
+                    <p className="text-gray-600">{viewingEvent.organiser}</p>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <svg className="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">Description</h3>
+                    <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">{viewingEvent.description}</p>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex gap-3 mt-8">
+                <button
+                  onClick={() => setShowViewModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    setShowViewModal(false);
+                    openEditModal(viewingEvent);
+                  }}
+                  className="flex-1 px-4 py-2 bg-[#7C4DFF] text-white rounded-lg hover:bg-[#6C3CE7] transition-colors"
+                >
+                  Edit Event
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
