@@ -247,7 +247,7 @@ const createStyles = (theme: any) =>
       shadowColor: "#000",
       shadowOpacity: 0.5,
       shadowRadius: 6,
-      elevation: 35,
+      elevation: 5,
     },
     cardImage: {
       width: "100%",
