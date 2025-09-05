@@ -47,14 +47,13 @@ function HomeScreen() {
 
   const styles = createStyles(theme);
   const [events, setEvents] = useState<Event[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
   const [newsArticles, setNewsArticles] = useState<NewsArticle[]>([]);
   const [loadingNews, setLoadingNews] = useState(true);
 
   useEffect(() => {
-    // Fetch and store news once on app start (or debug)
     fetchAndStoreNews().then(() => {
       console.log("fetchAndStoreNews triggered");
-      // After fetching and storing news, fetch from Firestore
       fetchEventsAndNews();
     });
   }, []);
@@ -80,6 +79,7 @@ function HomeScreen() {
         };
       });
       setEvents(eventsData);
+      setLoadingEvents(false);
 
       // Fetch News ordered by publishedAt descending
       const newsQuery = query(
@@ -102,6 +102,7 @@ function HomeScreen() {
     } catch (error) {
       console.log("Error fetching data:", error);
       setLoadingNews(false);
+      setLoadingEvents(false);
     }
   };
 
@@ -122,41 +123,47 @@ function HomeScreen() {
 
       <View style={styles.cardsContainer}>
         {/* Render Firestore events */}
-        {events.slice(0, 1).map((event) => (
-          <View key={event.eventID} style={styles.card}>
-            <Image
-              source={event.imageUrl ? { uri: event.imageUrl } : temp} // fallback to temp if no imageUrl
-              style={styles.cardImage}
-            />
-            <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>{event.eventName}</Text>
-              <Text style={styles.cardDate}>
-                {event.dateTime?.toDate
-                  ? event.dateTime.toDate().toLocaleString()
-                  : String(event.dateTime)}
-              </Text>
-              <Text style={{ color: theme.text, marginBottom: 4 }}>
-                Organiser: {event.organiser}
-              </Text>
-              <Text style={{ color: theme.text, marginBottom: 4 }}>
-                Address: {event.address}
-              </Text>
-              <Text style={{ color: theme.text, marginBottom: 4 }}>
-                {event.description}
-              </Text>
-              <TouchableOpacity
-                style={styles.cardButton}
-                onPress={() =>
-                  navigation.navigate("EventDetails", {
-                    eventID: event.eventID,
-                  })
-                }
-              >
-                <Text style={styles.cardButtonText}>More Details</Text>
-              </TouchableOpacity>
+        {loadingEvents ? (
+          <Text style={{ color: theme.text }}>Loading events...</Text>
+        ) : events.length === 0 ? (
+          <Text style={{ color: theme.text }}>No upcoming events.</Text>
+        ) : (
+          events.slice(0, 1).map((event) => (
+            <View key={event.eventID} style={styles.card}>
+              <Image
+                source={event.imageUrl ? { uri: event.imageUrl } : temp}
+                style={styles.cardImage}
+              />
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle}>{event.eventName}</Text>
+                <Text style={styles.cardDate}>
+                  {event.dateTime?.toDate
+                    ? event.dateTime.toDate().toLocaleString()
+                    : String(event.dateTime)}
+                </Text>
+                <Text style={{ color: theme.text, marginBottom: 4 }}>
+                  Organiser: {event.organiser}
+                </Text>
+                <Text style={{ color: theme.text, marginBottom: 4 }}>
+                  Address: {event.address}
+                </Text>
+                <Text style={{ color: theme.text, marginBottom: 4 }}>
+                  {event.description}
+                </Text>
+                <TouchableOpacity
+                  style={styles.cardButton}
+                  onPress={() =>
+                    navigation.navigate("EventDetails", {
+                      eventID: event.eventID,
+                    })
+                  }
+                >
+                  <Text style={styles.cardButtonText}>More Details</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        ))}
+          ))
+        )}
       </View>
 
       {/* Latest News Section */}
