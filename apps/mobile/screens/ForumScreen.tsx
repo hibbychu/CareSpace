@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 6,
         paddingVertical: 2,
         alignSelf: "flex-start",
-        marginBottom: 6,
+        marginVertical: 6,
     },
     reportTagText: {
         color: "white",
