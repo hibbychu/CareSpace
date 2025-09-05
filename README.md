@@ -52,8 +52,8 @@ npm run dev
 ```
 
 ### 3 Start the Mobile App (Expo)
-Start your Android emulator before this step
-Recommended: Piexl emulator with API 34 (Upsidedown Cake)
+- Start your Android emulator before this step
+- Recommended: Piexl emulator with API 34 (Upsidedown Cake)
 
 ```bash
 cd apps/mobile
