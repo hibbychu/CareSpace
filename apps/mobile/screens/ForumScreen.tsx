@@ -1,12 +1,11 @@
 import React, { useState, useContext, useEffect } from "react";
-import { View, Text, FlatList, Image, TouchableOpacity, TextInput, Share, StyleSheet } from "react-native";
+import { View, Text, FlatList, Image, TouchableOpacity, TextInput, Share, StyleSheet, Dimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Menu } from "react-native-paper";
 import { ThemeContext } from "../ThemeContext";
 import { db } from "../firebase";
 import { collection, query, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
 import RenderHTML from "react-native-render-html";
-import { Dimensions } from "react-native";
 
 export default function ForumScreen({ navigation }) {
     const { theme } = useContext(ThemeContext);
@@ -84,6 +83,7 @@ export default function ForumScreen({ navigation }) {
                     image: data.image || null,
                     owner: data.ownerName || "Owner",
                     createdAt: data.createdAt ? (data.createdAt as Timestamp).toDate() : new Date(),
+                    postType: data.postType,
                 };
             });
             setPosts(arr);
@@ -119,7 +119,7 @@ export default function ForumScreen({ navigation }) {
                     />
                 ) : null}
 
-                <View style={[styles.actionsRow, { backgroundColor: theme.primary }]}>
+                <View style={[styles.actionsRow, { backgroundColor: theme.secondary }]}>
                     <TouchableOpacity style={styles.actionBtn}>
                         <Ionicons name="heart" size={20} color="white" />
                         <Text style={styles.actionText}>{item.likes}</Text>

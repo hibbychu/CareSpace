@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,17 +6,45 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
+  Linking,
 } from "react-native";
 import temp from "../assets/temp.png";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ThemeContext } from "../ThemeContext";
+import { db } from "../firebase";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
 
 type HomeStackParamList = {
   HomeMain: undefined;
   Events: undefined;
-  EventDetails: undefined;
+  EventDetails: { eventID: string };
+  News: undefined;
 };
+
+type Event = {
+  eventID: string;
+  eventName: string;
+  dateTime: any; // Firestore timestamp
+  organiser: string;
+  address: string;
+  description: string;
+};
+
+const latestArticles = [
+  {
+    id: "1",
+    title: "Migrant Workers in Singapore: Safety Measures",
+    description: "Authorities have introduced new safety protocols...",
+    url: "https://example.com/article1",
+  },
+  {
+    id: "2",
+    title: "Housing Improvements for Migrant Workers",
+    description: "A new initiative aims to provide better living conditions...",
+    url: "https://example.com/article2",
+  },
+];
 
 function HomeScreen() {
   const { theme } = useContext(ThemeContext);
@@ -24,9 +52,42 @@ function HomeScreen() {
     useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
 
   const styles = createStyles(theme);
+  const [events, setEvents] = useState<Event[]>([]);
+
+  // Fetch events from Firestore
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        // ⚡ make sure this matches your field name in Firestore
+        const q = query(collection(db, "events"), orderBy("dateTime", "asc"));
+        const querySnapshot = await getDocs(q);
+
+        const eventsData: Event[] = querySnapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            eventID: doc.id, // <-- add this
+            eventName: data.eventName,
+            dateTime: data.dateTime,
+            organiser: data.organiser,
+            address: data.address,
+            description: data.description,
+          };
+        });
+
+        setEvents(eventsData);
+        console.log("Fetched events:", eventsData);
+      } catch (error) {
+        console.log("Error fetching events:", error);
+      }
+    };
+
+  fetchEvents();
+}, []);
 
   return (
-    <ScrollView style={{ flex: 1, padding: 20, backgroundColor: theme.background }}>
+    <ScrollView
+      style={{ flex: 1, padding: 20, backgroundColor: theme.background }}
+    >
       {/* Upcoming Events Section */}
       <View style={styles.titleRow}>
         <Text style={styles.name}>Upcoming Events</Text>
@@ -38,68 +99,72 @@ function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Event cards */}
       <View style={styles.cardsContainer}>
-        {/* Event Card 1 */}
-        <View style={styles.card}>
-          <Image source={temp} style={styles.cardImage} />
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Event 1</Text>
-            <Text style={styles.cardDate}>Sep 5, 2025 | 2:00 PM</Text>
-            <TouchableOpacity
-              style={styles.cardButton}
-              onPress={() => navigation.navigate("EventDetails")}
-            >
-              <Text style={styles.cardButtonText}>More Details</Text>
-            </TouchableOpacity>
+        {/* Render Firestore events */}
+        {events.slice(0, 1).map((event) => (
+          <View key={event.eventID} style={styles.card}>
+            <Image source={temp} style={styles.cardImage} />
+            <View style={styles.cardContent}>
+              <Text style={styles.cardTitle}>{event.eventName}</Text>
+              <Text style={styles.cardDate}>
+                {event.dateTime?.toDate
+                  ? event.dateTime.toDate().toLocaleString()
+                  : String(event.dateTime)}
+              </Text>
+              <Text style={{ color: theme.text, marginBottom: 4 }}>
+                Organiser: {event.organiser}
+              </Text>
+              <Text style={{ color: theme.text, marginBottom: 4 }}>
+                Address: {event.address}
+              </Text>
+              <Text style={{ color: theme.text, marginBottom: 4 }}>
+                {event.description}
+              </Text>
+              <TouchableOpacity
+                style={styles.cardButton}
+                onPress={() => navigation.navigate("EventDetails", { eventID: event.eventID })}
+              >
+                <Text style={styles.cardButtonText}>More Details</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-
-        {/* Event Card 2 */}
-        <View style={styles.card}>
-          <Image source={temp} style={styles.cardImage} />
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Event 2</Text>
-            <Text style={styles.cardDate}>Sep 12, 2025 | 5:00 PM</Text>
-            <TouchableOpacity
-              style={styles.cardButton}
-              onPress={() => navigation.navigate("EventDetails")}
-            >
-              <Text style={styles.cardButtonText}>More Details</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        ))}
       </View>
-
+      
       {/* Latest News Section */}
       <View style={styles.titleRow}>
         <Text style={styles.name}>Latest News</Text>
-        <TouchableOpacity style={styles.viewMoreButton}>
+        <TouchableOpacity
+          style={styles.viewMoreButton}
+          onPress={() => navigation.navigate("News")}
+        >
           <Text style={styles.viewMoreText}>View More</Text>
         </TouchableOpacity>
       </View>
 
       {/* News cards */}
       <View style={styles.cardsContainer}>
-        {/* News Card 1 */}
-        <TouchableOpacity style={styles.card}>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Article 1</Text>
-            <Text style={styles.cardDate}>
-              Synopsis - no read more button, the entire card is clickable
-            </Text>
-          </View>
-        </TouchableOpacity>
-
-        {/* News Card 2 */}
-        <View style={styles.card}>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Article 2</Text>
-            <Text style={styles.cardDate}>Synopsis</Text>
-            <TouchableOpacity style={styles.cardButton}>
-              <Text style={styles.cardButtonText}>Read More</Text>
+        {/* News Cards */}
+        <View style={styles.cardsContainer}>
+          {latestArticles.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.card}
+              onPress={async () => {
+                const supported = await Linking.canOpenURL(item.url);
+                if (supported) {
+                  await Linking.openURL(item.url); // opens in browser
+                } else {
+                  alert("Cannot open this URL: " + item.url);
+                }
+              }}
+            >
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle}>{item.title}</Text>
+                <Text style={styles.cardDate}>{item.description}</Text>
+              </View>
             </TouchableOpacity>
-          </View>
+          ))}
         </View>
       </View>
     </ScrollView>
@@ -122,20 +187,21 @@ const createStyles = (theme: any) =>
     viewMoreButton: {
       backgroundColor: theme.background,
       borderWidth: 2,
-      borderColor: theme.primary,
+      borderColor: theme.text2,
       borderRadius: 8,
       paddingVertical: 6,
       paddingHorizontal: 12,
     },
     viewMoreText: {
-      color: theme.primary,
+      color: theme.text2,
       fontSize: 14,
     },
     cardsContainer: {
       marginTop: 10,
+      marginBottom: 10,
     },
     card: {
-      backgroundColor: theme.background,
+      backgroundColor: theme.cardBackground,
       borderRadius: 12,
       marginBottom: 16,
       overflow: "hidden",
@@ -169,7 +235,7 @@ const createStyles = (theme: any) =>
       alignItems: "center",
     },
     cardButtonText: {
-      color: theme.background,
+      color: "white",
       fontSize: 14,
     },
   });

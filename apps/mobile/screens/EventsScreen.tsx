@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState, useContext, createContext } from "react";
 import {
   View,
   Text,
@@ -10,56 +10,108 @@ import {
 import temp from "../assets/temp.png";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { db } from "../firebase";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
+
+type Theme = {
+  background: string;
+  text: string;
+  primary: string;
+  dateGrey: string;
+};
+
+export const ThemeContext = createContext<{ theme: Theme }>({
+  theme: {
+    background: "#fff",
+    text: "#000",
+    primary: "#007bff",
+    dateGrey: "#999",
+  },
+});
 
 type HomeStackParamList = {
   HomeMain: undefined;
   Events: undefined;
-  EventDetails: undefined;
+  EventDetails: { eventID: string }; // 👈 pass eventID as param
+};
+
+type Event = {
+  id: string;
+  eventName: string;
+  dateTime: any;
+  organiser: string;
+  address: string;
+  description: string;
 };
 
 function EventsScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const [events, setEvents] = useState<Event[]>([]);
+  const { theme } = useContext(ThemeContext);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const q = query(collection(db, "events"), orderBy("dateTime", "asc"));
+        const querySnapshot = await getDocs(q);
+
+        const eventsData: Event[] = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...(doc.data() as Omit<Event, "id">),
+        }));
+
+        console.log("Fetched events:", eventsData);
+        setEvents(eventsData);
+      } catch (error) {
+        console.log("Error fetching events:", error);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
   return (
-    <ScrollView style={{ flex: 1, padding: 20 }}>
-      {/* Upcoming Events Section */}
+    <ScrollView style={{ flex: 1, padding: 20, backgroundColor: theme.background }}>
       <View style={styles.titleRow}>
         <TouchableOpacity style={styles.filterButton}>
           <Text style={styles.filterText}>Filter</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Event cards */}
       <View style={styles.cardsContainer}>
-        {/* Event Card 1 */}
-        <View style={styles.card}>
-          <Image source={temp} style={styles.cardImage} />
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Event 1</Text>
-            <Text style={styles.cardDate}>Sep 5, 2025 | 2:00 PM</Text>
-            <TouchableOpacity
-              style={styles.cardButton}
-              onPress={() => navigation.navigate("EventDetails")}
-            >
-              <Text style={styles.cardButtonText}>More Details</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        {events.map((event) => (
+          <View key={event.id} style={styles.card}>
+            <Image source={temp} style={styles.cardImage} />
+            <View style={styles.cardContent}>
+              <Text style={[styles.cardTitle, { color: theme.text }]}>
+                {event.eventName}
+              </Text>
+              <Text style={styles.cardDate}>
+                {event.dateTime?.seconds
+                  ? new Date(event.dateTime.seconds * 1000).toLocaleString()
+                  : ""}
+              </Text>
+              <Text style={{ color: theme.text, marginBottom: 4 }}>
+                Organiser: {event.organiser}
+              </Text>
+              <Text style={{ color: theme.text, marginBottom: 4 }}>
+                Address: {event.address}
+              </Text>
+              <Text style={{ color: theme.text }}>{event.description}</Text>
 
-        {/* Event Card 2 */}
-        <View style={styles.card}>
-          <Image source={temp} style={styles.cardImage} />
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Event 2</Text>
-            <Text style={styles.cardDate}>Sep 12, 2025 | 5:00 PM</Text>
-            <TouchableOpacity
-              style={styles.cardButton}
-              onPress={() => navigation.navigate("EventDetails")}
-            >
-              <Text style={styles.cardButtonText}>More Details</Text>
-            </TouchableOpacity>
+              {/* 👇 More Details button */}
+              <TouchableOpacity
+                style={styles.cardButton}
+                onPress={() =>
+                  navigation.navigate("EventDetails", { eventID: event.id })
+                }
+              >
+                <Text style={styles.cardButtonText}>More Details</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        ))}
       </View>
     </ScrollView>
   );
@@ -67,14 +119,10 @@ function EventsScreen() {
 
 const styles = StyleSheet.create({
   titleRow: {
-    flexDirection: "row", // horizontal layout
-    justifyContent: "space-between", // push items to edges
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 16,
-  },
-  name: {
-    fontSize: 22,
-    fontWeight: "bold",
   },
   filterButton: {
     backgroundColor: "#fff",
@@ -119,6 +167,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   cardButton: {
+    marginTop: 10,
     backgroundColor: "#7b2cbf",
     paddingVertical: 8,
     borderRadius: 8,

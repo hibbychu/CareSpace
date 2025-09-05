@@ -1,4 +1,4 @@
-import React, { useRef, useState, useContext } from "react";
+import React, { useRef, useState, useContext, useEffect } from "react";
 import { View, TextInput, StyleSheet, TouchableOpacity, Text, ScrollView, Image, Platform } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
@@ -7,6 +7,8 @@ import { RichEditor, RichToolbar, actions } from "react-native-pell-rich-editor"
 import { ThemeContext } from "../ThemeContext";
 import { db, auth } from "../firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import CustomAlert from "./CustomAlert";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function CreatePostScreen() {
   const route = useRoute();
@@ -14,13 +16,23 @@ export default function CreatePostScreen() {
   const [title, setTitle] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const richText = useRef<RichEditor>(null);
-
-  const { theme } = useContext(ThemeContext); // access theme
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState<"success" | "error" | "info" | "warning">("info");
+  const { theme } = useContext(ThemeContext);
+  //check if user is logged in.
+  const [user, setUser] = useState<any>(null);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => setUser(u));
+    return () => unsubscribe();
+  }, []);
 
   const handleAddImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
-      alert("Permission to access media library is required!");
+      setAlertMessage("Permission to access media library is required!");
+      setAlertType("error");
+      setAlertVisible(true);
       return;
     }
 
@@ -38,11 +50,18 @@ export default function CreatePostScreen() {
   };
 
   const handlePost = async () => {
+    if (!user) {
+      setAlertMessage("Login required. Please sign in to create a post or report");
+      setAlertType("info");
+      setAlertVisible(true);
+      return;
+    }
     const bodyHtml = await richText.current?.getContentHtml();
     console.log({ title, bodyHtml, images, type });
-    // Implement post logic
     if (!title.trim() || !bodyHtml?.trim()) {
-      alert("Title and body cannot be empty");
+      setAlertMessage("Title and body cannot be empty");
+      setAlertType("error");
+      setAlertVisible(true);
       return;
     }
 
@@ -52,17 +71,23 @@ export default function CreatePostScreen() {
         body: bodyHtml,
         images,
         type,
+        postType: type === "public" ? "post" : "report",
         owner: auth.currentUser?.email || "Anonymous",
         createdAt: serverTimestamp(),
       });
 
-      alert("Post created!");
+      setAlertMessage("Post created successfully");
+      setAlertType("success");
+      setAlertVisible(true);
       setTitle("");
       setImages([]);
       richText.current?.setContentHTML(""); // clear editor
     } catch (err) {
       console.error("Error adding post:", err);
-      alert("Failed to create post.");
+      setAlertMessage("Failed to create post.");
+      setAlertType("error");
+      setAlertVisible(true);
+      return;
     }
   };
 
@@ -127,6 +152,13 @@ export default function CreatePostScreen() {
           ))}
         </ScrollView>
       </ScrollView>
+
+      <CustomAlert
+        message={alertMessage}
+        visible={alertVisible}
+        onHide={() => setAlertVisible(false)}
+        type={alertType}
+      />
     </View>
   );
 }

@@ -16,5 +16,13 @@ service cloud.firestore {
       allow create: if true;
       allow read: if request.auth != null && request.auth.token.admin == true;
     }
+    match /events/{eventId} {
+      allow read: if true;  // For testing - allow anyone to read events
+      // You can refine this later to require auth if needed:
+      // allow read: if request.auth != null;
+    }
+    match /{document=**} {
+      allow read, write: if true;
+    }
   }
 }

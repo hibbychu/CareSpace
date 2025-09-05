@@ -9,6 +9,8 @@ import {
   TouchableOpacity,
   FlatList,
   Alert,
+  Dimensions,
+  Share,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { ThemeContext } from "../ThemeContext";
@@ -25,14 +27,20 @@ import {
   increment,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
+import RenderHTML from "react-native-render-html";
+import CustomAlert from "./CustomAlert";
 
-const PostDetailScreen = ({ route }) => {
+const PostDetailScreen = ({ route, navigation }) => {
   const { post } = route.params;
   const { theme } = useContext(ThemeContext);
-
+  const { width } = Dimensions.get("window");
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState<"success" | "error" | "info" | "warning">("info");
+
 
   // Load comments + auth listener
   useEffect(() => {
@@ -63,7 +71,9 @@ const PostDetailScreen = ({ route }) => {
   const addComment = async () => {
     if (!commentText.trim()) return;
     if (!user) {
-      Alert.alert("Login required", "Please sign in to add a comment.");
+      setAlertMessage("Login required. Please sign in to add a comment.");
+      setAlertType("info");
+      setAlertVisible(true);
       return;
     }
 
@@ -78,16 +88,19 @@ const PostDetailScreen = ({ route }) => {
       setCommentText("");
     } catch (err) {
       console.log("add comment error", err);
-      Alert.alert("Error", "Unable to post comment.");
+      setAlertMessage("Error. Unable to post comment.");
+      setAlertType("info");
+      setAlertVisible(true);
     }
   };
 
   const handleShare = async () => {
     try {
-      const message = post.title + (post.body ? `\n\n${post.body}` : "");
-      await Share.share({ message });
-    } catch (error) {
-      console.log("Error sharing post:", error);
+      await Share.share({
+        message: post.title + (post.body ? `\n\n${post.body}` : "")
+      });
+    } catch (err) {
+      console.log("Error sharing post:", err);
     }
   };
 
@@ -100,28 +113,21 @@ const PostDetailScreen = ({ route }) => {
     }
   };
 
-  const handleReport = async (commentId: string) => {
-    try {
-      await addDoc(collection(db, "reports"), {
-        type: "comment",
-        targetPostId: post.id,
-        targetCommentId: commentId,
-        reportedAt: serverTimestamp(),
-      });
-      Alert.alert("Reported", "Thanks — the moderation team will review this.");
-    } catch (err) {
-      console.log("report error", err);
-    }
+  const handleReport = async () => {
+    setAlertMessage("Reported Submitted. \nThe moderation team will review this.");
+    setAlertType("success");
+    setAlertVisible(true);
   };
 
   const renderComment = ({ item }) => (
     <View style={[styles.commentContainer, { backgroundColor: theme.commentBackground }]}>
-      <TouchableOpacity style={styles.commentHeader} onPress={() => Alert.alert("Profile clicked", `Navigate to ${item.author}'s profile`)}>
+      <TouchableOpacity
+        style={styles.commentHeader}
+        onPress={() => navigation.navigate("Profile", { uid: post.owner })}
+      >
         <Ionicons name="person-circle" size={30} color={theme.text} />
-        <Text style={[styles.commentAuthor, { color: theme.text }]}>{item.author}</Text>
-        <Text style={[styles.commentTime, { color: theme.dateGrey }]}>
-          {item.createdAt.toLocaleString()}
-        </Text>
+        <Text style={[styles.commentAuthor, { color: theme.text }]}>{item.authorName}</Text>
+        <Text style={[styles.commentTime, { color: theme.dateGrey }]}>{item.createdAt.toLocaleString()}</Text>
       </TouchableOpacity>
 
       <Text style={[styles.commentText, { color: theme.postBodyText }]}>{item.text}</Text>
@@ -132,8 +138,8 @@ const PostDetailScreen = ({ route }) => {
           <Text style={[styles.commentActionText, { color: theme.text }]}>{item.likes}</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
-        
-        <TouchableOpacity style={styles.commentActionBtn} onPress={() => handleReport(item.id)}>
+
+        <TouchableOpacity style={styles.commentActionBtn} onPress={() => handleReport()}>
           <MaterialIcons name="report" size={20} color={theme.reportRed} />
           <Text style={[styles.commentActionText, { color: theme.text }]}>Report</Text>
         </TouchableOpacity>
@@ -146,15 +152,30 @@ const PostDetailScreen = ({ route }) => {
 
       {post.image && <Image source={{ uri: post.image }} style={styles.postImage} />}
       <Text style={[styles.title, { color: theme.text }]}>{post.title}</Text>
-      <Text style={[styles.body, { color: theme.postBodyText }]}>{post.body}</Text>
+      <RenderHTML
+        contentWidth={width - 40}
+        source={{ html: post.body }}
+        baseStyle={{ color: theme.postBodyText, fontSize: 14 }}
+        tagsStyles={{
+          b: { fontWeight: "bold" },
+          strong: { fontWeight: "bold" },
+          u: { textDecorationLine: "underline" },
+          i: { fontStyle: "italic" },
+        }}
+      />
 
       {/* Owner Section */}
-      <TouchableOpacity style={styles.ownerSection} onPress={() => Alert.alert("Owner clicked", `Navigate to ${post.owner || "Owner"}'s profile`)}>
-        <Ionicons name="person-circle" size={40} color={theme.text} />
-        <View style={{ marginLeft: 8 }}>
-          <Text style={[styles.ownerName, { color: theme.text }]}>{post.owner || "Owner of post"}</Text>
-        </View>
-      </TouchableOpacity>
+      {post.postType !== "report" && (
+        <TouchableOpacity
+          style={styles.ownerSection}
+          onPress={() => navigation.navigate("Profile", { uid: post.ownerUid })}
+        >
+          <Ionicons name="person-circle" size={40} color={theme.text} />
+          <View style={{ marginLeft: 8 }}>
+            <Text style={[styles.ownerName, { color: theme.text }]}>{post.ownerName || "Owner"}</Text>
+          </View>
+        </TouchableOpacity>
+      )}
 
       <Text style={[styles.date, { color: theme.dateGrey }]}>
         Posted on: {new Date().toLocaleDateString()}
@@ -171,7 +192,7 @@ const PostDetailScreen = ({ route }) => {
           <Text style={styles.actionText}>Share</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
-        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#d32f2f" }]}>
+        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: "#d32f2f" }]} onPress={handleReport}>
           <MaterialIcons name="report" size={20} color="white" />
           <Text style={styles.actionText}>Report</Text>
         </TouchableOpacity>
@@ -204,6 +225,13 @@ const PostDetailScreen = ({ route }) => {
           <Ionicons name="send" size={24} color={theme.text2} style={{ marginLeft: 8 }} />
         </TouchableOpacity>
       </View>
+
+      <CustomAlert
+        message={alertMessage}
+        visible={alertVisible}
+        onHide={() => setAlertVisible(false)}
+        type={alertType}
+      />
     </View>
   );
 };
@@ -213,10 +241,11 @@ export default PostDetailScreen;
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 12 },
   postImage: { width: "100%", height: 200, borderRadius: 8, marginBottom: 12 },
-  title: { fontSize: 18, fontWeight: "bold", marginBottom: 6 },
-  body: { fontSize: 14, marginBottom: 8 },
-  ownerSection: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
+  title: { fontSize: 20, fontWeight: "bold", marginBottom: 6 },
+  body: { fontSize: 16, marginBottom: 8 },
+  ownerSection: { flexDirection: "row", alignItems: "center", marginTop: 10 },
   ownerName: { fontWeight: "bold" },
+  date: { marginVertical: 10 },
   actionsRow: { flexDirection: "row", marginBottom: 12 },
   actionBtn: {
     flexDirection: "row",
@@ -235,7 +264,7 @@ const styles = StyleSheet.create({
   commentsTitle: { fontWeight: "bold", fontSize: 16, marginBottom: 6 },
   commentInputRow: { flexDirection: "row", alignItems: "center", marginTop: 8 },
   commentInput: { flex: 1, height: 40, borderRadius: 8, borderWidth: 1, paddingHorizontal: 10 },
-  commentActionsRow: {flexDirection: "row"},
+  commentActionsRow: { flexDirection: "row" },
   commentActionBtn: { flexDirection: "row", alignItems: "center", marginRight: 12 },
   commentActionText: { marginLeft: 4 },
 });

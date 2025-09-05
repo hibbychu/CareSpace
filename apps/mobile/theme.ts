@@ -10,6 +10,7 @@ export const lightTheme = {
   bottomBorder: "gray",
   iconsGrey: "grey",
   commentBackground: "#DADADA",
+  cardBackground: "#fff",
   dateGrey: "#aaa",
   reportRed: "#d32f2f",
 };
@@ -26,6 +27,7 @@ export const darkTheme = {
   bottomBorder: "#444",
   iconsGrey: "#fff",
   commentBackground: "#1c1c1c",
-  dateGrey: "#666",
+  cardBackground: "#2A2A2A",
+  dateGrey: "#aaa",
   reportRed: "#ff6b6b",
 };

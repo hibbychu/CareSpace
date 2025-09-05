@@ -19,7 +19,23 @@ import EventDetails from "./screens/EventDetails";
 import ForumScreen from "./screens/ForumScreen";
 import PostDetailScreen from "./screens/PostDetailScreen";
 import CreatePostScreen from "./screens/CreatePostScreen";
-import EditProfile from './screens/EditProfileScreen';
+import EditProfile from './screens/EditProfile';
+import NewsScreen from "./screens/NewsScreen";
+
+
+
+function ThemeToggleButton() {
+  const { theme, toggleTheme } = useContext(ThemeContext);
+  return (
+    <MaterialIcons
+      name={theme ? "light-mode" : "dark-mode"}
+      size={26}
+      color="#fff"
+      style={{ marginRight: 12 }}
+      onPress={toggleTheme}
+    />
+  );
+}
 
 // Bottom Tab
 const Tab = createBottomTabNavigator();
@@ -27,14 +43,18 @@ const Tab = createBottomTabNavigator();
 // Home Stack
 const HomeStackNav = createNativeStackNavigator();
 function HomeStack() {
+  const { theme } = useContext(ThemeContext);
   return (
-    <HomeStackNav.Navigator>
+    <HomeStackNav.Navigator
+      screenOptions={{
+        headerRight: () => <ThemeToggleButton />,
+      }}>
       <HomeStackNav.Screen
         name="HomeMain"
         component={HomeScreen}
         options={{
           headerTitle: "CareSpace",
-          headerStyle: { backgroundColor: "#7b2cbf" },
+          headerStyle: { backgroundColor: theme.primary },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
         }}
@@ -44,7 +64,7 @@ function HomeStack() {
         component={EventsScreen}
         options={{
           title: "All Events",
-          headerStyle: { backgroundColor: "#4f46e5" },
+          headerStyle: { backgroundColor: theme.primary },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
         }}
@@ -52,9 +72,19 @@ function HomeStack() {
       <HomeStackNav.Screen
         name="EventDetails"
         component={EventDetails}
+        options={({ route }) => ({
+          title: route.params?.event?.eventName || "Event Details",
+          headerStyle: { backgroundColor: theme.primary },
+          headerTintColor: "#fff",
+          headerTitleAlign: "center",
+        })}
+      />
+      <HomeStackNav.Screen
+        name="News"
+        component={NewsScreen}
         options={{
-          title: "Event Name",
-          headerStyle: { backgroundColor: "#4f46e5" },
+          title: "All News",
+          headerStyle: { backgroundColor: theme.primary },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
         }}
@@ -130,14 +160,18 @@ function CreatePostButton() {
 
 const ProfileStackNav = createNativeStackNavigator();
 function ProfileStack() {
+  const { theme } = useContext(ThemeContext);
   return (
-    <ProfileStackNav.Navigator>
+    <ProfileStackNav.Navigator
+      screenOptions={{
+        headerRight: () => <ThemeToggleButton />,
+      }}>
       <ProfileStackNav.Screen
         name="ProfileMain"
         component={Profile}
         options={{
           headerTitle: "CareSpace",
-          headerStyle: { backgroundColor: "#4f46e5" },
+          headerStyle: { backgroundColor: theme.primary },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
         }}
@@ -147,7 +181,7 @@ function ProfileStack() {
         component={LoginScreen}
         options={{
           headerTitle: "Login",
-          headerStyle: { backgroundColor: "#4f46e5" },
+          headerStyle: { backgroundColor: theme.primary },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
         }}
@@ -157,7 +191,7 @@ function ProfileStack() {
         component={SignupScreen}
         options={{
           headerTitle: "Sign Up",
-          headerStyle: { backgroundColor: "#4f46e5" },
+          headerStyle: { backgroundColor: theme.primary },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
         }}
@@ -180,7 +214,10 @@ function ProfileStack() {
 const CreatePostStackNav = createNativeStackNavigator();
 function CreatePostStack() {
   return (
-    <CreatePostStackNav.Navigator>
+    <CreatePostStackNav.Navigator
+      screenOptions={{
+        headerRight: () => <ThemeToggleButton />,
+      }}>
       <CreatePostStackNav.Screen
         name="CreatePost"
         component={CreatePostScreen}
@@ -199,10 +236,11 @@ function CreatePostStack() {
 // Forum Stack
 const ForumStackNav = createNativeStackNavigator();
 function ForumStack() {
-  const { isDarkTheme, toggleTheme } = React.useContext(ThemeContext);
-
   return (
-    <ForumStackNav.Navigator>
+    <ForumStackNav.Navigator
+      screenOptions={{
+        headerRight: () => <ThemeToggleButton />,
+      }}>
       <ForumStackNav.Screen
         name="ForumMain"
         component={ForumScreen}
@@ -211,20 +249,21 @@ function ForumStack() {
           headerStyle: { backgroundColor: "#7b2cbf" },
           headerTintColor: "#fff",
           headerTitleAlign: "center",
-          headerRight: () => (
-            <MaterialIcons
-              name={isDarkTheme ? "light-mode" : "dark-mode"}
-              size={26}
-              color="#fff"
-              style={{ marginRight: 12 }}
-              onPress={toggleTheme}
-            />
-          ),
         }}
       />
       <ForumStackNav.Screen
         name="PostDetail"
         component={PostDetailScreen}
+        options={({ route }) => ({
+          headerTitle: route.params?.post?.postType === "report" ? "Report Details" : "Post Details",
+          headerStyle: { backgroundColor: route.params?.post?.postType === "report" ? "#d32f2f" : "#7b2cbf",},
+          headerTintColor: "#fff",
+          headerTitleAlign: "center",
+        })}
+      />
+      <ForumStackNav.Screen
+        name="Profile"
+        component={Profile}
         options={{
           headerTitle: "Post Details",
           headerStyle: { backgroundColor: "#7b2cbf" },
