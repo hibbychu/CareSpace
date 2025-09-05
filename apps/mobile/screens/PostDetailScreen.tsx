@@ -105,7 +105,7 @@ const PostDetailScreen = ({ route, navigation }) => {
     }
   };
 
-  const likePost = async (commentId: string) => {
+  const likePost = async () => {
     try {
       const ref = doc(db, "posts", post.id);
       await updateDoc(ref, { likes: increment(1) });
@@ -194,7 +194,7 @@ const PostDetailScreen = ({ route, navigation }) => {
       </Text>
 
       <View style={styles.actionsRow}>
-        <TouchableOpacity onPress={() => likePost(post.id)} style={[styles.actionBtn, { backgroundColor: theme.text2 }]} >
+        <TouchableOpacity onPress={() => likePost()} style={[styles.actionBtn, { backgroundColor: theme.text2 }]} >
           <Ionicons name="heart" size={20} color="white" />
           <Text style={styles.actionText}>{postData.likes}</Text>
         </TouchableOpacity>

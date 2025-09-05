@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Menu } from "react-native-paper";
 import { ThemeContext } from "../ThemeContext";
 import { db } from "../firebase";
-import { collection, query, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, Timestamp, doc, updateDoc, increment } from "firebase/firestore";
 import RenderHTML from "react-native-render-html";
 
 export default function ForumScreen({ navigation }) {
@@ -68,7 +68,6 @@ export default function ForumScreen({ navigation }) {
         return Math.ceil(((date.getTime() - onejan.getTime()) / millisecsInDay + onejan.getDay() + 1) / 7);
     };
 
-
     // fetch posts from Firestore
     useEffect(() => {
         const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
@@ -91,6 +90,16 @@ export default function ForumScreen({ navigation }) {
         });
         return () => unsub();
     }, []);
+
+    const likePost = async (postId: string) => {
+        try {
+            const ref = doc(db, "posts", postId);
+            await updateDoc(ref, { likes: increment(1) });
+
+        } catch (err) {
+            console.log("comment upvote error", err);
+        }
+    };
 
     const handleShare = async (post: any) => {
         try {
@@ -121,7 +130,7 @@ export default function ForumScreen({ navigation }) {
                 ) : null}
 
                 <View style={[styles.actionsRow, { backgroundColor: theme.secondary }]}>
-                    <TouchableOpacity style={styles.actionBtn}>
+                    <TouchableOpacity style={styles.actionBtn} onPress={() => likePost(item.id)} >
                         <Ionicons name="heart" size={20} color="white" />
                         <Text style={styles.actionText}>{item.likes}</Text>
                     </TouchableOpacity>
