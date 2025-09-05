@@ -27,12 +27,17 @@ export default function CreatePostScreen() {
     return () => unsubscribe();
   }, []);
 
+
+  const customAlert = (alertType: "success" | "error" | "info" | "warning", alertText: string) => {
+    setAlertMessage(alertText);
+    setAlertType(alertType);
+    setAlertVisible(true);
+  };
+
   const handleAddImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
-      setAlertMessage("Permission to access media library is required!");
-      setAlertType("error");
-      setAlertVisible(true);
+      customAlert("error", "Permission to access media library is required!");
       return;
     }
 
@@ -51,16 +56,12 @@ export default function CreatePostScreen() {
 
   const handlePost = async () => {
     if (!user) {
-      setAlertMessage("Login required. Please sign in to create a post or report");
-      setAlertType("info");
-      setAlertVisible(true);
+      customAlert("info", "Login required. Please sign in to create a post or report");
       return;
     }
     const bodyHtml = await richText.current?.getContentHtml();
     if (!title.trim() || !bodyHtml?.trim()) {
-      setAlertMessage("Title and body cannot be empty");
-      setAlertType("error");
-      setAlertVisible(true);
+      customAlert("error", "Title and body cannot be empty");
       return;
     }
 
@@ -76,17 +77,13 @@ export default function CreatePostScreen() {
         createdAt: serverTimestamp(),
       });
 
-      setAlertMessage("Post created successfully");
-      setAlertType("success");
-      setAlertVisible(true);
+      customAlert("success", "Post created successfully");
       setTitle("");
       setImages([]);
       richText.current?.setContentHTML(""); // clear editor
     } catch (err) {
       console.error("Error adding post:", err);
-      setAlertMessage("Failed to create post.");
-      setAlertType("error");
-      setAlertVisible(true);
+      customAlert("error", "Failed to create post.");
       return;
     }
   };
