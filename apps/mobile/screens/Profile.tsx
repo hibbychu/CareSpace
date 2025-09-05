@@ -1,7 +1,14 @@
-import { Image } from 'react-native';
-import React, { useEffect, useState, useCallback, useContext } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { Image } from "react-native";
+import React, { useEffect, useState, useCallback, useContext } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { auth } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
@@ -18,9 +25,14 @@ const Profile: React.FC = ({ navigation, route }) => {
   const styles = createStyles(theme);
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
-  const [alertType, setAlertType] = useState<"success" | "error" | "info" | "warning">("info");
+  const [alertType, setAlertType] = useState<
+    "success" | "error" | "info" | "warning"
+  >("info");
 
-  const customAlert = (alertType: "success" | "error" | "info" | "warning", alertText: string) => {
+  const customAlert = (
+    alertType: "success" | "error" | "info" | "warning",
+    alertText: string
+  ) => {
     setAlertMessage(alertText);
     setAlertType(alertType);
     setAlertVisible(true);
@@ -104,41 +116,49 @@ const Profile: React.FC = ({ navigation, route }) => {
           />
         ) : (
           <Image
-            source={{ uri: '' }} // fallback image
+            source={{ uri: "" }} // fallback image
             style={styles.avatar}
             resizeMode="cover"
           />
         )}
-
 
         <Text style={styles.name}>{profileUser?.displayName}</Text>
         <Text style={styles.email}>{profileUser?.email}</Text>
 
         {isOwnProfile && (
           <>
-            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('EditProfile')}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => navigation.navigate("EditProfile")}
+            >
               <Text style={styles.buttonText}>Edit Profile</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
+            <TouchableOpacity
+              style={[styles.button, styles.logoutButton]}
+              onPress={handleLogout}
+            >
               <Text style={styles.buttonText}>Logout</Text>
             </TouchableOpacity>
           </>
         )}
 
-        {(!uidFromParams && !user) && (<TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate("Login")}>
-          <Text style={styles.buttonText}>Login</Text>
-        </TouchableOpacity>
+        {!uidFromParams && !user && (
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate("Login")}
+          >
+            <Text style={styles.buttonText}>Login</Text>
+          </TouchableOpacity>
         )}
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>About Me</Text>
-          <Text style={styles.sectionContent}>{profileUser?.bio}</Text>
-        </View>
+        {user && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>About Me</Text>
+            <Text style={styles.sectionContent}>{profileUser?.bio}</Text>
+          </View>
+        )}
       </ScrollView>
-
 
       <CustomAlert
         message={alertMessage}
@@ -150,17 +170,64 @@ const Profile: React.FC = ({ navigation, route }) => {
   );
 };
 
-const createStyles = (theme: any) => StyleSheet.create({
-  container: { alignItems: 'center', padding: 24, backgroundColor: theme.background, },
-  avatar: { width: 120, height: 120, borderRadius: 60, marginBottom: 14, marginTop: 40, borderWidth: 2, borderColor: '#ddd' },
-  name: { fontSize: 26, fontWeight: 'bold', marginBottom: 2, color: theme.text },
-  email: { fontSize: 16, color: theme.dateGrey, marginBottom: 16 },
-  button: { backgroundColor: '#7b2cbf', paddingVertical: 13, paddingHorizontal: 50, borderRadius: 10, marginVertical: 8, width: '95%', alignItems: 'center' },
-  logoutButton: { backgroundColor: '#ef4444' },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600', letterSpacing: 1 },
-  section: { marginTop: 30, width: '100%', backgroundColor: theme.cardBackground, padding: 16, borderRadius: 12, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, elevation: 2, marginBottom: 24 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 8, color: theme.text },
-  sectionContent: { fontSize: 15, color: theme.text, lineHeight: 22 },
-});
+const createStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      alignItems: "center",
+      padding: 24,
+      backgroundColor: theme.background,
+    },
+    avatar: {
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      marginBottom: 14,
+      marginTop: 40,
+      borderWidth: 2,
+      borderColor: "#ddd",
+    },
+    name: {
+      fontSize: 26,
+      fontWeight: "bold",
+      marginBottom: 2,
+      color: theme.text,
+    },
+    email: { fontSize: 16, color: theme.dateGrey, marginBottom: 16 },
+    button: {
+      backgroundColor: "#7b2cbf",
+      paddingVertical: 13,
+      paddingHorizontal: 50,
+      borderRadius: 10,
+      marginVertical: 8,
+      width: "95%",
+      alignItems: "center",
+    },
+    logoutButton: { backgroundColor: "#ef4444" },
+    buttonText: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "600",
+      letterSpacing: 1,
+    },
+    section: {
+      marginTop: 30,
+      width: "100%",
+      backgroundColor: theme.cardBackground,
+      padding: 16,
+      borderRadius: 12,
+      shadowColor: "#000",
+      shadowOpacity: 0.08,
+      shadowRadius: 4,
+      elevation: 2,
+      marginBottom: 24,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      marginBottom: 8,
+      color: theme.text,
+    },
+    sectionContent: { fontSize: 15, color: theme.text, lineHeight: 22 },
+  });
 
 export default Profile;
