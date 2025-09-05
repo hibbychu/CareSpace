@@ -11,6 +11,7 @@ type Event = {
   organiser: string;
   address: string;
   description: string;
+  imageUrl: string;
 };
 
 type RootStackParamList = {
@@ -24,7 +25,6 @@ function EventDetails() {
   const [event, setEvent] = useState<Event | null>(null);
 
   useEffect(() => {
-    console.log("EventDetails received eventID:", eventID);
     async function fetchEvent() {
       try {
         const docRef = doc(db, "events", eventID);
@@ -50,7 +50,10 @@ function EventDetails() {
   return (
     <ScrollView style={styles.container}>
       {/* Banner image */}
-      <Image source={temp} style={styles.image} />
+      <Image
+        source={event.imageUrl ? { uri: event.imageUrl } : temp}
+        style={styles.image}  // matches your defined style key
+      />
 
       {/* Event Name */}
       <Text style={styles.title}>{event.eventName}</Text>

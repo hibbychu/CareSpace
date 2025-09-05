@@ -57,7 +57,6 @@ export default function CreatePostScreen() {
       return;
     }
     const bodyHtml = await richText.current?.getContentHtml();
-    console.log({ title, bodyHtml, images, type });
     if (!title.trim() || !bodyHtml?.trim()) {
       setAlertMessage("Title and body cannot be empty");
       setAlertType("error");
@@ -70,9 +69,8 @@ export default function CreatePostScreen() {
         title,
         body: bodyHtml,
         images,
-        type,
         postType: type === "public" ? "post" : "report",
-        ownerUid: auth.currentUser?.uid,
+        ownerUid: type === "public" ? auth.currentUser?.uid : "",
         owner: auth.currentUser?.email || "Anonymous",
         createdAt: serverTimestamp(),
       });

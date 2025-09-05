@@ -12,7 +12,7 @@ import temp from "../assets/temp.png";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ThemeContext } from "../ThemeContext";
-import { db } from "../firebase";
+import { db, fetchAndStoreNews } from "../firebase";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 
 type HomeStackParamList = {
@@ -29,22 +29,16 @@ type Event = {
   organiser: string;
   address: string;
   description: string;
+  imageUrl?: string;
 };
 
-const latestArticles = [
-  {
-    id: "1",
-    title: "Migrant Workers in Singapore: Safety Measures",
-    description: "Authorities have introduced new safety protocols...",
-    url: "https://example.com/article1",
-  },
-  {
-    id: "2",
-    title: "Housing Improvements for Migrant Workers",
-    description: "A new initiative aims to provide better living conditions...",
-    url: "https://example.com/article2",
-  },
-];
+type NewsArticle = {
+  id: string;
+  title: string;
+  description: string;
+  url: string;
+  urlToImage?: string | null;
+};
 
 function HomeScreen() {
   const { theme } = useContext(ThemeContext);
@@ -53,36 +47,63 @@ function HomeScreen() {
 
   const styles = createStyles(theme);
   const [events, setEvents] = useState<Event[]>([]);
+  const [newsArticles, setNewsArticles] = useState<NewsArticle[]>([]);
+  const [loadingNews, setLoadingNews] = useState(true);
 
-  // Fetch events from Firestore
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        // ⚡ make sure this matches your field name in Firestore
-        const q = query(collection(db, "events"), orderBy("dateTime", "asc"));
-        const querySnapshot = await getDocs(q);
+    // Fetch and store news once on app start (or debug)
+    fetchAndStoreNews().then(() => {
+      console.log("fetchAndStoreNews triggered");
+      // After fetching and storing news, fetch from Firestore
+      fetchEventsAndNews();
+    });
+  }, []);
 
-        const eventsData: Event[] = querySnapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            eventID: doc.id, // <-- add this
-            eventName: data.eventName,
-            dateTime: data.dateTime,
-            organiser: data.organiser,
-            address: data.address,
-            description: data.description,
-          };
-        });
+  const fetchEventsAndNews = async () => {
+    try {
+      // Fetch Events
+      const eventsQuery = query(
+        collection(db, "events"),
+        orderBy("dateTime", "asc")
+      );
+      const eventsSnapshot = await getDocs(eventsQuery);
+      const eventsData: Event[] = eventsSnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          eventID: doc.id,
+          eventName: data.eventName,
+          dateTime: data.dateTime,
+          organiser: data.organiser,
+          address: data.address,
+          description: data.description,
+          imageUrl: data.imageUrl || null,
+        };
+      });
+      setEvents(eventsData);
 
-        setEvents(eventsData);
-        console.log("Fetched events:", eventsData);
-      } catch (error) {
-        console.log("Error fetching events:", error);
-      }
-    };
-
-  fetchEvents();
-}, []);
+      // Fetch News ordered by publishedAt descending
+      const newsQuery = query(
+        collection(db, "news"),
+        orderBy("publishedAt", "desc")
+      );
+      const newsSnapshot = await getDocs(newsQuery);
+      const newsData: NewsArticle[] = newsSnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          title: data.title,
+          description: data.description,
+          url: data.url,
+          urlToImage: data.urlToImage || null,
+        };
+      });
+      setNewsArticles(newsData);
+      setLoadingNews(false);
+    } catch (error) {
+      console.log("Error fetching data:", error);
+      setLoadingNews(false);
+    }
+  };
 
   return (
     <ScrollView
@@ -103,7 +124,10 @@ function HomeScreen() {
         {/* Render Firestore events */}
         {events.slice(0, 1).map((event) => (
           <View key={event.eventID} style={styles.card}>
-            <Image source={temp} style={styles.cardImage} />
+            <Image
+              source={event.imageUrl ? { uri: event.imageUrl } : temp} // fallback to temp if no imageUrl
+              style={styles.cardImage}
+            />
             <View style={styles.cardContent}>
               <Text style={styles.cardTitle}>{event.eventName}</Text>
               <Text style={styles.cardDate}>
@@ -122,7 +146,11 @@ function HomeScreen() {
               </Text>
               <TouchableOpacity
                 style={styles.cardButton}
-                onPress={() => navigation.navigate("EventDetails", { eventID: event.eventID })}
+                onPress={() =>
+                  navigation.navigate("EventDetails", {
+                    eventID: event.eventID,
+                  })
+                }
               >
                 <Text style={styles.cardButtonText}>More Details</Text>
               </TouchableOpacity>
@@ -130,7 +158,7 @@ function HomeScreen() {
           </View>
         ))}
       </View>
-      
+
       {/* Latest News Section */}
       <View style={styles.titleRow}>
         <Text style={styles.name}>Latest News</Text>
@@ -146,25 +174,36 @@ function HomeScreen() {
       <View style={styles.cardsContainer}>
         {/* News Cards */}
         <View style={styles.cardsContainer}>
-          {latestArticles.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={styles.card}
-              onPress={async () => {
-                const supported = await Linking.canOpenURL(item.url);
-                if (supported) {
-                  await Linking.openURL(item.url); // opens in browser
-                } else {
-                  alert("Cannot open this URL: " + item.url);
-                }
-              }}
-            >
-              <View style={styles.cardContent}>
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <Text style={styles.cardDate}>{item.description}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+          {loadingNews ? (
+            <Text style={{ color: theme.text }}>Loading news...</Text>
+          ) : newsArticles.length === 0 ? (
+            <Text style={{ color: theme.text }}>No news available.</Text>
+          ) : (
+            newsArticles.slice(0, 3).map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.card}
+                onPress={async () => {
+                  const supported = await Linking.canOpenURL(item.url);
+                  if (supported) {
+                    await Linking.openURL(item.url);
+                  } else {
+                    alert("Cannot open this URL: " + item.url);
+                  }
+                }}
+              >
+                <Image
+                  source={item.urlToImage ? { uri: item.urlToImage } : temp}
+                  style={styles.cardImage}
+                  resizeMode="cover"
+                />
+                <View style={styles.cardContent}>
+                  <Text style={styles.cardTitle}>{item.title}</Text>
+                  <Text style={{ color: theme.text }}>{item.description}</Text>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
         </View>
       </View>
     </ScrollView>
